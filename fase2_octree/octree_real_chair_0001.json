@@ -1,0 +1,40 @@
+{
+  "archivo": "chair_0001",
+  "R32": {
+    "profundidad_max": 5,
+    "n_nodos_totales": 1121,
+    "n_hojas_ocupadas": 762,
+    "ocupacion_por_nivel_pct": [
+      100.0,
+      100.0,
+      48.4375,
+      15.625,
+      5.835,
+      2.3254
+    ],
+    "memoria_ram_real_kib": 486.547,
+    "memoria_binaria_estimada_kib": 15.326,
+    "memoria_densa_kib": 512.0,
+    "factor_ahorro_ram_vs_densa": 1.05,
+    "factor_ahorro_binario_vs_densa": 33.41
+  },
+  "R64": {
+    "profundidad_max": 6,
+    "n_nodos_totales": 3694,
+    "n_hojas_ocupadas": 2573,
+    "ocupacion_por_nivel_pct": [
+      100.0,
+      100.0,
+      48.4375,
+      15.625,
+      5.835,
+      2.3254,
+      0.9815
+    ],
+    "memoria_ram_real_kib": 1611.539,
+    "memoria_binaria_estimada_kib": 50.504,
+    "memoria_densa_kib": 4096.0,
+    "factor_ahorro_ram_vs_densa": 2.54,
+    "factor_ahorro_binario_vs_densa": 81.1
+  }
+}
