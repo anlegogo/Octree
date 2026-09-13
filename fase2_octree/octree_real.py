@@ -541,32 +541,127 @@ def ocupacion_por_nivel_desde_hojas(centros_hoja: np.ndarray, profundidad_max: i
 
 
 # ──────────────────────────────────────────────────────────────
-# COMPARATIVA DE MEMORIA: arbol disperso vs rejilla densa
+# MEDICION REAL DE MEMORIA (objetos Python) vs REJILLA DENSA
 # ──────────────────────────────────────────────────────────────
+#
+# CORRECCION (observacion de Andres Gonzalez): la version anterior de
+# comparar_memoria() calculaba la memoria como "24 bytes por hoja"
+# (3 floats de centro + 3 floats de normal), IGNORANDO por completo:
+#   - los nodos INTERNOS del arbol (solo contaba hojas)
+#   - la lista de 8 punteros a hijos de cada nodo
+#   - la sobrecarga real de los objetos Python (incluso con __slots__,
+#     cada instancia y cada array de numpy tiene overhead propio)
+#
+# La version corregida MIDE (no estima) la memoria real en RAM
+# recorriendo el arbol completo con sys.getsizeof() sobre cada objeto
+# NodoOctree, su lista de hijos, y sus arrays de numpy (centro y
+# normal). Esto captura el costo real de TODOS los nodos existentes,
+# internos y hojas, tal como estan efectivamente representados en
+# memoria durante la ejecucion.
+
+import sys
+
+
+def medir_memoria_real_python(raiz: NodoOctree) -> dict:
+    """
+    Mide la memoria REAL en RAM ocupada por el arbol de objetos Python,
+    recorriendo TODOS los nodos existentes (internos y hojas, nunca los
+    podados) y sumando sys.getsizeof() de:
+      - el objeto NodoOctree en si (usa __slots__, sin __dict__)
+      - la lista de 8 elementos hijos (aunque varios sean None)
+      - el array numpy del centro (3 floats)
+      - el array numpy de la normal promedio (solo en hojas ocupadas)
+
+    A diferencia de una formula teorica simplificada, esto es una
+    MEDICION real del costo en memoria de cada objeto tal como Python
+    los representa, incluyendo su overhead individual.
+
+    Retorna
+    -------
+    dict con n_nodos_medidos, memoria_real_bytes, memoria_real_kb
+    """
+    n_nodos = [0]
+    total_bytes = [0]
+
+    def _rec(nodo):
+        if nodo is None:
+            return
+        n_nodos[0] += 1
+
+        total_bytes[0] += sys.getsizeof(nodo)          # objeto NodoOctree
+        total_bytes[0] += sys.getsizeof(nodo.hijos)     # lista de 8 punteros
+        total_bytes[0] += sys.getsizeof(nodo.centro) + nodo.centro.nbytes
+
+        if nodo.normal_promedio is not None:
+            total_bytes[0] += (
+                sys.getsizeof(nodo.normal_promedio) + nodo.normal_promedio.nbytes
+            )
+
+        if not nodo.es_hoja:
+            for hijo in nodo.hijos:
+                _rec(hijo)
+
+    _rec(raiz)
+
+    return {
+        "n_nodos_medidos": n_nodos[0],
+        "memoria_real_bytes": total_bytes[0],
+        "memoria_real_kb": round(total_bytes[0] / 1024, 3),
+    }
+
 
 def comparar_memoria(raiz: NodoOctree, resolucion: int, profundidad_max: int) -> dict:
     """
-    Calcula el ahorro de memoria REAL del octree disperso frente a la
-    rejilla densa equivalente, para reportar honestamente en la tesis.
+    Compara tres magnitudes de memoria, claramente diferenciadas:
+
+    1. memoria_ram_real_kb: memoria REAL medida de los objetos Python
+       del arbol completo (internos + hojas), via sys.getsizeof()
+       recorriendo cada nodo -- ver medir_memoria_real_python().
+
+    2. memoria_binaria_estimada_kb: estimacion TEORICA (no medida) del
+       tamaño minimo si se serializara el arbol en un formato binario
+       compacto (1 byte profundidad + 1 byte mascara de hijos + 12
+       bytes de normal por CADA nodo existente, internos y hojas). Esta
+       cifra NO es memoria de objetos Python; es una cota inferior de
+       referencia para comparar contra el archivo .npz real (que ademas
+       incluye compresion y overhead del formato .npz).
+
+    3. memoria_densa_kb: memoria de la rejilla densa equivalente
+       (formato descartado tras la observacion de Andres Gonzalez):
+       4 canales x R^3 celdas x 4 bytes/celda (float32).
+
+    Retorna un dict con las tres magnitudes y los factores de ahorro
+    correspondientes (RAM real vs. densa, y binario teorico vs. densa).
     """
     n_hojas = len(recolectar_hojas(raiz))
     n_nodos_totales = contar_nodos_totales(raiz)
 
-    # Memoria dispersa: cada hoja guarda 3 floats (centro) + 3 floats
-    # (normal) = 6 floats de 4 bytes = 24 bytes/hoja.
-    bytes_por_hoja = 6 * 4
-    memoria_dispersa_bytes = n_hojas * bytes_por_hoja
+    medicion_ram = medir_memoria_real_python(raiz)
 
-    # Memoria densa equivalente (formato anterior):
+    # Estimacion teorica de una serializacion binaria minima (NO es
+    # memoria de objetos Python): 1 byte profundidad + 1 byte mascara
+    # de hijos + 12 bytes de normal (3 floats), por CADA nodo existente
+    # (internos y hojas), igual al formato usado por
+    # guardar_octree_disperso() antes de la compresion .npz.
+    bytes_por_nodo_binario = 1 + 1 + 12
+    memoria_binaria_estimada_bytes = n_nodos_totales * bytes_por_nodo_binario
+
+    # Memoria densa equivalente (formato anterior, descartado):
     # 4 canales x R^3 celdas x 4 bytes/celda (float32)
     memoria_densa_bytes = 4 * (resolucion ** 3) * 4
 
     return {
         "n_hojas_ocupadas": n_hojas,
         "n_nodos_totales_arbol": n_nodos_totales,
-        "memoria_dispersa_kb": round(memoria_dispersa_bytes / 1024, 3),
+        "memoria_ram_real_kb": medicion_ram["memoria_real_kb"],
+        "memoria_binaria_estimada_kb": round(memoria_binaria_estimada_bytes / 1024, 3),
         "memoria_densa_kb": round(memoria_densa_bytes / 1024, 3),
-        "factor_ahorro": round(memoria_densa_bytes / max(memoria_dispersa_bytes, 1), 2),
+        "factor_ahorro_ram_vs_densa": round(
+            memoria_densa_bytes / max(medicion_ram["memoria_real_bytes"], 1), 2
+        ),
+        "factor_ahorro_binario_vs_densa": round(
+            memoria_densa_bytes / max(memoria_binaria_estimada_bytes, 1), 2
+        ),
         "pct_ocupacion_hoja": round(100 * n_hojas / (resolucion ** 3), 4),
     }
 
