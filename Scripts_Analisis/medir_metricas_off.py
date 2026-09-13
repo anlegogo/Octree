@@ -1,19 +1,27 @@
 """
 medir_metricas_off.py
 ======================
-Procesa todos los archivos .off de ModelNet40 y calcula las metricas
-de ocupacion, tiempo de procesamiento y memoria requeridas para la
-tabla del capitulo de metodologia.
+Procesa TODOS los archivos .off de ModelNet40 y calcula las metricas
+de estructura del octree REAL, tiempo de procesamiento y almacenamiento
+real en disco, para la tabla del capitulo de metodologia.
+
+CORRECCION respecto a versiones anteriores: ya no se voxeliza a una
+rejilla densa de un solo canal para "estimar" memoria. Se construye
+el octree REAL (con poda, ver octree_real.py) para cada objeto, se
+guarda en disco con su estructura jerarquica completa, y se miden
+directamente:
+  - Numero de nodos totales del arbol (internos + hojas)
+  - Numero de hojas ocupadas
+  - Tamaño REAL del archivo .npz en disco (no estimado)
+  - Porcentaje de ocupacion en el nivel hoja
 
 Metricas calculadas por objeto:
   - Numero de vertices y caras de la malla original
-  - Tiempo de normalizacion + muestreo de superficie (ms)
-  - Tiempo de cuantizacion a grid 32^3 (ms)
-  - Tiempo de cuantizacion a grid 64^3 (ms)
-  - Celdas ocupadas en 32^3 (absoluto y porcentaje)
-  - Celdas ocupadas en 64^3 (absoluto y porcentaje)
-  - Memoria del grid 32^3 (KB, float32)
-  - Memoria del grid 64^3 (KB, float32)
+  - Tiempo de lectura + normalizacion + muestreo (ms)
+  - Tiempo de construccion del arbol real, 32^3 y 64^3 (ms)
+  - Nodos totales y hojas ocupadas del arbol, 32^3 y 64^3
+  - Porcentaje de ocupacion en la hoja, 32^3 y 64^3
+  - Tamaño REAL del archivo .npz guardado (KB), 32^3 y 64^3
 
 Salida:
   - resultados/metricas_off_completo.csv   (todas las muestras)
@@ -31,17 +39,28 @@ import csv
 import json
 import time
 import argparse
-import tracemalloc
 import numpy as np
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 
-RAIZ_DATASET = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\Dataset\ModelNet40")
-DIR_RESULTADOS = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\resultados")
+RAIZ_PROYECTO = Path(__file__).parent.parent
+sys.path.insert(0, str(RAIZ_PROYECTO / "fase2_octree"))
+
+from octree import leer_off, normalizar_malla, muestrear_superficie_con_normales
+from octree_real import (
+    construir_octree, guardar_octree_disperso, recolectar_hojas,
+    contar_nodos_totales,
+)
+
+RAIZ_DATASET   = RAIZ_PROYECTO / "Dataset" / "ModelNet40"
+DIR_RESULTADOS = RAIZ_PROYECTO / "resultados"
+DIR_TEMP_NPZ   = RAIZ_PROYECTO / "data" / "_temp_medicion"  # npz temporales de medicion
 N_PUNTOS_MUESTREO = 20000
 N_PROCESOS = 10
 SEED = 42
+PROFUNDIDAD_POR_RESOLUCION = {32: 5, 64: 6}
+RESOLUCIONES = [32, 64]
 
 CLASES = [
     "airplane", "bathtub", "bed", "bench", "bookshelf",
@@ -56,84 +75,6 @@ CLASES = [
 
 
 # ──────────────────────────────────────────────────────────────
-# PIPELINE GEOMETRICO (sin dependencias externas)
-# ──────────────────────────────────────────────────────────────
-
-def leer_off(ruta: str) -> tuple:
-    with open(ruta) as f:
-        lineas = f.read().splitlines()
-    inicio = 1 if lineas[0].strip().upper() == "OFF" else 0
-    if lineas[0].strip().upper().startswith("OFF") and lineas[0].strip().upper() != "OFF":
-        lineas[0] = lineas[0][3:].strip(); inicio = 0
-    n_v, n_c, _ = map(int, lineas[inicio].split())
-    verts = np.array([list(map(float, lineas[inicio+1+i].split()[:3]))
-                      for i in range(n_v)], dtype=np.float32)
-    caras = []
-    for i in range(n_c):
-        t = list(map(int, lineas[inicio+1+n_v+i].split()))
-        if len(t) >= 4:
-            caras.append(t[1:4])
-    caras = np.array(caras, dtype=np.int64) if caras else None
-    # Saneo indices fuera de rango
-    if caras is not None:
-        validas = ((caras >= 0) & (caras < n_v)).all(axis=1)
-        caras = caras[validas]
-    return verts, caras, n_v, n_c
-
-
-def normalizar(verts: np.ndarray) -> np.ndarray:
-    v = verts - verts.mean(axis=0)
-    s = np.max(np.abs(v))
-    return v / s if s > 0 else v
-
-
-def muestrear_superficie(verts, caras, n, seed):
-    if caras is None or len(caras) == 0:
-        rng = np.random.default_rng(seed)
-        idx = rng.choice(len(verts), n, replace=len(verts) < n)
-        return verts[idx]
-    rng = np.random.default_rng(seed)
-    v0, v1, v2 = verts[caras[:,0]], verts[caras[:,1]], verts[caras[:,2]]
-    areas = 0.5 * np.linalg.norm(np.cross(v1-v0, v2-v0), axis=1)
-    areas = np.nan_to_num(np.clip(areas, 0, None))
-    s = areas.sum()
-    if s <= 0:
-        return verts[:n]
-    probs = areas / s
-    idx = rng.choice(len(caras), n, p=probs)
-    r1 = rng.random(n).astype(np.float32)
-    r2 = rng.random(n).astype(np.float32)
-    sq = np.sqrt(r1)
-    return ((1-sq)[:,None]*v0[idx] + (sq*(1-r2))[:,None]*v1[idx]
-            + (sq*r2)[:,None]*v2[idx])
-
-
-def voxelizar(pts, R):
-    """
-    Grid de OCUPACION de un solo canal (R,R,R), usado unicamente para
-    calcular metricas de ocupacion (pct de celdas ocupadas). NO es el
-    tensor real que guarda preprocesar_octrees.py: ese tensor tiene 4
-    canales (ocupacion + nx,ny,nz), ver MEM_4CANALES_* mas abajo.
-    """
-    idx = np.clip(((pts + 1.0) * 0.5 * R).astype(np.int64), 0, R-1)
-    g = np.zeros((R, R, R), dtype=np.float32)
-    g[idx[:,0], idx[:,1], idx[:,2]] = 1.0
-    return g
-
-
-# Memoria del tensor REAL guardado por preprocesar_octrees.py y usado
-# por HCE y Net5: 4 canales float32 (ocupacion, nx, ny, nz).
-# Esta es la cifra que debe citarse como "almacenamiento del pipeline".
-MEM_4CANALES_32_KB = 4 * 32**3 * 4 / 1024   # = 512.0 KB
-MEM_4CANALES_64_KB = 4 * 64**3 * 4 / 1024   # = 4096.0 KB = 4.0 MB
-
-# Memoria de la grilla de OCUPACION de 1 solo canal (auxiliar, solo
-# para referencia / comparacion, NO es lo que se guarda en disco).
-MEM_1CANAL_32_KB = 32**3 * 4 / 1024   # = 128.0 KB
-MEM_1CANAL_64_KB = 64**3 * 4 / 1024   # = 1024.0 KB = 1.0 MB
-
-
-# ──────────────────────────────────────────────────────────────
 # PROCESAMIENTO DE UN ARCHIVO
 # ──────────────────────────────────────────────────────────────
 
@@ -142,67 +83,80 @@ def procesar_archivo(args: tuple) -> dict:
     nombre = Path(ruta).stem
 
     try:
-        # Lectura
-        verts_raw, caras, n_v, n_c = leer_off(ruta)
-
-        # Normalizacion + muestreo
+        # Lectura + normalizacion + muestreo (una sola vez, compartido
+        # entre resoluciones)
         t0 = time.perf_counter()
-        verts = normalizar(verts_raw)
-        pts = muestrear_superficie(verts, caras, N_PUNTOS_MUESTREO, SEED)
+        verts_raw, caras = leer_off(ruta)
+        verts = normalizar_malla(verts_raw)
         t_preproceso_ms = (time.perf_counter() - t0) * 1000
 
-        # Voxelizacion 32^3 (grid de ocupacion, 1 canal, solo para metricas)
+        n_v = len(verts_raw)
+        n_c = len(caras) if caras is not None else 0
+
+        rng = np.random.default_rng(SEED)
         t0 = time.perf_counter()
-        g32 = voxelizar(pts, 32)
-        t_vox32_ms = (time.perf_counter() - t0) * 1000
+        pts, normales = muestrear_superficie_con_normales(
+            verts, caras, N_PUNTOS_MUESTREO, rng,
+        )
+        t_muestreo_ms = (time.perf_counter() - t0) * 1000
 
-        # Voxelizacion 64^3
-        t0 = time.perf_counter()
-        g64 = voxelizar(pts, 64)
-        t_vox64_ms = (time.perf_counter() - t0) * 1000
-
-        # Metricas de ocupacion
-        ocup32 = int(g32.sum())
-        ocup64 = int(g64.sum())
-        pct32 = round(100 * ocup32 / g32.size, 4)
-        pct64 = round(100 * ocup64 / g64.size, 4)
-
-        return {
-            "nombre": nombre,
-            "clase": clase,
-            "split": split,
-            "n_vertices": n_v,
-            "n_caras": n_c,
+        fila = {
+            "nombre": nombre, "clase": clase, "split": split,
+            "n_vertices": n_v, "n_caras": n_c,
             "t_preproceso_ms": round(t_preproceso_ms, 3),
-            "t_vox32_ms":      round(t_vox32_ms, 3),
-            "t_vox64_ms":      round(t_vox64_ms, 3),
-            "t_total_ms":      round(t_preproceso_ms + t_vox32_ms + t_vox64_ms, 3),
-            "ocup32_abs":  ocup32,
-            "ocup32_pct":  pct32,
-            "ocup64_abs":  ocup64,
-            "ocup64_pct":  pct64,
-            # Memoria del tensor REAL de 4 canales (el que efectivamente
-            # se guarda en disco y se usa en HCE/Net5). Es la cifra
-            # correcta para reportar como "almacenamiento del pipeline".
-            "mem32_4canales_kb": round(MEM_4CANALES_32_KB, 2),
-            "mem64_4canales_kb": round(MEM_4CANALES_64_KB, 2),
-            # Memoria de la grilla de ocupacion de 1 canal (auxiliar,
-            # NO es lo que se guarda en disco; se mantiene solo por
-            # trazabilidad con versiones previas del script).
-            "mem32_1canal_kb": round(MEM_1CANAL_32_KB, 2),
-            "mem64_1canal_kb": round(MEM_1CANAL_64_KB, 2),
-            "error":       None,
+            "t_muestreo_ms": round(t_muestreo_ms, 3),
+            "error": None,
         }
+
+        for R in RESOLUCIONES:
+            profundidad_max = PROFUNDIDAD_POR_RESOLUCION[R]
+
+            t0 = time.perf_counter()
+            raiz = construir_octree(pts, normales, profundidad_max=profundidad_max)
+            t_arbol_ms = (time.perf_counter() - t0) * 1000
+
+            n_nodos = contar_nodos_totales(raiz)
+            hojas = recolectar_hojas(raiz)
+            n_hojas = len(hojas)
+            pct_ocup_hoja = 100.0 * n_hojas / (R ** 3)
+
+            # Guardar en disco temporal para medir el TAMAÑO REAL del
+            # archivo con estructura jerarquica completa (no estimado)
+            dir_split = DIR_TEMP_NPZ / f"R{R}" / clase / split
+            dir_split.mkdir(parents=True, exist_ok=True)
+            ruta_npz = dir_split / f"{nombre}.npz"
+
+            t0 = time.perf_counter()
+            guardar_octree_disperso(raiz, str(ruta_npz), etiqueta=0,
+                                    profundidad_max=profundidad_max)
+            t_guardado_ms = (time.perf_counter() - t0) * 1000
+
+            tam_archivo_kb = ruta_npz.stat().st_size / 1024
+
+            fila[f"t_arbol_{R}_ms"]      = round(t_arbol_ms, 3)
+            fila[f"t_guardado_{R}_ms"]   = round(t_guardado_ms, 3)
+            fila[f"nodos_totales_{R}"]   = n_nodos
+            fila[f"hojas_ocupadas_{R}"]  = n_hojas
+            fila[f"ocup_hoja_pct_{R}"]   = round(pct_ocup_hoja, 4)
+            fila[f"tam_npz_kb_{R}"]      = round(tam_archivo_kb, 3)
+
+            # Borrar el npz temporal (solo se necesitaba para medir tamaño)
+            ruta_npz.unlink()
+
+        fila["t_total_ms"] = round(
+            t_preproceso_ms + t_muestreo_ms
+            + sum(fila[f"t_arbol_{R}_ms"] for R in RESOLUCIONES)
+            + sum(fila[f"t_guardado_{R}_ms"] for R in RESOLUCIONES), 3,
+        )
+
+        return fila
 
     except Exception as e:
-        return {
-            "nombre": nombre, "clase": clase, "split": split,
-            "error": str(e),
-        }
+        return {"nombre": nombre, "clase": clase, "split": split, "error": str(e)}
 
 
 # ──────────────────────────────────────────────────────────────
-# RECOLECTAR ARCHIVOS
+# RECOLECCION Y PROCESAMIENTO MASIVO
 # ──────────────────────────────────────────────────────────────
 
 def recolectar(split: str, n_muestras: int = None) -> list:
@@ -213,101 +167,28 @@ def recolectar(split: str, n_muestras: int = None) -> list:
             continue
         archivos = sorted(carpeta.glob("*.off"))
         if n_muestras:
-            # Tomar proporcional al tamano de la clase
             archivos = archivos[:max(1, n_muestras // len(CLASES))]
         for f in archivos:
             tareas.append((str(f), clase, split))
     return tareas
 
 
-# ──────────────────────────────────────────────────────────────
-# ESTADISTICAS RESUMEN
-# ──────────────────────────────────────────────────────────────
-
-def calcular_resumen(resultados: list) -> dict:
-    """Calcula estadisticas globales sobre todos los resultados validos."""
-    validos = [r for r in resultados if r.get("error") is None]
-    if not validos:
-        return {}
-
-    campos_numericos = [
-        "n_vertices", "n_caras", "t_preproceso_ms", "t_vox32_ms",
-        "t_vox64_ms", "t_total_ms", "ocup32_abs", "ocup32_pct",
-        "ocup64_abs", "ocup64_pct",
-    ]
-
-    resumen = {"n_total": len(validos), "n_errores": len(resultados) - len(validos)}
-    for campo in campos_numericos:
-        vals = np.array([r[campo] for r in validos])
-        resumen[campo] = {
-            "media":   round(float(vals.mean()), 4),
-            "mediana": round(float(np.median(vals)), 4),
-            "min":     round(float(vals.min()), 4),
-            "max":     round(float(vals.max()), 4),
-            "std":     round(float(vals.std()), 4),
-        }
-
-    # ── Almacenamiento del TENSOR REAL (4 canales: ocupacion + nx,ny,nz) ──
-    # Esta es la cifra correcta de "almacenamiento del pipeline", ya
-    # que es el tensor que efectivamente guarda preprocesar_octrees.py
-    # y consumen HCE y Net5. Fija por objeto (no depende de la muestra).
-    resumen["mem32_4canales_kb_por_objeto"] = round(MEM_4CANALES_32_KB, 2)
-    resumen["mem64_4canales_kb_por_objeto"] = round(MEM_4CANALES_64_KB, 2)
-    resumen["mem32_4canales_dataset_mb"] = round(
-        len(validos) * MEM_4CANALES_32_KB / 1024, 1)
-    resumen["mem64_4canales_dataset_mb"] = round(
-        len(validos) * MEM_4CANALES_64_KB / 1024, 1)
-
-    # ── Grilla de ocupacion de 1 solo canal (auxiliar, NO es lo que se
-    # guarda en disco; se mantiene solo por referencia/comparacion) ──
-    resumen["mem32_1canal_kb_por_objeto"] = round(MEM_1CANAL_32_KB, 2)
-    resumen["mem64_1canal_kb_por_objeto"] = round(MEM_1CANAL_64_KB, 2)
-    resumen["mem32_1canal_dataset_mb"] = round(
-        len(validos) * MEM_1CANAL_32_KB / 1024, 1)
-    resumen["mem64_1canal_dataset_mb"] = round(
-        len(validos) * MEM_1CANAL_64_KB / 1024, 1)
-
-    return resumen
-
-
-def calcular_resumen_por_clase(resultados: list) -> dict:
-    """Calcula metricas promedio por clase para la tabla del capitulo."""
-    validos = [r for r in resultados if r.get("error") is None]
-    por_clase = {}
-    for clase in CLASES:
-        muestras = [r for r in validos if r["clase"] == clase]
-        if not muestras:
-            continue
-        por_clase[clase] = {
-            "n": len(muestras),
-            "vertices_media":   round(np.mean([r["n_vertices"] for r in muestras]), 0),
-            "caras_media":      round(np.mean([r["n_caras"]    for r in muestras]), 0),
-            "t_total_media_ms": round(np.mean([r["t_total_ms"] for r in muestras]), 2),
-            "ocup32_pct_media": round(np.mean([r["ocup32_pct"] for r in muestras]), 3),
-            "ocup64_pct_media": round(np.mean([r["ocup64_pct"] for r in muestras]), 3),
-        }
-    return por_clase
-
-
-# ──────────────────────────────────────────────────────────────
-# MAIN
-# ──────────────────────────────────────────────────────────────
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--split", type=str, default="train",
                         choices=["train", "test", "ambos"])
-    parser.add_argument("--n_muestras", type=int, default=None,
-                        help="Limitar el total de muestras (para prueba rapida)")
+    parser.add_argument("--n_muestras", type=int, default=None)
     args = parser.parse_args()
 
     DIR_RESULTADOS.mkdir(parents=True, exist_ok=True)
+    DIR_TEMP_NPZ.mkdir(parents=True, exist_ok=True)
 
     splits = ["train", "test"] if args.split == "ambos" else [args.split]
 
-    print("=" * 60)
-    print("  METRICAS DE PROCESAMIENTO .off -> Voxel Grid")
-    print("=" * 60)
+    print("=" * 70)
+    print("  METRICAS DE PROCESAMIENTO .off -> Octree REAL")
+    print("  (nodos, hojas, tamaño real de archivo, tiempos)")
+    print("=" * 70)
 
     todos_resultados = []
 
@@ -327,82 +208,112 @@ def main():
         n_err = sum(1 for r in todos_resultados if r.get("error") is not None and r["split"] == split)
         print(f"  Completado en {t_total:.1f}s | OK: {n_ok} | Errores: {n_err}")
 
-    # Guardar CSV completo
+    # ── Guardar CSV completo ──
     validos = [r for r in todos_resultados if r.get("error") is None]
+    campos = ["nombre", "clase", "split", "n_vertices", "n_caras",
+              "t_preproceso_ms", "t_muestreo_ms", "t_total_ms"]
+    for R in RESOLUCIONES:
+        campos += [f"t_arbol_{R}_ms", f"t_guardado_{R}_ms",
+                  f"nodos_totales_{R}", f"hojas_ocupadas_{R}",
+                  f"ocup_hoja_pct_{R}", f"tam_npz_kb_{R}"]
+
     csv_completo = DIR_RESULTADOS / "metricas_off_completo.csv"
-    campos = ["nombre","clase","split","n_vertices","n_caras",
-              "t_preproceso_ms","t_vox32_ms","t_vox64_ms","t_total_ms",
-              "ocup32_abs","ocup32_pct","ocup64_abs","ocup64_pct",
-              "mem32_4canales_kb","mem64_4canales_kb",
-              "mem32_1canal_kb","mem64_1canal_kb"]
     with open(csv_completo, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=campos)
         w.writeheader()
         for r in validos:
-            w.writerow({k: r.get(k,"") for k in campos})
+            w.writerow({k: r.get(k, "") for k in campos})
     print(f"\n[CSV] Guardado: {csv_completo.name} ({len(validos)} filas)")
 
-    # Guardar CSV resumen por clase
-    resumen_clase = calcular_resumen_por_clase(todos_resultados)
+    # ── Resumen por clase ──
+    from collections import defaultdict
+    por_clase = defaultdict(list)
+    for r in validos:
+        por_clase[r["clase"]].append(r)
+
     csv_resumen = DIR_RESULTADOS / "metricas_off_resumen.csv"
+    campos_resumen = ["clase", "n", "t_total_media_ms"]
+    for R in RESOLUCIONES:
+        campos_resumen += [f"nodos_media_{R}", f"hojas_media_{R}", f"ocup_pct_media_{R}",
+                           f"tam_npz_kb_media_{R}"]
+
     with open(csv_resumen, "w", newline="", encoding="utf-8") as f:
-        campos_r = ["clase","n","vertices_media","caras_media",
-                    "t_total_media_ms","ocup32_pct_media","ocup64_pct_media"]
-        w = csv.DictWriter(f, fieldnames=campos_r)
+        w = csv.DictWriter(f, fieldnames=campos_resumen)
         w.writeheader()
-        for clase, datos in resumen_clase.items():
-            w.writerow({"clase": clase, **datos})
+        for clase, muestras in por_clase.items():
+            fila = {
+                "clase": clase, "n": len(muestras),
+                "t_total_media_ms": round(np.mean([m["t_total_ms"] for m in muestras]), 2),
+            }
+            for R in RESOLUCIONES:
+                fila[f"nodos_media_{R}"] = round(np.mean([m[f"nodos_totales_{R}"] for m in muestras]), 1)
+                fila[f"hojas_media_{R}"] = round(np.mean([m[f"hojas_ocupadas_{R}"] for m in muestras]), 1)
+                fila[f"ocup_pct_media_{R}"] = round(np.mean([m[f"ocup_hoja_pct_{R}"] for m in muestras]), 4)
+                fila[f"tam_npz_kb_media_{R}"] = round(np.mean([m[f"tam_npz_kb_{R}"] for m in muestras]), 3)
+            w.writerow(fila)
     print(f"[CSV] Guardado: {csv_resumen.name}")
 
-    # Guardar JSON global
-    resumen_global = calcular_resumen(todos_resultados)
-    json_global = DIR_RESULTADOS / "metricas_off_global.json"
-    with open(json_global, "w") as f:
+    # ── Resumen global ──
+    resumen_global = {"n_total": len(validos), "n_errores": len(todos_resultados) - len(validos)}
+    resumen_global["t_total_ms"] = {
+        "media": round(float(np.mean([r["t_total_ms"] for r in validos])), 4),
+        "std":   round(float(np.std([r["t_total_ms"] for r in validos])), 4),
+        "min":   round(float(np.min([r["t_total_ms"] for r in validos])), 4),
+        "max":   round(float(np.max([r["t_total_ms"] for r in validos])), 4),
+    }
+    for R in RESOLUCIONES:
+        nodos = [r[f"nodos_totales_{R}"] for r in validos]
+        hojas = [r[f"hojas_ocupadas_{R}"] for r in validos]
+        ocup  = [r[f"ocup_hoja_pct_{R}"] for r in validos]
+        tam   = [r[f"tam_npz_kb_{R}"] for r in validos]
+
+        resumen_global[f"R{R}"] = {
+            "nodos_media": round(float(np.mean(nodos)), 1),
+            "nodos_std":   round(float(np.std(nodos)), 1),
+            "hojas_media": round(float(np.mean(hojas)), 1),
+            "hojas_std":   round(float(np.std(hojas)), 1),
+            "ocup_pct_media": round(float(np.mean(ocup)), 4),
+            "ocup_pct_std":   round(float(np.std(ocup)), 4),
+            "tam_npz_kb_media": round(float(np.mean(tam)), 3),
+            "tam_npz_kb_total_dataset_mb": round(float(np.sum(tam)) / 1024, 2),
+            "mem_densa_equivalente_total_mb": round(
+                len(validos) * 4 * (R**3) * 4 / 1024 / 1024, 1
+            ),
+        }
+        factor = resumen_global[f"R{R}"]["mem_densa_equivalente_total_mb"] * 1024 / \
+                 max(resumen_global[f"R{R}"]["tam_npz_kb_total_dataset_mb"] * 1024, 0.001)
+        resumen_global[f"R{R}"]["factor_ahorro_real"] = round(factor, 1)
+
+    ruta_json = DIR_RESULTADOS / "metricas_off_global.json"
+    with open(ruta_json, "w") as f:
         json.dump(resumen_global, f, indent=2)
-    print(f"[JSON] Guardado: {json_global.name}")
+    print(f"[JSON] Guardado: {ruta_json.name}")
 
-    # Imprimir resumen en consola
-    print("\n" + "=" * 60)
-    print("  RESUMEN GLOBAL")
-    print("=" * 60)
-    print(f"  Objetos procesados      : {resumen_global.get('n_total', 0):,}")
-    print(f"  Errores                 : {resumen_global.get('n_errores', 0)}")
+    # ── Resumen en consola ──
+    print("\n" + "=" * 70)
+    print("  RESUMEN GLOBAL (octree real, medido)")
+    print("=" * 70)
+    print(f"  Objetos procesados : {resumen_global['n_total']:,}")
+    print(f"  Errores            : {resumen_global['n_errores']}")
+    print(f"  Tiempo total/objeto: media={resumen_global['t_total_ms']['media']:.2f} ms, "
+          f"max={resumen_global['t_total_ms']['max']:.2f} ms")
 
-    if "n_vertices" in resumen_global:
-        print(f"\n  Vertices por malla      : "
-              f"media={resumen_global['n_vertices']['media']:.0f}, "
-              f"min={resumen_global['n_vertices']['min']:.0f}, "
-              f"max={resumen_global['n_vertices']['max']:.0f}")
-        print(f"  Ocupacion 32^3 (%)      : "
-              f"media={resumen_global['ocup32_pct']['media']:.2f}%, "
-              f"min={resumen_global['ocup32_pct']['min']:.2f}%, "
-              f"max={resumen_global['ocup32_pct']['max']:.2f}%")
-        print(f"  Ocupacion 64^3 (%)      : "
-              f"media={resumen_global['ocup64_pct']['media']:.2f}%, "
-              f"min={resumen_global['ocup64_pct']['min']:.2f}%, "
-              f"max={resumen_global['ocup64_pct']['max']:.2f}%")
-        print(f"  Tiempo total/objeto (ms): "
-              f"media={resumen_global['t_total_ms']['media']:.1f}, "
-              f"max={resumen_global['t_total_ms']['max']:.1f}")
+    for R in RESOLUCIONES:
+        g = resumen_global[f"R{R}"]
+        print(f"\n  --- Resolucion {R}^3 ---")
+        print(f"    Nodos totales (media)   : {g['nodos_media']:.0f} (±{g['nodos_std']:.0f})")
+        print(f"    Hojas ocupadas (media)  : {g['hojas_media']:.0f} (±{g['hojas_std']:.0f})")
+        print(f"    Ocupacion hoja (media)  : {g['ocup_pct_media']:.3f}% (±{g['ocup_pct_std']:.3f}%)")
+        print(f"    Tamaño .npz (media)     : {g['tam_npz_kb_media']:.3f} KB")
+        print(f"    Tamaño dataset (real)   : {g['tam_npz_kb_total_dataset_mb']:.2f} MB")
+        print(f"    Densa equivalente       : {g['mem_densa_equivalente_total_mb']:.1f} MB")
+        print(f"    >>> Factor de ahorro REAL: {g['factor_ahorro_real']:.1f}x <<<")
 
-        print(f"\n  ── Almacenamiento estimado (tensor REAL, 4 canales:"
-              f" ocupacion + nx,ny,nz) ──")
-        print(f"  Por objeto 32^3         : "
-              f"{resumen_global['mem32_4canales_kb_por_objeto']} KB")
-        print(f"  Por objeto 64^3         : "
-              f"{resumen_global['mem64_4canales_kb_por_objeto']} KB")
-        print(f"  Dataset completo 32^3   : "
-              f"{resumen_global['mem32_4canales_dataset_mb']} MB")
-        print(f"  Dataset completo 64^3   : "
-              f"{resumen_global['mem64_4canales_dataset_mb']} MB")
+    print("=" * 70)
 
-        print(f"\n  ── Grilla de ocupacion auxiliar (1 canal, NO es lo"
-              f" que se guarda en disco) ──")
-        print(f"  Por objeto 32^3         : "
-              f"{resumen_global['mem32_1canal_kb_por_objeto']} KB")
-        print(f"  Por objeto 64^3         : "
-              f"{resumen_global['mem64_1canal_kb_por_objeto']} KB")
-    print("=" * 60)
+    # Limpiar carpeta temporal
+    import shutil
+    shutil.rmtree(DIR_TEMP_NPZ, ignore_errors=True)
 
 
 if __name__ == "__main__":
