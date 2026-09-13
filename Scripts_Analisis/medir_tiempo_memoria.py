@@ -46,7 +46,7 @@ sys.path.insert(0, str(RAIZ_PROYECTO / "fase3_hce"))
 from octree import leer_off, normalizar_malla, muestrear_superficie_con_normales
 from octree_real import (
     construir_octree, guardar_octree_disperso, reconstruir_octree_desde_npz,
-    recolectar_hojas, contar_nodos_totales, comparar_memoria,
+    recolectar_hojas, contar_nodos_totales, comparar_memoria, octree_a_grid_denso,
 )
 from hce_extraccion import extraer_descriptores_hce_desde_npz
 
@@ -171,12 +171,31 @@ def main():
         profundidad_max = PROFUNDIDAD_POR_RESOLUCION[R]
 
         # Etapa 4: construccion del arbol REAL (con poda)
-        raiz, t_med, t_min, t_max, mem_pico = medir_etapa(
+        #
+        # IMPORTANTE: mem_pico (tracemalloc) mide el PICO DE ASIGNACIONES
+        # TRANSITORIAS durante la ejecucion de construir_octree() -- esto
+        # incluye arrays temporales creados en cada nivel de la recursion
+        # (mascaras de octante, copias de subconjuntos de puntos/normales
+        # al particionar), que se liberan al terminar la funcion. NO es
+        # el tamaño del arbol que permanece vivo en memoria despues de
+        # construido. Esa magnitud (persistente) se mide por separado,
+        # de forma recursiva desde la raiz, en mem_teorica["memoria_ram_real_kb"]
+        # (ver medir_memoria_real_python en octree_real.py).
+        raiz, t_med, t_min, t_max, mem_pico_transitorio = medir_etapa(
             construir_octree, pts, normales, profundidad_max, repeticiones=REP,
         )
         n_nodos = contar_nodos_totales(raiz)
         n_hojas = len(recolectar_hojas(raiz))
         mem_teorica = comparar_memoria(raiz, R, profundidad_max)
+
+        # Memoria REAL de la representacion densa equivalente, medida
+        # con el MISMO criterio (sys.getsizeof + nbytes) que se aplico
+        # al arbol -- no la formula teorica 4*R^3*4, sino el tamaño
+        # real de un array de numpy materializado, para que la
+        # comparacion sea consistente entre ambas representaciones.
+        grid_denso_comparacion = octree_a_grid_denso(raiz, R)
+        mem_densa_real_bytes = sys.getsizeof(grid_denso_comparacion) + grid_denso_comparacion.nbytes
+        mem_densa_real_kb = round(mem_densa_real_bytes / 1024, 3)
 
         resultados[f"construccion_arbol_R{R}"] = {
             "descripcion": f"Construccion del octree real (con poda), R={R}^3",
@@ -184,12 +203,23 @@ def main():
             "n_nodos_totales": n_nodos,
             "n_hojas_ocupadas": n_hojas,
             "t_media_ms": t_med, "t_min_ms": t_min, "t_max_ms": t_max,
-            "mem_pico_kb_tracemalloc": mem_pico,
-            "mem_ram_real_kb": mem_teorica["memoria_ram_real_kb"],
+            # Pico TRANSITORIO durante la construccion (tracemalloc);
+            # NO representa el tamaño del arbol ya construido.
+            "mem_pico_transitorio_kb": mem_pico_transitorio,
+            # Tamaño REAL y PERSISTENTE del arbol completo, medido
+            # recursivamente desde la raiz (sys.getsizeof sobre cada
+            # nodo, sus hijos y sus arrays de numpy).
+            "mem_arbol_persistente_kb": mem_teorica["memoria_ram_real_kb"],
+            # Tamaño REAL de la representacion densa equivalente,
+            # medido con el MISMO criterio (sys.getsizeof + nbytes)
+            # sobre un array de numpy materializado -- no una formula.
+            "mem_densa_real_kb": mem_densa_real_kb,
+            # Estimacion teorica de referencia (no medida): tamaño
+            # minimo de una serializacion binaria compacta.
             "mem_binaria_estimada_kb": mem_teorica["memoria_binaria_estimada_kb"],
-            "mem_densa_kb": mem_teorica["memoria_densa_kb"],
-            "factor_ahorro_ram_vs_densa": mem_teorica["factor_ahorro_ram_vs_densa"],
-            "factor_ahorro_binario_vs_densa": mem_teorica["factor_ahorro_binario_vs_densa"],
+            "factor_ahorro_arbol_vs_densa": round(
+                mem_densa_real_kb / max(mem_teorica["memoria_ram_real_kb"], 0.001), 2
+            ),
         }
 
         # Etapa 5: guardado en disco (estructura jerarquica completa)
@@ -255,7 +285,11 @@ def main():
     ancho = 52
     sep = "-" * 82
     print(f"  {'ETAPA':<{ancho}} {'T.media':>9} {'Mem.pico':>10}")
-    print(f"  {'':.<{ancho}} {'(ms)':>9} {'(KB, real)':>10}")
+    print(f"  {'':.<{ancho}} {'(ms)':>9} {'(KB, transitorio)':>10}")
+    print("  NOTA: 'Mem.pico' (tracemalloc) mide asignaciones TRANSITORIAS")
+    print("  durante la operacion (arrays temporales de la recursion), NO")
+    print("  el tamaño del arbol que permanece en memoria. Ver tabla de")
+    print("  estructura mas abajo para el tamaño PERSISTENTE real del arbol.")
     print("  " + sep)
 
     orden_impresion = [
@@ -272,7 +306,7 @@ def main():
 
     for nombre, clave in orden_impresion:
         d = resultados[clave]
-        mem_mostrar = d.get("mem_pico_kb", d.get("mem_pico_kb_tracemalloc", 0.0))
+        mem_mostrar = d.get("mem_pico_kb", d.get("mem_pico_transitorio_kb", 0.0))
         print(f"  {nombre:<{ancho}} {d['t_media_ms']:>9.3f} {mem_mostrar:>10.1f}")
 
     print("  " + sep)
@@ -280,28 +314,34 @@ def main():
     print(f"  {'PIPELINE COMPLETO (ambas resoluciones)':<{ancho}} "
           f"{d['t_media_ms']:>9.3f} {d['mem_pico_kb']:>10.1f}")
 
-    # ── Tabla de estructura del arbol y memoria (3 magnitudes distintas) ──
+    # ── Tabla de estructura del arbol: 4 magnitudes claramente separadas ──
     print()
-    print(f"  ESTRUCTURA DEL ARBOL Y MEMORIA (RAM real medida vs. disco vs. densa)")
+    print(f"  ESTRUCTURA DEL ARBOL — CUATRO MAGNITUDES DISTINTAS, MISMO CRITERIO")
     print("  " + sep)
-    print(f"  {'Resolucion':<12}{'Nodos':>9}{'Hojas':>9}{'RAM real(KB)':>14}"
-          f"{'Archivo(KB)':>13}{'Densa(KB)':>12}{'Ahorro RAM':>12}{'Ahorro disco':>13}")
+    print(f"  {'Resolucion':<11}{'Nodos':>8}{'Hojas':>8}{'Transit.(KB)':>13}"
+          f"{'Arbol(KB)':>11}{'Densa(KB)':>11}{'Archivo(KB)':>12}{'Ahorro':>9}")
     print("  " + sep)
     for R in (32, 64):
         c = resultados[f"construccion_arbol_R{R}"]
         g = resultados[f"guardado_disco_R{R}"]
-        ahorro_disco = c["mem_densa_kb"] / max(g["tam_archivo_real_kb"], 0.001)
-        print(f"  {f'{R}^3':<12}{c['n_nodos_totales']:>9,}{c['n_hojas_ocupadas']:>9,}"
-              f"{c['mem_ram_real_kb']:>14.2f}{g['tam_archivo_real_kb']:>13.2f}"
-              f"{c['mem_densa_kb']:>12.1f}{c['factor_ahorro_ram_vs_densa']:>11.1f}x"
-              f"{ahorro_disco:>12.1f}x")
+        print(f"  {f'{R}^3':<11}{c['n_nodos_totales']:>8,}{c['n_hojas_ocupadas']:>8,}"
+              f"{c['mem_pico_transitorio_kb']:>13.1f}{c['mem_arbol_persistente_kb']:>11.2f}"
+              f"{c['mem_densa_real_kb']:>11.1f}{g['tam_archivo_real_kb']:>12.2f}"
+              f"{c['factor_ahorro_arbol_vs_densa']:>8.1f}x")
 
     print()
-    print("  Nota: 'RAM real' es la memoria REAL medida de los objetos Python")
-    print("  del arbol completo (sys.getsizeof recursivo sobre todos los nodos,")
-    print("  internos y hojas, incluyendo listas de hijos y arrays numpy).")
-    print("  'Archivo' es el tamaño real del .npz comprimido en disco.")
-    print("  'Densa' es la rejilla de 4 canales equivalente (formato descartado).")
+    print("  Columnas:")
+    print("    Transit. = pico TRANSITORIO durante construir_octree() (tracemalloc);")
+    print("               incluye arrays temporales de la recursion, NO es el")
+    print("               tamaño del arbol ya construido.")
+    print("    Arbol    = tamaño REAL y PERSISTENTE del arbol completo, medido")
+    print("               recursivamente desde la raiz (sys.getsizeof sobre cada")
+    print("               nodo, sus 8 hijos y sus arrays de numpy).")
+    print("    Densa    = tamaño REAL de la rejilla equivalente materializada,")
+    print("               medido con el MISMO criterio (sys.getsizeof + nbytes)")
+    print("               que 'Arbol' -- no una formula teorica.")
+    print("    Archivo  = tamaño REAL del .npz comprimido en disco.")
+    print("    Ahorro   = factor Densa/Arbol (memoria en RAM, mismo criterio).")
 
     print()
     print("=" * 70)
