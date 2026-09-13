@@ -35,9 +35,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "fase2_octree"))
 sys.path.insert(0, str(Path(__file__).parent.parent / "fase3_net5"))
+# Ruta absoluta como fallback por si la relativa no funciona
+sys.path.insert(0, r"C:\Users\ricar\Documents\Codigos\Tesis\fase2_octree")
+sys.path.insert(0, r"C:\Users\ricar\Documents\Codigos\Tesis\fase3_net5")
 
-from octree      import malla_a_octree, profundidad_de
+from octree      import leer_off, normalizar_malla, muestrear_superficie_con_normales
+from octree_real import construir_octree, octree_a_grid_denso, cargar_y_materializar, nivel_hoja
 from net5_modelo import Net5Octree, get_device
+
+PROFUNDIDAD_POR_RESOLUCION = {32: 5, 64: 6}
 
 RAIZ_DATA      = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\data")
 DIR_CKPT       = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\checkpoints")
@@ -145,7 +151,13 @@ def cargar_modelo_net5(R: int, device: torch.device) -> Net5Octree:
 
 def obtener_muestra(args, R: int) -> tuple:
     if args.archivo:
-        grid = malla_a_octree(args.archivo, resolucion=R, n_puntos_muestreo=20000, seed=42)
+        L = PROFUNDIDAD_POR_RESOLUCION[R]
+        verts, caras = leer_off(args.archivo)
+        verts = normalizar_malla(verts)
+        rng = np.random.default_rng(42)
+        pts, normales = muestrear_superficie_con_normales(verts, caras, 20000, rng)
+        raiz = construir_octree(pts, normales, profundidad_max=L)
+        grid = octree_a_grid_denso(raiz, R)
         return grid, None, Path(args.archivo).stem
 
     carpeta = RAIZ_DATA / f"octrees_{R}" / args.clase / "test"
@@ -153,8 +165,12 @@ def obtener_muestra(args, R: int) -> tuple:
     if args.indice >= len(archivos):
         raise IndexError(f"Indice fuera de rango ({len(archivos)} disponibles)")
     archivo = archivos[args.indice]
-    data = np.load(archivo)
-    return data["grid"], int(data["etiqueta"]), archivo.stem
+
+    # El .npz guarda la estructura jerarquica completa del arbol (ver
+    # octree_real.py); cargar_y_materializar reconstruye el arbol y lo
+    # materializa a grid denso solo en memoria, para alimentar Net5.
+    grid, etiqueta = cargar_y_materializar(str(archivo), R)
+    return grid, etiqueta, archivo.stem
 
 
 # ──────────────────────────────────────────────────────────────
