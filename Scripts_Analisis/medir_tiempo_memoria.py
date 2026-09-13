@@ -184,10 +184,12 @@ def main():
             "n_nodos_totales": n_nodos,
             "n_hojas_ocupadas": n_hojas,
             "t_media_ms": t_med, "t_min_ms": t_min, "t_max_ms": t_max,
-            "mem_pico_kb": mem_pico,
-            "mem_dispersa_teorica_kb": mem_teorica["memoria_dispersa_kb"],
-            "mem_densa_teorica_kb": mem_teorica["memoria_densa_kb"],
-            "factor_ahorro_teorico": mem_teorica["factor_ahorro"],
+            "mem_pico_kb_tracemalloc": mem_pico,
+            "mem_ram_real_kb": mem_teorica["memoria_ram_real_kb"],
+            "mem_binaria_estimada_kb": mem_teorica["memoria_binaria_estimada_kb"],
+            "mem_densa_kb": mem_teorica["memoria_densa_kb"],
+            "factor_ahorro_ram_vs_densa": mem_teorica["factor_ahorro_ram_vs_densa"],
+            "factor_ahorro_binario_vs_densa": mem_teorica["factor_ahorro_binario_vs_densa"],
         }
 
         # Etapa 5: guardado en disco (estructura jerarquica completa)
@@ -270,27 +272,36 @@ def main():
 
     for nombre, clave in orden_impresion:
         d = resultados[clave]
-        print(f"  {nombre:<{ancho}} {d['t_media_ms']:>9.3f} {d['mem_pico_kb']:>10.1f}")
+        mem_mostrar = d.get("mem_pico_kb", d.get("mem_pico_kb_tracemalloc", 0.0))
+        print(f"  {nombre:<{ancho}} {d['t_media_ms']:>9.3f} {mem_mostrar:>10.1f}")
 
     print("  " + sep)
     d = resultados["pipeline_completo"]
     print(f"  {'PIPELINE COMPLETO (ambas resoluciones)':<{ancho}} "
           f"{d['t_media_ms']:>9.3f} {d['mem_pico_kb']:>10.1f}")
 
-    # ── Tabla de estructura del arbol y ahorro de memoria ─────
+    # ── Tabla de estructura del arbol y memoria (3 magnitudes distintas) ──
     print()
-    print(f"  ESTRUCTURA DEL ARBOL Y AHORRO DE MEMORIA (real, medido)")
+    print(f"  ESTRUCTURA DEL ARBOL Y MEMORIA (RAM real medida vs. disco vs. densa)")
     print("  " + sep)
-    print(f"  {'Resolucion':<15}{'Nodos':>10}{'Hojas':>10}{'Archivo (KB)':>16}"
-          f"{'Densa equiv.(KB)':>18}{'Ahorro':>10}")
+    print(f"  {'Resolucion':<12}{'Nodos':>9}{'Hojas':>9}{'RAM real(KB)':>14}"
+          f"{'Archivo(KB)':>13}{'Densa(KB)':>12}{'Ahorro RAM':>12}{'Ahorro disco':>13}")
     print("  " + sep)
     for R in (32, 64):
         c = resultados[f"construccion_arbol_R{R}"]
         g = resultados[f"guardado_disco_R{R}"]
-        ahorro_real = c["mem_densa_teorica_kb"] / max(g["tam_archivo_real_kb"], 0.001)
-        print(f"  {f'{R}^3':<15}{c['n_nodos_totales']:>10,}{c['n_hojas_ocupadas']:>10,}"
-              f"{g['tam_archivo_real_kb']:>16.2f}{c['mem_densa_teorica_kb']:>18.1f}"
-              f"{ahorro_real:>9.1f}x")
+        ahorro_disco = c["mem_densa_kb"] / max(g["tam_archivo_real_kb"], 0.001)
+        print(f"  {f'{R}^3':<12}{c['n_nodos_totales']:>9,}{c['n_hojas_ocupadas']:>9,}"
+              f"{c['mem_ram_real_kb']:>14.2f}{g['tam_archivo_real_kb']:>13.2f}"
+              f"{c['mem_densa_kb']:>12.1f}{c['factor_ahorro_ram_vs_densa']:>11.1f}x"
+              f"{ahorro_disco:>12.1f}x")
+
+    print()
+    print("  Nota: 'RAM real' es la memoria REAL medida de los objetos Python")
+    print("  del arbol completo (sys.getsizeof recursivo sobre todos los nodos,")
+    print("  internos y hojas, incluyendo listas de hijos y arrays numpy).")
+    print("  'Archivo' es el tamaño real del .npz comprimido en disco.")
+    print("  'Densa' es la rejilla de 4 canales equivalente (formato descartado).")
 
     print()
     print("=" * 70)
