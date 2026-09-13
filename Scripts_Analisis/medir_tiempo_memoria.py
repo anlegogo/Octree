@@ -61,7 +61,7 @@ PROFUNDIDAD_POR_RESOLUCION = {32: 5, 64: 6}
 def medir_etapa(fn, *args, repeticiones: int = 10) -> tuple:
     """
     Ejecuta fn(*args) `repeticiones` veces y retorna:
-      (resultado, tiempo_medio_ms, tiempo_min_ms, tiempo_max_ms, mem_pico_kb)
+      (resultado, tiempo_medio_ms, tiempo_min_ms, tiempo_max_ms, mem_pico_kib)
 
     La memoria PICO REAL se mide con tracemalloc en la PRIMERA
     ejecucion (tracemalloc introduce overhead, por eso no se activa en
@@ -72,7 +72,7 @@ def medir_etapa(fn, *args, repeticiones: int = 10) -> tuple:
     resultado = fn(*args)
     _, pico = tracemalloc.get_traced_memory()
     tracemalloc.stop()
-    mem_pico_kb = pico / 1024
+    mem_pico_kib = pico / 1024
 
     tiempos = []
     for _ in range(repeticiones):
@@ -85,11 +85,11 @@ def medir_etapa(fn, *args, repeticiones: int = 10) -> tuple:
         round(float(np.mean(tiempos)), 4),
         round(float(np.min(tiempos)), 4),
         round(float(np.max(tiempos)), 4),
-        round(mem_pico_kb, 2),
+        round(mem_pico_kib, 2),
     )
 
 
-def memoria_array_kb(arr: np.ndarray) -> float:
+def memoria_array_kib(arr: np.ndarray) -> float:
     return round(arr.nbytes / 1024, 2)
 
 
@@ -135,9 +135,9 @@ def main():
         "descripcion": "Lectura del archivo .off",
         "n_vertices": n_v, "n_caras": n_c,
         "t_media_ms": t_med, "t_min_ms": t_min, "t_max_ms": t_max,
-        "mem_pico_kb": mem_pico,
-        "mem_vertices_kb": memoria_array_kb(verts_raw),
-        "mem_caras_kb": memoria_array_kb(caras) if caras is not None else 0.0,
+        "mem_pico_kib": mem_pico,
+        "mem_vertices_kib": memoria_array_kib(verts_raw),
+        "mem_caras_kib": memoria_array_kib(caras) if caras is not None else 0.0,
     }
 
     # ── Etapa 2: Normalizacion ────────────────────────────────
@@ -147,8 +147,8 @@ def main():
     resultados["normalizacion"] = {
         "descripcion": "Normalizacion al cubo [-1,1]^3",
         "t_media_ms": t_med, "t_min_ms": t_min, "t_max_ms": t_max,
-        "mem_pico_kb": mem_pico,
-        "mem_salida_kb": memoria_array_kb(verts_norm),
+        "mem_pico_kib": mem_pico,
+        "mem_salida_kib": memoria_array_kib(verts_norm),
     }
 
     # ── Etapa 3: Muestreo de superficie ───────────────────────
@@ -162,8 +162,8 @@ def main():
         "descripcion": f"Muestreo area-weighted ({N:,} puntos)",
         "n_puntos": N,
         "t_media_ms": t_med, "t_min_ms": t_min, "t_max_ms": t_max,
-        "mem_pico_kb": mem_pico,
-        "mem_nube_kb": memoria_array_kb(pts) + memoria_array_kb(normales),
+        "mem_pico_kib": mem_pico,
+        "mem_nube_kib": memoria_array_kib(pts) + memoria_array_kib(normales),
     }
 
     # ── Etapas 4-6 por resolucion: construccion arbol, guardado, HCE ──
@@ -179,7 +179,7 @@ def main():
         # al particionar), que se liberan al terminar la funcion. NO es
         # el tamaño del arbol que permanece vivo en memoria despues de
         # construido. Esa magnitud (persistente) se mide por separado,
-        # de forma recursiva desde la raiz, en mem_teorica["memoria_ram_real_kb"]
+        # de forma recursiva desde la raiz, en mem_teorica["memoria_ram_real_kib"]
         # (ver medir_memoria_real_python en octree_real.py).
         raiz, t_med, t_min, t_max, mem_pico_transitorio = medir_etapa(
             construir_octree, pts, normales, profundidad_max, repeticiones=REP,
@@ -195,7 +195,7 @@ def main():
         # comparacion sea consistente entre ambas representaciones.
         grid_denso_comparacion = octree_a_grid_denso(raiz, R)
         mem_densa_real_bytes = sys.getsizeof(grid_denso_comparacion) + grid_denso_comparacion.nbytes
-        mem_densa_real_kb = round(mem_densa_real_bytes / 1024, 3)
+        mem_densa_real_kib = round(mem_densa_real_bytes / 1024, 3)
 
         resultados[f"construccion_arbol_R{R}"] = {
             "descripcion": f"Construccion del octree real (con poda), R={R}^3",
@@ -205,20 +205,20 @@ def main():
             "t_media_ms": t_med, "t_min_ms": t_min, "t_max_ms": t_max,
             # Pico TRANSITORIO durante la construccion (tracemalloc);
             # NO representa el tamaño del arbol ya construido.
-            "mem_pico_transitorio_kb": mem_pico_transitorio,
+            "mem_pico_transitorio_kib": mem_pico_transitorio,
             # Tamaño REAL y PERSISTENTE del arbol completo, medido
             # recursivamente desde la raiz (sys.getsizeof sobre cada
             # nodo, sus hijos y sus arrays de numpy).
-            "mem_arbol_persistente_kb": mem_teorica["memoria_ram_real_kb"],
+            "mem_arbol_persistente_kib": mem_teorica["memoria_ram_real_kib"],
             # Tamaño REAL de la representacion densa equivalente,
             # medido con el MISMO criterio (sys.getsizeof + nbytes)
             # sobre un array de numpy materializado -- no una formula.
-            "mem_densa_real_kb": mem_densa_real_kb,
+            "mem_densa_real_kib": mem_densa_real_kib,
             # Estimacion teorica de referencia (no medida): tamaño
             # minimo de una serializacion binaria compacta.
-            "mem_binaria_estimada_kb": mem_teorica["memoria_binaria_estimada_kb"],
+            "mem_binaria_estimada_kib": mem_teorica["memoria_binaria_estimada_kib"],
             "factor_ahorro_arbol_vs_densa": round(
-                mem_densa_real_kb / max(mem_teorica["memoria_ram_real_kb"], 0.001), 2
+                mem_densa_real_kib / max(mem_teorica["memoria_ram_real_kib"], 0.001), 2
             ),
         }
 
@@ -231,13 +231,13 @@ def main():
 
         _, t_med, t_min, t_max, mem_pico = medir_etapa(_guardar, repeticiones=REP)
 
-        tam_archivo_kb = Path(ruta_npz_tmp).stat().st_size / 1024
+        tam_archivo_kib = Path(ruta_npz_tmp).stat().st_size / 1024
 
         resultados[f"guardado_disco_R{R}"] = {
             "descripcion": f"Guardado en disco, estructura jerarquica completa, R={R}^3",
             "t_media_ms": t_med, "t_min_ms": t_min, "t_max_ms": t_max,
-            "mem_pico_kb": mem_pico,
-            "tam_archivo_real_kb": round(tam_archivo_kb, 3),
+            "mem_pico_kib": mem_pico,
+            "tam_archivo_real_kib": round(tam_archivo_kib, 3),
         }
 
         # Etapa 6: extraccion de descriptores HCE desde el .npz disperso
@@ -249,7 +249,7 @@ def main():
             "descripcion": f"Extraccion de descriptores HCE desde .npz disperso, R={R}^3",
             "n_features": len(feats),
             "t_media_ms": t_med, "t_min_ms": t_min, "t_max_ms": t_max,
-            "mem_pico_kb": mem_pico,
+            "mem_pico_kib": mem_pico,
         }
 
     # ── Pipeline completo (todas las etapas encadenadas) ──────
@@ -273,8 +273,8 @@ def main():
         "descripcion": "Pipeline completo: lectura + normalizacion + muestreo + "
                        "(construccion arbol + guardado + HCE) x 2 resoluciones",
         "t_media_ms": t_med, "t_min_ms": t_min, "t_max_ms": t_max,
-        "mem_pico_kb": mem_pico,
-        "mem_pico_mb": round(mem_pico / 1024, 3),
+        "mem_pico_kib": mem_pico,
+        "mem_pico_mib": round(mem_pico / 1024, 3),
     }
 
     # ── Impresion de tabla resumen ────────────────────────────
@@ -285,7 +285,7 @@ def main():
     ancho = 52
     sep = "-" * 82
     print(f"  {'ETAPA':<{ancho}} {'T.media':>9} {'Mem.pico':>10}")
-    print(f"  {'':.<{ancho}} {'(ms)':>9} {'(KB, transitorio)':>10}")
+    print(f"  {'':.<{ancho}} {'(ms)':>9} {'(KiB, transitorio)':>10}")
     print("  NOTA: 'Mem.pico' (tracemalloc) mide asignaciones TRANSITORIAS")
     print("  durante la operacion (arrays temporales de la recursion), NO")
     print("  el tamaño del arbol que permanece en memoria. Ver tabla de")
@@ -306,27 +306,27 @@ def main():
 
     for nombre, clave in orden_impresion:
         d = resultados[clave]
-        mem_mostrar = d.get("mem_pico_kb", d.get("mem_pico_transitorio_kb", 0.0))
+        mem_mostrar = d.get("mem_pico_kib", d.get("mem_pico_transitorio_kib", 0.0))
         print(f"  {nombre:<{ancho}} {d['t_media_ms']:>9.3f} {mem_mostrar:>10.1f}")
 
     print("  " + sep)
     d = resultados["pipeline_completo"]
     print(f"  {'PIPELINE COMPLETO (ambas resoluciones)':<{ancho}} "
-          f"{d['t_media_ms']:>9.3f} {d['mem_pico_kb']:>10.1f}")
+          f"{d['t_media_ms']:>9.3f} {d['mem_pico_kib']:>10.1f}")
 
     # ── Tabla de estructura del arbol: 4 magnitudes claramente separadas ──
     print()
     print(f"  ESTRUCTURA DEL ARBOL — CUATRO MAGNITUDES DISTINTAS, MISMO CRITERIO")
     print("  " + sep)
-    print(f"  {'Resolucion':<11}{'Nodos':>8}{'Hojas':>8}{'Transit.(KB)':>13}"
-          f"{'Arbol(KB)':>11}{'Densa(KB)':>11}{'Archivo(KB)':>12}{'Ahorro':>9}")
+    print(f"  {'Resolucion':<11}{'Nodos':>8}{'Hojas':>9}{'Transit.(KiB)':>15}"
+          f"{'Arbol(KiB)':>13}{'Densa(KiB)':>13}{'Archivo(KiB)':>14}{'Ahorro':>9}")
     print("  " + sep)
     for R in (32, 64):
         c = resultados[f"construccion_arbol_R{R}"]
         g = resultados[f"guardado_disco_R{R}"]
-        print(f"  {f'{R}^3':<11}{c['n_nodos_totales']:>8,}{c['n_hojas_ocupadas']:>8,}"
-              f"{c['mem_pico_transitorio_kb']:>13.1f}{c['mem_arbol_persistente_kb']:>11.2f}"
-              f"{c['mem_densa_real_kb']:>11.1f}{g['tam_archivo_real_kb']:>12.2f}"
+        print(f"  {f'{R}^3':<11}{c['n_nodos_totales']:>8,}{c['n_hojas_ocupadas']:>9,}"
+              f"{c['mem_pico_transitorio_kib']:>15.1f}{c['mem_arbol_persistente_kib']:>13.2f}"
+              f"{c['mem_densa_real_kib']:>13.1f}{g['tam_archivo_real_kib']:>14.2f}"
               f"{c['factor_ahorro_arbol_vs_densa']:>8.1f}x")
 
     print()
