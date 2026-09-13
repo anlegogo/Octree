@@ -21,7 +21,7 @@ Metricas calculadas por objeto:
   - Tiempo de construccion del arbol real, 32^3 y 64^3 (ms)
   - Nodos totales y hojas ocupadas del arbol, 32^3 y 64^3
   - Porcentaje de ocupacion en la hoja, 32^3 y 64^3
-  - Tamaño REAL del archivo .npz guardado (KB), 32^3 y 64^3
+  - Tamaño REAL del archivo .npz guardado (KiB), 32^3 y 64^3
 
 Salida:
   - resultados/metricas_off_completo.csv   (todas las muestras)
@@ -50,7 +50,7 @@ sys.path.insert(0, str(RAIZ_PROYECTO / "fase2_octree"))
 from octree import leer_off, normalizar_malla, muestrear_superficie_con_normales
 from octree_real import (
     construir_octree, guardar_octree_disperso, recolectar_hojas,
-    contar_nodos_totales,
+    contar_nodos_totales, octree_a_grid_denso,
 )
 
 RAIZ_DATASET   = RAIZ_PROYECTO / "Dataset" / "ModelNet40"
@@ -120,28 +120,48 @@ def procesar_archivo(args: tuple) -> dict:
             n_hojas = len(hojas)
             pct_ocup_hoja = 100.0 * n_hojas / (R ** 3)
 
-            # Guardar en disco temporal para medir el TAMAÑO REAL del
-            # archivo con estructura jerarquica completa (no estimado)
             dir_split = DIR_TEMP_NPZ / f"R{R}" / clase / split
             dir_split.mkdir(parents=True, exist_ok=True)
-            ruta_npz = dir_split / f"{nombre}.npz"
+
+            # ── Archivo 1: octree disperso, estructura jerarquica completa ──
+            ruta_npz_disperso = dir_split / f"{nombre}_disperso.npz"
 
             t0 = time.perf_counter()
-            guardar_octree_disperso(raiz, str(ruta_npz), etiqueta=0,
+            guardar_octree_disperso(raiz, str(ruta_npz_disperso), etiqueta=0,
                                     profundidad_max=profundidad_max)
             t_guardado_ms = (time.perf_counter() - t0) * 1000
 
-            tam_archivo_kb = ruta_npz.stat().st_size / 1024
+            tam_disperso_kib = ruta_npz_disperso.stat().st_size / 1024
+            ruta_npz_disperso.unlink()
 
-            fila[f"t_arbol_{R}_ms"]      = round(t_arbol_ms, 3)
-            fila[f"t_guardado_{R}_ms"]   = round(t_guardado_ms, 3)
-            fila[f"nodos_totales_{R}"]   = n_nodos
-            fila[f"hojas_ocupadas_{R}"]  = n_hojas
-            fila[f"ocup_hoja_pct_{R}"]   = round(pct_ocup_hoja, 4)
-            fila[f"tam_npz_kb_{R}"]      = round(tam_archivo_kb, 3)
+            # ── Archivo 2: rejilla densa equivalente, MISMA COMPRESION ──
+            # Se materializa el mismo arbol a un grid denso (4, R, R, R)
+            # y se guarda con np.savez_compressed (el mismo metodo de
+            # compresion usado para el formato disperso), para poder
+            # comparar TAMAÑOS REALES DE ARCHIVO en igualdad de
+            # condiciones -- no el tamaño disperso comprimido contra
+            # una formula teorica sin comprimir.
+            grid_denso = octree_a_grid_denso(raiz, R)
+            ruta_npz_denso = dir_split / f"{nombre}_denso.npz"
 
-            # Borrar el npz temporal (solo se necesitaba para medir tamaño)
-            ruta_npz.unlink()
+            t0 = time.perf_counter()
+            np.savez_compressed(ruta_npz_denso, grid=grid_denso, etiqueta=0)
+            t_guardado_denso_ms = (time.perf_counter() - t0) * 1000
+
+            tam_denso_kib = ruta_npz_denso.stat().st_size / 1024
+            ruta_npz_denso.unlink()
+
+            factor_ahorro_real = tam_denso_kib / max(tam_disperso_kib, 0.001)
+
+            fila[f"t_arbol_{R}_ms"]          = round(t_arbol_ms, 3)
+            fila[f"t_guardado_{R}_ms"]       = round(t_guardado_ms, 3)
+            fila[f"t_guardado_denso_{R}_ms"] = round(t_guardado_denso_ms, 3)
+            fila[f"nodos_totales_{R}"]       = n_nodos
+            fila[f"hojas_ocupadas_{R}"]      = n_hojas
+            fila[f"ocup_hoja_pct_{R}"]       = round(pct_ocup_hoja, 4)
+            fila[f"tam_npz_disperso_kib_{R}"] = round(tam_disperso_kib, 3)
+            fila[f"tam_npz_denso_kib_{R}"]    = round(tam_denso_kib, 3)
+            fila[f"factor_ahorro_real_{R}"]  = round(factor_ahorro_real, 3)
 
         fila["t_total_ms"] = round(
             t_preproceso_ms + t_muestreo_ms
@@ -213,9 +233,10 @@ def main():
     campos = ["nombre", "clase", "split", "n_vertices", "n_caras",
               "t_preproceso_ms", "t_muestreo_ms", "t_total_ms"]
     for R in RESOLUCIONES:
-        campos += [f"t_arbol_{R}_ms", f"t_guardado_{R}_ms",
-                  f"nodos_totales_{R}", f"hojas_ocupadas_{R}",
-                  f"ocup_hoja_pct_{R}", f"tam_npz_kb_{R}"]
+        campos += [f"t_arbol_{R}_ms", f"t_guardado_{R}_ms", f"t_guardado_denso_{R}_ms",
+                  f"nodos_totales_{R}", f"hojas_ocupadas_{R}", f"ocup_hoja_pct_{R}",
+                  f"tam_npz_disperso_kib_{R}", f"tam_npz_denso_kib_{R}",
+                  f"factor_ahorro_real_{R}"]
 
     csv_completo = DIR_RESULTADOS / "metricas_off_completo.csv"
     with open(csv_completo, "w", newline="", encoding="utf-8") as f:
@@ -235,7 +256,8 @@ def main():
     campos_resumen = ["clase", "n", "t_total_media_ms"]
     for R in RESOLUCIONES:
         campos_resumen += [f"nodos_media_{R}", f"hojas_media_{R}", f"ocup_pct_media_{R}",
-                           f"tam_npz_kb_media_{R}"]
+                           f"tam_disperso_kib_media_{R}", f"tam_denso_kib_media_{R}",
+                           f"factor_ahorro_media_{R}"]
 
     with open(csv_resumen, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=campos_resumen)
@@ -249,11 +271,21 @@ def main():
                 fila[f"nodos_media_{R}"] = round(np.mean([m[f"nodos_totales_{R}"] for m in muestras]), 1)
                 fila[f"hojas_media_{R}"] = round(np.mean([m[f"hojas_ocupadas_{R}"] for m in muestras]), 1)
                 fila[f"ocup_pct_media_{R}"] = round(np.mean([m[f"ocup_hoja_pct_{R}"] for m in muestras]), 4)
-                fila[f"tam_npz_kb_media_{R}"] = round(np.mean([m[f"tam_npz_kb_{R}"] for m in muestras]), 3)
+                fila[f"tam_disperso_kib_media_{R}"] = round(
+                    np.mean([m[f"tam_npz_disperso_kib_{R}"] for m in muestras]), 3)
+                fila[f"tam_denso_kib_media_{R}"] = round(
+                    np.mean([m[f"tam_npz_denso_kib_{R}"] for m in muestras]), 3)
+                fila[f"factor_ahorro_media_{R}"] = round(
+                    np.mean([m[f"factor_ahorro_real_{R}"] for m in muestras]), 3)
             w.writerow(fila)
     print(f"[CSV] Guardado: {csv_resumen.name}")
 
     # ── Resumen global ──
+    # IMPORTANTE: la comparacion de almacenamiento ya NO usa una formula
+    # teorica para la rejilla densa. Ambas representaciones (octree
+    # disperso y rejilla densa) se guardaron en disco con la MISMA
+    # compresion (np.savez_compressed) y se comparan sus tamaños reales
+    # de archivo, en igualdad de condiciones.
     resumen_global = {"n_total": len(validos), "n_errores": len(todos_resultados) - len(validos)}
     resumen_global["t_total_ms"] = {
         "media": round(float(np.mean([r["t_total_ms"] for r in validos])), 4),
@@ -265,7 +297,11 @@ def main():
         nodos = [r[f"nodos_totales_{R}"] for r in validos]
         hojas = [r[f"hojas_ocupadas_{R}"] for r in validos]
         ocup  = [r[f"ocup_hoja_pct_{R}"] for r in validos]
-        tam   = [r[f"tam_npz_kb_{R}"] for r in validos]
+        tam_disperso = [r[f"tam_npz_disperso_kib_{R}"] for r in validos]
+        tam_denso    = [r[f"tam_npz_denso_kib_{R}"] for r in validos]
+
+        tam_disperso_total_mib = float(np.sum(tam_disperso)) / 1024
+        tam_denso_total_mib    = float(np.sum(tam_denso)) / 1024
 
         resumen_global[f"R{R}"] = {
             "nodos_media": round(float(np.mean(nodos)), 1),
@@ -274,15 +310,16 @@ def main():
             "hojas_std":   round(float(np.std(hojas)), 1),
             "ocup_pct_media": round(float(np.mean(ocup)), 4),
             "ocup_pct_std":   round(float(np.std(ocup)), 4),
-            "tam_npz_kb_media": round(float(np.mean(tam)), 3),
-            "tam_npz_kb_total_dataset_mb": round(float(np.sum(tam)) / 1024, 2),
-            "mem_densa_equivalente_total_mb": round(
-                len(validos) * 4 * (R**3) * 4 / 1024 / 1024, 1
+            # Ambos archivos guardados con la MISMA compresion, tamaños
+            # REALES medidos en disco (no formulas teoricas)
+            "tam_disperso_kib_media": round(float(np.mean(tam_disperso)), 3),
+            "tam_denso_kib_media":    round(float(np.mean(tam_denso)), 3),
+            "tam_disperso_total_dataset_mib": round(tam_disperso_total_mib, 2),
+            "tam_denso_total_dataset_mib":    round(tam_denso_total_mib, 2),
+            "factor_ahorro_real": round(
+                tam_denso_total_mib / max(tam_disperso_total_mib, 0.001), 3
             ),
         }
-        factor = resumen_global[f"R{R}"]["mem_densa_equivalente_total_mb"] * 1024 / \
-                 max(resumen_global[f"R{R}"]["tam_npz_kb_total_dataset_mb"] * 1024, 0.001)
-        resumen_global[f"R{R}"]["factor_ahorro_real"] = round(factor, 1)
 
     ruta_json = DIR_RESULTADOS / "metricas_off_global.json"
     with open(ruta_json, "w") as f:
@@ -304,10 +341,11 @@ def main():
         print(f"    Nodos totales (media)   : {g['nodos_media']:.0f} (±{g['nodos_std']:.0f})")
         print(f"    Hojas ocupadas (media)  : {g['hojas_media']:.0f} (±{g['hojas_std']:.0f})")
         print(f"    Ocupacion hoja (media)  : {g['ocup_pct_media']:.3f}% (±{g['ocup_pct_std']:.3f}%)")
-        print(f"    Tamaño .npz (media)     : {g['tam_npz_kb_media']:.3f} KB")
-        print(f"    Tamaño dataset (real)   : {g['tam_npz_kb_total_dataset_mb']:.2f} MB")
-        print(f"    Densa equivalente       : {g['mem_densa_equivalente_total_mb']:.1f} MB")
-        print(f"    >>> Factor de ahorro REAL: {g['factor_ahorro_real']:.1f}x <<<")
+        print(f"    Archivo disperso (media): {g['tam_disperso_kib_media']:.3f} KiB (comprimido)")
+        print(f"    Archivo denso (media)   : {g['tam_denso_kib_media']:.3f} KiB (comprimido, misma compresion)")
+        print(f"    Dataset disperso (real) : {g['tam_disperso_total_dataset_mib']:.2f} MiB")
+        print(f"    Dataset denso (real)    : {g['tam_denso_total_dataset_mib']:.2f} MiB")
+        print(f"    >>> Factor de ahorro REAL (ambos comprimidos): {g['factor_ahorro_real']:.2f}x <<<")
 
     print("=" * 70)
 
