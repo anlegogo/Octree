@@ -591,12 +591,15 @@ def medir_memoria_real_python(raiz: NodoOctree) -> dict:
 
         total_bytes[0] += sys.getsizeof(nodo)          # objeto NodoOctree
         total_bytes[0] += sys.getsizeof(nodo.hijos)     # lista de 8 punteros
-        total_bytes[0] += sys.getsizeof(nodo.centro) + nodo.centro.nbytes
+        # CORRECCION (observacion de Andres Gonzalez): sys.getsizeof()
+        # sobre un array de numpy que posee su propio buffer YA INCLUYE
+        # el tamaño de los datos (equivalente a arr.nbytes + un pequeño
+        # overhead de objeto ~96-160 bytes). Sumar arr.nbytes de nuevo
+        # duplicaba esa memoria. Se usa unicamente sys.getsizeof().
+        total_bytes[0] += sys.getsizeof(nodo.centro)
 
         if nodo.normal_promedio is not None:
-            total_bytes[0] += (
-                sys.getsizeof(nodo.normal_promedio) + nodo.normal_promedio.nbytes
-            )
+            total_bytes[0] += sys.getsizeof(nodo.normal_promedio)
 
         if not nodo.es_hoja:
             for hijo in nodo.hijos:
@@ -606,20 +609,26 @@ def medir_memoria_real_python(raiz: NodoOctree) -> dict:
 
     return {
         "n_nodos_medidos": n_nodos[0],
-        "memoria_real_bytes": total_bytes[0],
-        "memoria_real_kib": round(total_bytes[0] / 1024, 3),
+        "memoria_python_bytes": total_bytes[0],
+        "memoria_python_kib": round(total_bytes[0] / 1024, 3),
     }
 
 
 def comparar_memoria(raiz: NodoOctree, resolucion: int, profundidad_max: int) -> dict:
     """
-    Compara tres magnitudes de memoria, claramente diferenciadas:
+    Compara tres magnitudes de memoria, claramente diferenciadas y con
+    nombres que no deben confundirse entre si:
 
-    1. memoria_ram_real_kib: memoria REAL medida (en KiB, 1024 bytes) de los objetos Python
-       del arbol completo (internos + hojas), via sys.getsizeof()
-       recorriendo cada nodo -- ver medir_memoria_real_python().
+    1. memoria_python_kib: memoria ocupada por la REPRESENTACION EN
+       PYTHON del arbol completo (internos + hojas) -- objetos
+       NodoOctree, listas de 8 hijos, y arrays de numpy de centro y
+       normal -- medida via sys.getsizeof() recorriendo cada nodo
+       (ver medir_memoria_real_python()). Distinta del pico transitorio
+       durante la construccion (medido aparte con tracemalloc en
+       medir_tiempo_memoria.py) y del almacenamiento en disco (tamaño
+       real del archivo .npz).
 
-    2. memoria_binaria_estimada_kib: estimacion TEORICA (en KiB) (no medida) del
+    2. memoria_binaria_estimada_kib: estimacion TEORICA (no medida) del
        tamaño minimo si se serializara el arbol en un formato binario
        compacto (1 byte profundidad + 1 byte mascara de hijos + 12
        bytes de normal por CADA nodo existente, internos y hojas). Esta
@@ -627,17 +636,19 @@ def comparar_memoria(raiz: NodoOctree, resolucion: int, profundidad_max: int) ->
        referencia para comparar contra el archivo .npz real (que ademas
        incluye compresion y overhead del formato .npz).
 
-    3. memoria_densa_kib: memoria de la rejilla densa equivalente (en KiB)
-       (formato descartado tras la observacion de Andres Gonzalez):
-       4 canales x R^3 celdas x 4 bytes/celda (float32).
+    3. memoria_densa_kib: memoria ocupada por la REPRESENTACION EN
+       PYTHON de la rejilla densa equivalente (formato descartado tras
+       la observacion de Andres Gonzalez), medida con el MISMO criterio
+       que memoria_python_kib (sys.getsizeof sobre el array materializado,
+       sin sumar nbytes por separado -- ver correccion de doble conteo).
 
     Retorna un dict con las tres magnitudes y los factores de ahorro
-    correspondientes (RAM real vs. densa, y binario teorico vs. densa).
+    correspondientes.
     """
     n_hojas = len(recolectar_hojas(raiz))
     n_nodos_totales = contar_nodos_totales(raiz)
 
-    medicion_ram = medir_memoria_real_python(raiz)
+    medicion_python = medir_memoria_real_python(raiz)
 
     # Estimacion teorica de una serializacion binaria minima (NO es
     # memoria de objetos Python): 1 byte profundidad + 1 byte mascara
@@ -647,18 +658,23 @@ def comparar_memoria(raiz: NodoOctree, resolucion: int, profundidad_max: int) ->
     bytes_por_nodo_binario = 1 + 1 + 12
     memoria_binaria_estimada_bytes = n_nodos_totales * bytes_por_nodo_binario
 
-    # Memoria densa equivalente (formato anterior, descartado):
-    # 4 canales x R^3 celdas x 4 bytes/celda (float32)
-    memoria_densa_bytes = 4 * (resolucion ** 3) * 4
+    # Memoria de la representacion densa equivalente EN PYTHON (formato
+    # anterior, descartado). CORRECCION: antes se sumaba una formula
+    # (4*R^3*4 bytes, el tamaño crudo de los datos) que no correspondia
+    # al mismo criterio de medicion que memoria_python_kib. Ahora se
+    # materializa el array y se mide con sys.getsizeof(), igual que el
+    # arbol, para una comparacion consistente.
+    grid_denso_temp = octree_a_grid_denso(raiz, resolucion)
+    memoria_densa_bytes = sys.getsizeof(grid_denso_temp)
 
     return {
         "n_hojas_ocupadas": n_hojas,
         "n_nodos_totales_arbol": n_nodos_totales,
-        "memoria_ram_real_kib": medicion_ram["memoria_real_kib"],
+        "memoria_python_kib": medicion_python["memoria_python_kib"],
         "memoria_binaria_estimada_kib": round(memoria_binaria_estimada_bytes / 1024, 3),
         "memoria_densa_kib": round(memoria_densa_bytes / 1024, 3),
-        "factor_ahorro_ram_vs_densa": round(
-            memoria_densa_bytes / max(medicion_ram["memoria_real_bytes"], 1), 2
+        "factor_ahorro_python_vs_densa": round(
+            memoria_densa_bytes / max(medicion_python["memoria_python_bytes"], 1), 2
         ),
         "factor_ahorro_binario_vs_densa": round(
             memoria_densa_bytes / max(memoria_binaria_estimada_bytes, 1), 2
@@ -738,9 +754,9 @@ if __name__ == "__main__":
         print(f"  Ocupacion por nivel (%)   : {np.round(ocup_por_nivel, 2)}")
 
         mem = comparar_memoria(raiz, R, prof_max)
-        print(f"  Memoria RAM real (arbol)  : {mem['memoria_ram_real_kib']:.2f} KiB")
+        print(f"  Memoria Python (arbol)    : {mem['memoria_python_kib']:.2f} KiB")
         print(f"  Memoria densa (referencia): {mem['memoria_densa_kib']:.2f} KiB")
-        print(f"  Factor de ahorro (RAM)    : {mem['factor_ahorro_ram_vs_densa']:.1f}x")
+        print(f"  Factor de ahorro (Python) : {mem['factor_ahorro_python_vs_densa']:.1f}x")
 
         grid = octree_a_grid_denso(raiz, R)
         n_ocup_grid = int(grid[0].sum())
@@ -752,10 +768,10 @@ if __name__ == "__main__":
             "n_nodos_totales": n_nodos,
             "n_hojas_ocupadas": n_hojas,
             "ocupacion_por_nivel_pct": [round(float(v), 4) for v in ocup_por_nivel],
-            "memoria_ram_real_kib": mem["memoria_ram_real_kib"],
+            "memoria_python_kib": mem["memoria_python_kib"],
             "memoria_binaria_estimada_kib": mem["memoria_binaria_estimada_kib"],
             "memoria_densa_kib": mem["memoria_densa_kib"],
-            "factor_ahorro_ram_vs_densa": mem["factor_ahorro_ram_vs_densa"],
+            "factor_ahorro_python_vs_densa": mem["factor_ahorro_python_vs_densa"],
             "factor_ahorro_binario_vs_densa": mem["factor_ahorro_binario_vs_densa"],
         }
 
