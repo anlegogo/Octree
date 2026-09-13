@@ -672,20 +672,57 @@ def comparar_memoria(raiz: NodoOctree, resolucion: int, profundidad_max: int) ->
 # ──────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    import argparse
+    import json
+    import sys as sys_module
+    from pathlib import Path as PathModule
+
+    parser = argparse.ArgumentParser(
+        description="Test de octree_real.py: poda de ramas vacias y "
+                    "comparativa de memoria. Sin --off, usa una esfera "
+                    "sintetica; con --off, usa la malla real indicada."
+    )
+    parser.add_argument("--off", type=str, default=None,
+                        help="Ruta a un archivo .off real (opcional)")
+    parser.add_argument("--salida", type=str, default=None,
+                        help="Ruta JSON donde guardar los resultados (opcional)")
+    args = parser.parse_args()
+
     print("=" * 60)
     print("  TEST: Octree real con poda de ramas vacias")
     print("=" * 60)
 
-    rng = np.random.default_rng(42)
-    n_pts = 5000
-    theta = rng.uniform(0, np.pi, n_pts)
-    phi = rng.uniform(0, 2 * np.pi, n_pts)
-    radio = 0.7
-    x = radio * np.sin(theta) * np.cos(phi)
-    y = radio * np.sin(theta) * np.sin(phi)
-    z = radio * np.cos(theta)
-    puntos = np.stack([x, y, z], axis=1).astype(np.float32)
-    normales = puntos / radio
+    nombre_objeto = "esfera_sintetica"
+
+    if args.off:
+        # Usar una malla real: reutiliza el pipeline de octree.py para
+        # leer, normalizar y muestrear la superficie con normales.
+        sys_module.path.insert(0, str(PathModule(__file__).parent))
+        from octree import (
+            leer_off, normalizar_malla, muestrear_superficie_con_normales,
+        )
+
+        print(f"\n  Archivo: {args.off}")
+        verts, caras = leer_off(args.off)
+        verts = normalizar_malla(verts)
+        rng = np.random.default_rng(42)
+        puntos, normales = muestrear_superficie_con_normales(verts, caras, 20000, rng)
+        nombre_objeto = PathModule(args.off).stem
+        print(f"  Vertices: {len(verts)}   Puntos muestreados: {len(puntos)}")
+    else:
+        print("\n  (Sin --off: usando esfera sintetica de prueba)")
+        rng = np.random.default_rng(42)
+        n_pts = 5000
+        theta = rng.uniform(0, np.pi, n_pts)
+        phi = rng.uniform(0, 2 * np.pi, n_pts)
+        radio = 0.7
+        x = radio * np.sin(theta) * np.cos(phi)
+        y = radio * np.sin(theta) * np.sin(phi)
+        z = radio * np.cos(theta)
+        puntos = np.stack([x, y, z], axis=1).astype(np.float32)
+        normales = puntos / radio
+
+    resultados_json = {"archivo": nombre_objeto}
 
     for R, prof_max in [(32, 5), (64, 6)]:
         print(f"\n--- Resolucion {R}^3 (profundidad hoja d={prof_max}) ---")
@@ -710,7 +747,26 @@ if __name__ == "__main__":
         assert n_ocup_grid == n_hojas, "Inconsistencia hojas vs grid materializado"
         print(f"  Verificacion grid denso   : {n_ocup_grid} celdas (coincide con hojas) OK")
 
+        resultados_json[f"R{R}"] = {
+            "profundidad_max": prof_max,
+            "n_nodos_totales": n_nodos,
+            "n_hojas_ocupadas": n_hojas,
+            "ocupacion_por_nivel_pct": [round(float(v), 4) for v in ocup_por_nivel],
+            "memoria_ram_real_kib": mem["memoria_ram_real_kib"],
+            "memoria_binaria_estimada_kib": mem["memoria_binaria_estimada_kib"],
+            "memoria_densa_kib": mem["memoria_densa_kib"],
+            "factor_ahorro_ram_vs_densa": mem["factor_ahorro_ram_vs_densa"],
+            "factor_ahorro_binario_vs_densa": mem["factor_ahorro_binario_vs_densa"],
+        }
+
     print("\n" + "=" * 60)
     print("  Test completado: la poda de ramas vacias funciona")
     print("  correctamente y el arbol es un octree real.")
     print("=" * 60)
+
+    if args.off:
+        ruta_salida = PathModule(args.salida) if args.salida else \
+                     PathModule(f"octree_real_{nombre_objeto}.json")
+        with open(ruta_salida, "w", encoding="utf-8") as f:
+            json.dump(resultados_json, f, indent=2, ensure_ascii=False)
+        print(f"\n  Resultados guardados en: {ruta_salida.resolve()}")
