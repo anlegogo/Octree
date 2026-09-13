@@ -20,10 +20,13 @@ y produce:
   4. JSON con los valores para citar en el texto
 
 CORRECCION respecto a versiones anteriores: las columnas del CSV ya
-no reportan memoria estimada de una rejilla densa (1 o 4 canales),
-sino el numero real de nodos del arbol y el tamaño REAL medido del
-archivo .npz guardado con estructura jerarquica completa (ver
-octree_real.py y medir_metricas_off.py).
+no reportan memoria estimada de una rejilla densa (1 o 4 canales) ni
+comparan un .npz disperso comprimido contra una formula teorica sin
+comprimir. Ahora se comparan los tamaños REALES de dos archivos .npz
+guardados con la MISMA compresion: el octree disperso (estructura
+jerarquica completa) y la rejilla densa equivalente materializada del
+mismo arbol (ver octree_real.py y medir_metricas_off.py). Todas las
+unidades de tamaño usan KiB/MiB (potencias de 1024), no KB/MB.
 
 Uso:
     python tabla_resumen_octree.py
@@ -84,7 +87,13 @@ def calcular_estadisticas(filas: list) -> tuple:
     """
     Retorna (stats_por_clase, stats_global), usando las columnas REALES
     (medidas) del CSV del octree real: nodos_totales_R, hojas_ocupadas_R,
-    ocup_hoja_pct_R, tam_npz_kb_R.
+    ocup_hoja_pct_R, tam_npz_disperso_kib_R, tam_npz_denso_kib_R.
+
+    IMPORTANTE: tam_npz_denso_kib_R es el tamaño REAL de la rejilla
+    densa equivalente, guardada con la MISMA compresion que el octree
+    disperso (ver medir_metricas_off.py) -- no una formula teorica sin
+    comprimir. El factor de ahorro se calcula entre ambos archivos
+    reales, en igualdad de condiciones.
     """
     por_clase = defaultdict(list)
     for fila in filas:
@@ -110,8 +119,11 @@ def calcular_estadisticas(filas: list) -> tuple:
             entrada[f"nodos_media_{R}"] = media(f"nodos_totales_{R}")
             entrada[f"hojas_media_{R}"] = media(f"hojas_ocupadas_{R}")
             entrada[f"ocup_pct_media_{R}"] = media(f"ocup_hoja_pct_{R}")
-            entrada[f"tam_npz_kb_media_{R}"] = media(f"tam_npz_kb_{R}")
-            entrada[f"tam_npz_total_mb_{R}"] = round(suma(f"tam_npz_kb_{R}") / 1024, 4)
+            entrada[f"tam_disperso_kib_media_{R}"] = media(f"tam_npz_disperso_kib_{R}")
+            entrada[f"tam_denso_kib_media_{R}"] = media(f"tam_npz_denso_kib_{R}")
+            entrada[f"tam_disperso_total_mib_{R}"] = round(
+                suma(f"tam_npz_disperso_kib_{R}") / 1024, 4)
+            entrada[f"factor_ahorro_media_{R}"] = media(f"factor_ahorro_real_{R}")
 
         stats_clase[clase] = entrada
 
@@ -139,9 +151,8 @@ def calcular_estadisticas(filas: list) -> tuple:
     }
 
     for R in RESOLUCIONES:
-        tam_total_kb = suma_global(f"tam_npz_kb_{R}")
-        # Memoria densa equivalente (4 canales float32, formato descartado)
-        mem_densa_total_mb = round(n_total * 4 * (R**3) * 4 / 1024 / 1024, 1)
+        tam_disperso_total_kib = suma_global(f"tam_npz_disperso_kib_{R}")
+        tam_denso_total_kib    = suma_global(f"tam_npz_denso_kib_{R}")
 
         stats_global[f"R{R}"] = {
             "nodos_media": media_global(f"nodos_totales_{R}"),
@@ -150,11 +161,14 @@ def calcular_estadisticas(filas: list) -> tuple:
             "hojas_std":   std_global(f"hojas_ocupadas_{R}"),
             "ocup_pct_media": media_global(f"ocup_hoja_pct_{R}"),
             "ocup_pct_std":   std_global(f"ocup_hoja_pct_{R}"),
-            "tam_npz_kb_media": media_global(f"tam_npz_kb_{R}"),
-            "tam_npz_total_dataset_mb": round(tam_total_kb / 1024, 2),
-            "mem_densa_equivalente_total_mb": mem_densa_total_mb,
+            # Ambos tamaños son REALES (archivos .npz comprimidos con
+            # el mismo metodo), no formulas teoricas.
+            "tam_disperso_kib_media": media_global(f"tam_npz_disperso_kib_{R}"),
+            "tam_denso_kib_media":    media_global(f"tam_npz_denso_kib_{R}"),
+            "tam_disperso_total_dataset_mib": round(tam_disperso_total_kib / 1024, 2),
+            "tam_denso_total_dataset_mib":    round(tam_denso_total_kib / 1024, 2),
             "factor_ahorro_real": round(
-                mem_densa_total_mb * 1024 / max(tam_total_kb, 0.001), 1
+                tam_denso_total_kib / max(tam_disperso_total_kib, 0.001), 3
             ),
         }
 
@@ -168,11 +182,12 @@ def calcular_estadisticas(filas: list) -> tuple:
 def imprimir_tabla_consola(stats_clase: dict, stats_global: dict, split: str):
     print("\n" + "=" * 100)
     print(f"  TABLA RESUMEN DEL OCTREE REAL — ModelNet40  ({split.upper()})")
+    print(f"  Archivos DISPERSO y DENSO guardados con la MISMA compresion (.npz)")
     print("=" * 100)
 
-    enc = ["Clase", "N", "Ocup.32³(%)", "Ocup.64³(%)",
-           "Nodos 32³", "Nodos 64³", "T.media(ms)", "Archivo32³(KB)", "Archivo64³(KB)"]
-    anchos = [14, 5, 12, 12, 10, 10, 13, 15, 15]
+    enc = ["Clase", "N", "Ocup.32³(%)", "Ocup.64³(%)", "Nodos 32³", "Nodos 64³",
+           "T.media(ms)", "Disp32³(KiB)", "Den32³(KiB)", "Disp64³(KiB)", "Den64³(KiB)"]
+    anchos = [14, 5, 12, 12, 10, 10, 13, 13, 12, 13, 12]
     header = "  " + "  ".join(f"{h:<{w}}" for h, w in zip(enc, anchos))
     print(header)
     print("  " + "-" * 98)
@@ -188,8 +203,10 @@ def imprimir_tabla_consola(stats_clase: dict, stats_global: dict, split: str):
             f"{s['nodos_media_32']:.0f}",
             f"{s['nodos_media_64']:.0f}",
             f"{s['t_total_media_ms']:.2f}",
-            f"{s['tam_npz_kb_media_32']:.3f}",
-            f"{s['tam_npz_kb_media_64']:.3f}",
+            f"{s['tam_disperso_kib_media_32']:.3f}",
+            f"{s['tam_denso_kib_media_32']:.3f}",
+            f"{s['tam_disperso_kib_media_64']:.3f}",
+            f"{s['tam_denso_kib_media_64']:.3f}",
         ]
         print("  " + "  ".join(f"{v:<{w}}" for v, w in zip(vals, anchos)))
 
@@ -202,8 +219,10 @@ def imprimir_tabla_consola(stats_clase: dict, stats_global: dict, split: str):
         f"{g['R32']['nodos_media']:.0f}",
         f"{g['R64']['nodos_media']:.0f}",
         f"{g['t_total_media_ms']:.2f}±{g['t_total_std_ms']:.2f}",
-        f"{g['R32']['tam_npz_kb_media']:.3f}",
-        f"{g['R64']['tam_npz_kb_media']:.3f}",
+        f"{g['R32']['tam_disperso_kib_media']:.3f}",
+        f"{g['R32']['tam_denso_kib_media']:.3f}",
+        f"{g['R64']['tam_disperso_kib_media']:.3f}",
+        f"{g['R64']['tam_denso_kib_media']:.3f}",
     ]
     print("  " + "  ".join(f"{v:<{w}}" for v, w in zip(vals_g, anchos)))
     print("=" * 100)
@@ -216,10 +235,13 @@ def imprimir_tabla_consola(stats_clase: dict, stats_global: dict, split: str):
         print(f"    - Nodos totales (media)        : {gr['nodos_media']:.0f} (±{gr['nodos_std']:.0f})")
         print(f"    - Hojas ocupadas (media)       : {gr['hojas_media']:.0f} (±{gr['hojas_std']:.0f})")
         print(f"    - Ocupacion hoja (media)       : {gr['ocup_pct_media']:.3f}% (±{gr['ocup_pct_std']:.3f}%)")
-        print(f"    - Tamaño .npz (media)          : {gr['tam_npz_kb_media']:.3f} KB")
-        print(f"    - Almacenamiento dataset (real): {gr['tam_npz_total_dataset_mb']:.2f} MB")
-        print(f"    - Densa equivalente (descartada): {gr['mem_densa_equivalente_total_mb']:.1f} MB")
-        print(f"    - >>> Factor de ahorro REAL     : {gr['factor_ahorro_real']:.1f}x <<<")
+        print(f"    - Archivo disperso (media)     : {gr['tam_disperso_kib_media']:.3f} KiB")
+        print(f"    - Archivo denso (media)        : {gr['tam_denso_kib_media']:.3f} KiB "
+              f"(misma compresion)")
+        print(f"    - Dataset disperso (real)      : {gr['tam_disperso_total_dataset_mib']:.2f} MiB")
+        print(f"    - Dataset denso (real)         : {gr['tam_denso_total_dataset_mib']:.2f} MiB")
+        print(f"    - >>> Factor de ahorro REAL (ambos comprimidos): "
+              f"{gr['factor_ahorro_real']:.2f}x <<<")
     print(f"\n  - Tiempo medio por objeto        : {g['t_total_media_ms']:.2f} ms "
           f"(±{g['t_total_std_ms']:.2f} ms)")
     print(f"  - Tiempo total dataset           : ~{g['t_total_dataset_min']:.1f} min")
@@ -233,7 +255,8 @@ def graficar_tabla_resumen(stats_clase: dict, stats_global: dict, split: str):
     columnas = [
         "Clase", "N", "Ocup.\n32³ (%)", "Ocup.\n64³ (%)",
         "Nodos\n32³", "Nodos\n64³", "T. media\n(ms)",
-        "Archivo\n32³ (KB)", "Archivo\n64³ (KB)",
+        "Disperso\n32³ (KiB)", "Denso\n32³ (KiB)",
+        "Disperso\n64³ (KiB)", "Denso\n64³ (KiB)",
     ]
 
     clases_presentes = [c for c in CLASES if c in stats_clase]
@@ -247,8 +270,10 @@ def graficar_tabla_resumen(stats_clase: dict, stats_global: dict, split: str):
             f"{s['nodos_media_32']:.0f}",
             f"{s['nodos_media_64']:.0f}",
             f"{s['t_total_media_ms']:.2f}",
-            f"{s['tam_npz_kb_media_32']:.3f}",
-            f"{s['tam_npz_kb_media_64']:.3f}",
+            f"{s['tam_disperso_kib_media_32']:.3f}",
+            f"{s['tam_denso_kib_media_32']:.3f}",
+            f"{s['tam_disperso_kib_media_64']:.3f}",
+            f"{s['tam_denso_kib_media_64']:.3f}",
         ])
 
     g = stats_global
@@ -259,12 +284,14 @@ def graficar_tabla_resumen(stats_clase: dict, stats_global: dict, split: str):
         f"{g['R32']['nodos_media']:.0f}",
         f"{g['R64']['nodos_media']:.0f}",
         f"{g['t_total_media_ms']:.2f}",
-        f"{g['R32']['tam_npz_kb_media']:.3f}",
-        f"{g['R64']['tam_npz_kb_media']:.3f}",
+        f"{g['R32']['tam_disperso_kib_media']:.3f}",
+        f"{g['R32']['tam_denso_kib_media']:.3f}",
+        f"{g['R64']['tam_disperso_kib_media']:.3f}",
+        f"{g['R64']['tam_denso_kib_media']:.3f}",
     ])
 
     alto = max(8, 0.42 * len(celdas) + 1.5)
-    fig, ax = plt.subplots(figsize=(18, alto))
+    fig, ax = plt.subplots(figsize=(20, alto))
     ax.axis("off")
 
     tabla = ax.table(cellText=celdas, colLabels=columnas, loc="center", cellLoc="center")
@@ -285,9 +312,10 @@ def graficar_tabla_resumen(stats_clase: dict, stats_global: dict, split: str):
     ax.set_title(
         f"Tabla de estructura del octree real y costo del pipeline — "
         f"ModelNet40 ({split})\n"
-        f"Nodos y tamaño de archivo REALES (medidos), no estimados. "
-        f"Ahorro vs. rejilla densa: {g['R32']['factor_ahorro_real']:.0f}x (32³), "
-        f"{g['R64']['factor_ahorro_real']:.0f}x (64³)",
+        f"Disperso y Denso guardados con la MISMA compresion (.npz); "
+        f"tamaños REALES medidos, no estimados. "
+        f"Ahorro real: {g['R32']['factor_ahorro_real']:.2f}x (32³), "
+        f"{g['R64']['factor_ahorro_real']:.2f}x (64³)",
         fontsize=10.5, pad=18, fontweight="bold",
     )
 
