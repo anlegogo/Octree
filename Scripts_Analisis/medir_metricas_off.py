@@ -198,11 +198,59 @@ def main():
     parser.add_argument("--split", type=str, default="train",
                         choices=["train", "test", "ambos"])
     parser.add_argument("--n_muestras", type=int, default=None)
+    parser.add_argument("--off", type=str, default=None,
+                        help="Procesar UN SOLO archivo .off directamente "
+                             "(sin necesitar la estructura completa del "
+                             "dataset). Util para pruebas rapidas, ej. "
+                             "chair_0001.off.")
+    parser.add_argument("--salida", type=str, default=None,
+                        help="Ruta JSON de salida cuando se usa --off "
+                             "(opcional; por defecto usa el nombre del archivo)")
     args = parser.parse_args()
 
     DIR_RESULTADOS.mkdir(parents=True, exist_ok=True)
     DIR_TEMP_NPZ.mkdir(parents=True, exist_ok=True)
 
+    # ── Modo archivo unico: bypass completo de la estructura de dataset ──
+    if args.off:
+        print("=" * 70)
+        print("  METRICAS DE PROCESAMIENTO .off -> Octree REAL (archivo unico)")
+        print("=" * 70)
+        print(f"  Archivo: {args.off}\n")
+
+        nombre_stem = Path(args.off).stem
+        resultado = procesar_archivo((args.off, "sin_clase", "individual"))
+
+        if resultado.get("error"):
+            print(f"[ERROR] {resultado['error']}")
+            return
+
+        print(f"  Vertices: {resultado['n_vertices']:,}   "
+              f"Caras: {resultado['n_caras']:,}")
+        print(f"  Tiempo total: {resultado['t_total_ms']:.2f} ms\n")
+
+        for R in RESOLUCIONES:
+            print(f"  --- Resolucion {R}^3 ---")
+            print(f"    Nodos totales      : {resultado[f'nodos_totales_{R}']:,}")
+            print(f"    Hojas ocupadas     : {resultado[f'hojas_ocupadas_{R}']:,}")
+            print(f"    Ocupacion hoja     : {resultado[f'ocup_hoja_pct_{R}']:.3f}%")
+            print(f"    Archivo disperso   : {resultado[f'tam_npz_disperso_kib_{R}']:.3f} KiB")
+            print(f"    Archivo denso      : {resultado[f'tam_npz_denso_kib_{R}']:.3f} KiB "
+                  f"(misma compresion)")
+            print(f"    Factor de ahorro   : {resultado[f'factor_ahorro_real_{R}']:.3f}x\n")
+
+        ruta_salida = Path(args.salida) if args.salida else \
+                     DIR_RESULTADOS / f"metricas_off_{nombre_stem}.json"
+        ruta_salida.parent.mkdir(parents=True, exist_ok=True)
+        with open(ruta_salida, "w", encoding="utf-8") as f:
+            json.dump(resultado, f, indent=2, ensure_ascii=False)
+        print(f"  Resultados guardados en: {ruta_salida.resolve()}")
+
+        import shutil
+        shutil.rmtree(DIR_TEMP_NPZ, ignore_errors=True)
+        return
+
+    # ── Modo dataset completo (comportamiento original) ──
     splits = ["train", "test"] if args.split == "ambos" else [args.split]
 
     print("=" * 70)
