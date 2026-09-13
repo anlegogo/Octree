@@ -12,11 +12,11 @@
       5.835,
       2.3254
     ],
-    "memoria_ram_real_kib": 486.547,
+    "memoria_python_kib": 464.48,
     "memoria_binaria_estimada_kib": 15.326,
-    "memoria_densa_kib": 512.0,
-    "factor_ahorro_ram_vs_densa": 1.05,
-    "factor_ahorro_binario_vs_densa": 33.41
+    "memoria_densa_kib": 512.156,
+    "factor_ahorro_python_vs_densa": 1.1,
+    "factor_ahorro_binario_vs_densa": 33.42
   },
   "R64": {
     "profundidad_max": 6,
@@ -31,10 +31,10 @@
       2.3254,
       0.9815
     ],
-    "memoria_ram_real_kib": 1611.539,
+    "memoria_python_kib": 1538.098,
     "memoria_binaria_estimada_kib": 50.504,
-    "memoria_densa_kib": 4096.0,
-    "factor_ahorro_ram_vs_densa": 2.54,
-    "factor_ahorro_binario_vs_densa": 81.1
+    "memoria_densa_kib": 4096.156,
+    "factor_ahorro_python_vs_densa": 2.66,
+    "factor_ahorro_binario_vs_densa": 81.11
   }
 }
