@@ -277,49 +277,209 @@ def octree_a_grid_denso(raiz: NodoOctree, resolucion: int) -> np.ndarray:
 # SERIALIZACION DISPERSA (ahorro de memoria real)
 # ──────────────────────────────────────────────────────────────
 
+# ──────────────────────────────────────────────────────────────
+# SERIALIZACION CON ESTRUCTURA JERARQUICA COMPLETA
+# ──────────────────────────────────────────────────────────────
+#
+# CORRECCION (observacion de Andres Gonzalez): la version anterior de
+# esta serializacion guardaba UNICAMENTE los centros y normales de las
+# hojas ocupadas. Aunque eso permite recalcular estadisticas de
+# ocupacion por nivel (ver ocupacion_por_nivel_desde_hojas, verificada
+# matematicamente equivalente), NO preserva la estructura del arbol:
+# al cargar el archivo se recuperaba una simple lista de celdas, sin
+# relaciones padre-hijo ni informacion de que nodos internos existen.
+#
+# La version corregida serializa TODOS los nodos existentes del arbol
+# (internos y hojas, nunca los podados) mediante un recorrido DFS
+# (pre-orden), guardando para cada nodo:
+#   - profundidad (uint8)
+#   - mascara de hijos (uint8, bits 0-7): bit i =1 si hijos[i] existe.
+#     Un nodo hoja tiene mascara=0 (por construccion, ver
+#     construir_octree: un nodo solo dejar de subdividirse si es hoja).
+#   - normal promedio (3 x float32): solo tiene significado en hojas;
+#     se guarda como ceros en nodos internos.
+#
+# El centro y tamaño de cada nodo NO se guardan explicitamente: se
+# reconstruyen de forma deterministica durante la carga, replicando la
+# misma logica de subdivision (_centro_hijo) que uso construir_octree(),
+# siguiendo el orden exacto de descenso indicado por las mascaras de
+# hijos. Esto reduce el tamaño del archivo sin perder informacion.
+#
+# Con este formato, cargar_octree_disperso() reconstruye el NodoOctree
+# completo (con todas las relaciones padre-hijo reales) y luego deriva
+# de el las hojas -- por lo que el resto del pipeline (net5_dataset.py,
+# hce_extraccion.py) sigue funcionando sin cambios, ahora respaldado
+# por una persistencia que si preserva la jerarquia real.
+
+def _mascara_hijos(nodo: NodoOctree) -> int:
+    """Codifica en un entero de 8 bits cuales de los 8 hijos existen."""
+    mascara = 0
+    if not nodo.es_hoja:
+        for i in range(8):
+            if nodo.hijos[i] is not None:
+                mascara |= (1 << i)
+    return mascara
+
+
+def _serializar_dfs(raiz: NodoOctree) -> tuple:
+    """
+    Recorre el arbol en pre-orden (DFS) y produce 3 arrays paralelos,
+    uno por cada nodo EXISTENTE (internos y hojas, nunca podados):
+        profundidades : (M,) uint8
+        mascaras      : (M,) uint8 -- 0 para hojas
+        normales      : (M, 3) float32 -- solo valida si mascara==0
+    """
+    profundidades = []
+    mascaras = []
+    normales = []
+
+    def _rec(nodo):
+        if nodo is None:
+            return
+        profundidades.append(nodo.profundidad)
+        m = _mascara_hijos(nodo)
+        mascaras.append(m)
+        if nodo.es_hoja:
+            normales.append(nodo.normal_promedio
+                           if nodo.normal_promedio is not None
+                           else np.zeros(3, dtype=np.float32))
+        else:
+            normales.append(np.zeros(3, dtype=np.float32))
+            for i in range(8):
+                if nodo.hijos[i] is not None:
+                    _rec(nodo.hijos[i])
+
+    _rec(raiz)
+
+    return (
+        np.array(profundidades, dtype=np.uint8),
+        np.array(mascaras, dtype=np.uint8),
+        np.array(normales, dtype=np.float32),
+    )
+
+
+def _reconstruir_dfs(profundidades: np.ndarray, mascaras: np.ndarray,
+                     normales: np.ndarray) -> NodoOctree:
+    """
+    Reconstruye el arbol NodoOctree completo (topologia identica al
+    original: mismos nodos, mismas relaciones padre-hijo, mismas
+    profundidades) a partir de los 3 arrays paralelos producidos por
+    _serializar_dfs(). El centro y tamaño de cada nodo se derivan
+    deterministicamente de la ruta de descenso, replicando la misma
+    formula usada durante la construccion original (_centro_hijo).
+    """
+    puntero = [0]   # indice mutable de lectura sobre los arrays planos
+
+    def _rec(centro, tamano, profundidad_esperada):
+        i = puntero[0]
+        profundidad = int(profundidades[i])
+        assert profundidad == profundidad_esperada, (
+            "Estructura serializada inconsistente: profundidad inesperada"
+        )
+        mascara = int(mascaras[i])
+        normal = normales[i]
+        puntero[0] += 1
+
+        nodo = NodoOctree(centro, tamano, profundidad)
+        nodo.ocupado = True
+
+        if mascara == 0:
+            # Nodo hoja (por construccion, un nodo interno siempre
+            # tiene al menos un hijo -- ver construir_octree)
+            nodo.es_hoja = True
+            nodo.normal_promedio = normal
+        else:
+            nodo.es_hoja = False
+            for bit in range(8):
+                if mascara & (1 << bit):
+                    centro_hijo = _centro_hijo(centro, tamano, bit)
+                    nodo.hijos[bit] = _rec(
+                        centro_hijo, tamano / 2.0, profundidad_esperada + 1,
+                    )
+                else:
+                    nodo.hijos[bit] = None
+        return nodo
+
+    raiz = _rec(centro=np.zeros(3, dtype=np.float32), tamano=2.0, profundidad_esperada=0)
+    assert puntero[0] == len(profundidades), (
+        "Estructura serializada inconsistente: sobraron o faltaron nodos"
+    )
+    return raiz
+
+
 def guardar_octree_disperso(raiz: NodoOctree, ruta_npz: str, etiqueta: int,
                             profundidad_max: int) -> None:
     """
-    Guarda SOLO las hojas ocupadas del arbol: sus centros y normales.
-    A diferencia del formato denso anterior (R^3 celdas siempre
-    reservadas), este archivo pesa proporcionalmente al numero de
-    hojas ocupadas, tipicamente 1-3% de R^3.
+    Guarda la ESTRUCTURA JERARQUICA COMPLETA del arbol (todos los nodos
+    existentes, internos y hojas, con sus relaciones padre-hijo), no
+    solo las hojas. El archivo sigue pesando proporcionalmente al
+    numero de nodos reales del arbol (internos + hojas), tipicamente
+    muy por debajo de una rejilla densa R^3 (ver comparar_memoria()).
     """
-    hojas = recolectar_hojas(raiz)
-    n = len(hojas)
+    profundidades, mascaras, normales = _serializar_dfs(raiz)
 
+    np.savez_compressed(
+        ruta_npz,
+        profundidades=profundidades,
+        mascaras=mascaras,
+        normales=normales,
+        etiqueta=etiqueta,
+        profundidad_max=profundidad_max,
+    )
+
+
+def reconstruir_octree_desde_npz(ruta_npz: str) -> tuple:
+    """
+    Carga el archivo y reconstruye el arbol NodoOctree COMPLETO, con
+    la topologia identica al arbol original (mismos nodos internos,
+    mismas relaciones padre-hijo, mismas hojas con sus normales).
+
+    Retorna (raiz: NodoOctree, etiqueta: int, profundidad_max: int).
+    """
+    data = np.load(ruta_npz)
+    raiz = _reconstruir_dfs(
+        data["profundidades"], data["mascaras"], data["normales"],
+    )
+    etiqueta = int(data["etiqueta"])
+    profundidad_max = int(data["profundidad_max"])
+    return raiz, etiqueta, profundidad_max
+
+
+def cargar_octree_disperso(ruta_npz: str) -> dict:
+    """
+    Interfaz de compatibilidad con el resto del pipeline (net5_dataset.py,
+    hce_extraccion.py): reconstruye el arbol completo desde el archivo
+    (ver reconstruir_octree_desde_npz) y deriva de el las hojas ocupadas,
+    devolviendo el mismo diccionario que la version anterior. La
+    diferencia es que ahora el .npz en disco SI contiene la jerarquia
+    completa; las hojas se derivan del arbol reconstruido, no se leen
+    directamente de un array plano de hojas.
+    """
+    raiz, etiqueta, profundidad_max = reconstruir_octree_desde_npz(ruta_npz)
+    hojas = recolectar_hojas(raiz)
+
+    n = len(hojas)
     centros = np.zeros((n, 3), dtype=np.float32)
     normales = np.zeros((n, 3), dtype=np.float32)
     for i, h in enumerate(hojas):
         centros[i] = h.centro
         normales[i] = h.normal_promedio
 
-    np.savez_compressed(
-        ruta_npz,
-        centros_hoja=centros,
-        normales_hoja=normales,
-        etiqueta=etiqueta,
-        profundidad_max=profundidad_max,
-    )
-
-
-def cargar_octree_disperso(ruta_npz: str) -> dict:
-    """Carga el archivo disperso y retorna sus componentes crudos."""
-    data = np.load(ruta_npz)
     return {
-        "centros_hoja": data["centros_hoja"],
-        "normales_hoja": data["normales_hoja"],
-        "etiqueta": int(data["etiqueta"]),
-        "profundidad_max": int(data["profundidad_max"]),
+        "centros_hoja": centros,
+        "normales_hoja": normales,
+        "etiqueta": etiqueta,
+        "profundidad_max": profundidad_max,
     }
 
 
 def cargar_y_materializar(ruta_npz: str, resolucion: int) -> tuple:
     """
-    Carga un octree disperso desde disco y lo materializa a un grid
-    denso (4, R, R, R) SOLO en memoria RAM, en el momento de usarlo
-    (p. ej. para alimentar Net5-Octree). El archivo en disco permanece
-    disperso; nunca se guarda un grid denso completo.
+    Carga un octree disperso desde disco (reconstruyendo su jerarquia
+    completa) y lo materializa a un grid denso (4, R, R, R) SOLO en
+    memoria RAM, en el momento de usarlo (p. ej. para alimentar
+    Net5-Octree). El archivo en disco permanece disperso con su
+    estructura jerarquica completa; nunca se guarda un grid denso.
 
     Retorna (grid_denso, etiqueta).
     """
