@@ -28,9 +28,15 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "fase2_octree"))
 sys.path.insert(0, str(Path(__file__).parent.parent / "fase3_hce"))
 sys.path.insert(0, str(Path(__file__).parent.parent / "fase3_net5"))
 
-from octree           import malla_a_octree, profundidad_de
-from hce_extraccion   import extraer_descriptores_hce
+from octree           import leer_off, normalizar_malla, muestrear_superficie_con_normales
+from octree_real       import (
+    construir_octree, cargar_y_materializar, nivel_hoja,
+    recolectar_hojas,
+)
+from hce_extraccion   import extraer_descriptores_hce, extraer_descriptores_hce_desde_npz
 from net5_modelo      import Net5Octree, get_device
+
+PROFUNDIDAD_POR_RESOLUCION = {32: 5, 64: 6}
 
 # ── Rutas ──────────────────────────────────────────────────────
 RAIZ_DATASET = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\Dataset\ModelNet40")
@@ -74,16 +80,30 @@ def cargar_modelo_net5(R: int, device: torch.device) -> torch.nn.Module:
 # OBTENER LA MUESTRA (desde .off directo o desde .npz precomputado)
 # ──────────────────────────────────────────────────────────────
 
-def obtener_grid_y_etiqueta(args, R: int) -> tuple:
+def obtener_datos_muestra(args, R: int) -> tuple:
     """
-    Retorna (grid, etiqueta_real, nombre_muestra).
+    Retorna (grid_denso, feats_hce, etiqueta_real, nombre_muestra).
+    grid_denso  : (4, R, R, R) para alimentar Net5-Octree
+    feats_hce   : vector de descriptores para SVM/Random Forest
     etiqueta_real puede ser None si se usa un archivo .off externo
     sin clase conocida.
     """
+    L = PROFUNDIDAD_POR_RESOLUCION[R]
+
     if args.archivo:
-        print(f"\n[Carga] Generando octree desde archivo externo: {args.archivo}")
-        grid = malla_a_octree(args.archivo, resolucion=R, n_puntos_muestreo=20000, seed=42)
-        return grid, None, Path(args.archivo).stem
+        print(f"\n[Carga] Construyendo octree real desde archivo externo: {args.archivo}")
+        verts, caras = leer_off(args.archivo)
+        verts = normalizar_malla(verts)
+        rng = np.random.default_rng(42)
+        pts, normales = muestrear_superficie_con_normales(verts, caras, 20000, rng)
+
+        raiz = construir_octree(pts, normales, profundidad_max=L)
+
+        from octree_real import octree_a_grid_denso
+        grid = octree_a_grid_denso(raiz, R)
+        feats = extraer_descriptores_hce(raiz, L)
+
+        return grid, feats, None, Path(args.archivo).stem
 
     if args.aleatorio:
         rng = np.random.default_rng()
@@ -99,20 +119,22 @@ def obtener_grid_y_etiqueta(args, R: int) -> tuple:
                             f"({len(archivos)} muestras disponibles para '{args.clase}')")
         archivo = archivos[args.indice]
 
-    data = np.load(archivo)
-    grid = data["grid"]
-    etiqueta_real = int(data["etiqueta"])
+    # El .npz ahora guarda la estructura jerarquica completa del arbol
+    # (ver octree_real.py). cargar_y_materializar reconstruye el arbol
+    # y lo materializa a grid denso solo para Net5; la extraccion HCE
+    # usa el mismo .npz directamente, sin reconstruir el grid.
+    grid, etiqueta_real = cargar_y_materializar(str(archivo), R)
+    feats = extraer_descriptores_hce_desde_npz(str(archivo))
 
-    return grid, etiqueta_real, archivo.stem
+    return grid, feats, etiqueta_real, archivo.stem
 
 
 # ──────────────────────────────────────────────────────────────
 # PREDICCIONES DE CADA MODELO
 # ──────────────────────────────────────────────────────────────
 
-def predecir_svm(svm, scaler, grid: np.ndarray, R: int) -> tuple:
-    L = profundidad_de(R)
-    feats = extraer_descriptores_hce(grid, L).reshape(1, -1)
+def predecir_svm(svm, scaler, feats: np.ndarray) -> tuple:
+    feats = feats.reshape(1, -1)
     feats_s = scaler.transform(feats)
 
     pred = svm.predict(feats_s)[0]
@@ -127,9 +149,8 @@ def predecir_svm(svm, scaler, grid: np.ndarray, R: int) -> tuple:
     return int(pred), float(confianza), probs
 
 
-def predecir_rf(rf, grid: np.ndarray, R: int) -> tuple:
-    L = profundidad_de(R)
-    feats = extraer_descriptores_hce(grid, L).reshape(1, -1)
+def predecir_rf(rf, feats: np.ndarray) -> tuple:
+    feats = feats.reshape(1, -1)
 
     pred = rf.predict(feats)[0]
     probs = rf.predict_proba(feats)[0]
@@ -299,13 +320,13 @@ def main():
     print("  OK")
 
     print("\n[3/3] Obteniendo muestra a clasificar...")
-    grid, etiqueta_real, nombre_muestra = obtener_grid_y_etiqueta(args, R)
+    grid, feats, etiqueta_real, nombre_muestra = obtener_datos_muestra(args, R)
     print(f"  Muestra: {nombre_muestra}")
 
     # Predicciones
     resultados = {}
-    resultados["SVM"]           = predecir_svm(svm, scaler, grid, R)
-    resultados["Random Forest"] = predecir_rf(rf, grid, R)
+    resultados["SVM"]           = predecir_svm(svm, scaler, feats)
+    resultados["Random Forest"] = predecir_rf(rf, feats)
     resultados["Net5-Octree"]   = predecir_net5(net5, grid, device)
 
     imprimir_comparativa(nombre_muestra, etiqueta_real, resultados, R)
