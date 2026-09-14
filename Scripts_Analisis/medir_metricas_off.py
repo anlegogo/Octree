@@ -161,7 +161,7 @@ def procesar_archivo(args: tuple) -> dict:
             fila[f"ocup_hoja_pct_{R}"]       = round(pct_ocup_hoja, 4)
             fila[f"tam_npz_disperso_kib_{R}"] = round(tam_disperso_kib, 3)
             fila[f"tam_npz_denso_kib_{R}"]    = round(tam_denso_kib, 3)
-            fila[f"factor_ahorro_real_{R}"]  = round(factor_ahorro_real, 3)
+            fila[f"factor_reduccion_almacenamiento_{R}"]  = round(factor_ahorro_real, 3)
 
         fila["t_total_ms"] = round(
             t_preproceso_ms + t_muestreo_ms
@@ -237,7 +237,7 @@ def main():
             print(f"    Archivo disperso   : {resultado[f'tam_npz_disperso_kib_{R}']:.3f} KiB")
             print(f"    Archivo denso      : {resultado[f'tam_npz_denso_kib_{R}']:.3f} KiB "
                   f"(misma compresion)")
-            print(f"    Factor de ahorro   : {resultado[f'factor_ahorro_real_{R}']:.3f}x\n")
+            print(f"    Factor de reduccion: {resultado[f'factor_reduccion_almacenamiento_{R}']:.3f}x\n")
 
         ruta_salida = Path(args.salida) if args.salida else \
                      DIR_RESULTADOS / f"metricas_off_{nombre_stem}.json"
@@ -259,6 +259,11 @@ def main():
     print("=" * 70)
 
     todos_resultados = []
+    # Tiempo REAL de ejecucion paralela por split (wall-clock, no la
+    # suma de tiempos individuales). Se guarda para distinguirlo del
+    # "tiempo secuencial acumulado estimado" que se calcula sumando
+    # t_total_ms de cada objeto (ver punto 3 de la revision de Andres).
+    tiempo_real_paralelo_por_split = {}
 
     for split in splits:
         tareas = recolectar(split, args.n_muestras)
@@ -271,6 +276,7 @@ def main():
             for futuro in barra:
                 todos_resultados.append(futuro.result())
         t_total = time.time() - t_inicio
+        tiempo_real_paralelo_por_split[split] = round(t_total / 60, 3)  # minutos
 
         n_ok  = sum(1 for r in todos_resultados if r.get("error") is None and r["split"] == split)
         n_err = sum(1 for r in todos_resultados if r.get("error") is not None and r["split"] == split)
@@ -284,7 +290,7 @@ def main():
         campos += [f"t_arbol_{R}_ms", f"t_guardado_{R}_ms", f"t_guardado_denso_{R}_ms",
                   f"nodos_totales_{R}", f"hojas_ocupadas_{R}", f"ocup_hoja_pct_{R}",
                   f"tam_npz_disperso_kib_{R}", f"tam_npz_denso_kib_{R}",
-                  f"factor_ahorro_real_{R}"]
+                  f"factor_reduccion_almacenamiento_{R}"]
 
     csv_completo = DIR_RESULTADOS / "metricas_off_completo.csv"
     with open(csv_completo, "w", newline="", encoding="utf-8") as f:
@@ -324,7 +330,7 @@ def main():
                 fila[f"tam_denso_kib_media_{R}"] = round(
                     np.mean([m[f"tam_npz_denso_kib_{R}"] for m in muestras]), 3)
                 fila[f"factor_ahorro_media_{R}"] = round(
-                    np.mean([m[f"factor_ahorro_real_{R}"] for m in muestras]), 3)
+                    np.mean([m[f"factor_reduccion_almacenamiento_{R}"] for m in muestras]), 3)
             w.writerow(fila)
     print(f"[CSV] Guardado: {csv_resumen.name}")
 
@@ -341,6 +347,14 @@ def main():
         "min":   round(float(np.min([r["t_total_ms"] for r in validos])), 4),
         "max":   round(float(np.max([r["t_total_ms"] for r in validos])), 4),
     }
+    # Tiempo REAL de ejecucion paralela (wall-clock), medido por split
+    # con time.time() alrededor del ProcessPoolExecutor. Distinto del
+    # "tiempo secuencial acumulado estimado" (suma de t_total_ms de
+    # cada objeto, como si se hubieran procesado uno tras otro).
+    resumen_global["tiempo_real_paralelo_min"] = tiempo_real_paralelo_por_split
+    resumen_global["tiempo_real_paralelo_total_min"] = round(
+        sum(tiempo_real_paralelo_por_split.values()), 3
+    )
     for R in RESOLUCIONES:
         nodos = [r[f"nodos_totales_{R}"] for r in validos]
         hojas = [r[f"hojas_ocupadas_{R}"] for r in validos]
@@ -364,7 +378,7 @@ def main():
             "tam_denso_kib_media":    round(float(np.mean(tam_denso)), 3),
             "tam_disperso_total_dataset_mib": round(tam_disperso_total_mib, 2),
             "tam_denso_total_dataset_mib":    round(tam_denso_total_mib, 2),
-            "factor_ahorro_real": round(
+            "factor_reduccion_almacenamiento": round(
                 tam_denso_total_mib / max(tam_disperso_total_mib, 0.001), 3
             ),
         }
@@ -382,6 +396,11 @@ def main():
     print(f"  Errores            : {resumen_global['n_errores']}")
     print(f"  Tiempo total/objeto: media={resumen_global['t_total_ms']['media']:.2f} ms, "
           f"max={resumen_global['t_total_ms']['max']:.2f} ms")
+    print(f"  Tiempo REAL paralelo (wall-clock), por split:")
+    for sp, min_reales in tiempo_real_paralelo_por_split.items():
+        print(f"    {sp}: {min_reales:.2f} min")
+    print(f"  Tiempo REAL paralelo total: "
+          f"{resumen_global['tiempo_real_paralelo_total_min']:.2f} min")
 
     for R in RESOLUCIONES:
         g = resumen_global[f"R{R}"]
@@ -393,7 +412,7 @@ def main():
         print(f"    Archivo denso (media)   : {g['tam_denso_kib_media']:.3f} KiB (comprimido, misma compresion)")
         print(f"    Dataset disperso (real) : {g['tam_disperso_total_dataset_mib']:.2f} MiB")
         print(f"    Dataset denso (real)    : {g['tam_denso_total_dataset_mib']:.2f} MiB")
-        print(f"    >>> Factor de ahorro REAL (ambos comprimidos): {g['factor_ahorro_real']:.2f}x <<<")
+        print(f"    >>> Factor de reduccion del almacenamiento comprimido: {g['factor_reduccion_almacenamiento']:.2f}x <<<")
 
     print("=" * 70)
 
