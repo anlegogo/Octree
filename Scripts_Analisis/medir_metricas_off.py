@@ -47,10 +47,13 @@ from tqdm import tqdm
 RAIZ_PROYECTO = Path(__file__).parent.parent
 sys.path.insert(0, str(RAIZ_PROYECTO / "fase2_octree"))
 
-from octree import leer_off, normalizar_malla, muestrear_superficie_con_normales
+from octree import (
+    leer_off, normalizar_malla, muestrear_superficie_con_normales,
+    construir_grid_octree,
+)
 from octree_real import (
     construir_octree, guardar_octree_disperso, recolectar_hojas,
-    contar_nodos_totales, octree_a_grid_denso,
+    contar_nodos_totales,
 )
 
 RAIZ_DATASET   = RAIZ_PROYECTO / "Dataset" / "ModelNet40"
@@ -110,7 +113,12 @@ def procesar_archivo(args: tuple) -> dict:
 
         for R in RESOLUCIONES:
             profundidad_max = PROFUNDIDAD_POR_RESOLUCION[R]
+            dir_split = DIR_TEMP_NPZ / f"R{R}" / clase / split
+            dir_split.mkdir(parents=True, exist_ok=True)
 
+            # ══════════════════════════════════════════════════════
+            # RUTA A: OCTREE (arbol real, con poda)
+            # ══════════════════════════════════════════════════════
             t0 = time.perf_counter()
             raiz = construir_octree(pts, normales, profundidad_max=profundidad_max)
             t_arbol_ms = (time.perf_counter() - t0) * 1000
@@ -120,12 +128,7 @@ def procesar_archivo(args: tuple) -> dict:
             n_hojas = len(hojas)
             pct_ocup_hoja = 100.0 * n_hojas / (R ** 3)
 
-            dir_split = DIR_TEMP_NPZ / f"R{R}" / clase / split
-            dir_split.mkdir(parents=True, exist_ok=True)
-
-            # ── Archivo 1: octree disperso, estructura jerarquica completa ──
             ruta_npz_disperso = dir_split / f"{nombre}_disperso.npz"
-
             t0 = time.perf_counter()
             guardar_octree_disperso(raiz, str(ruta_npz_disperso), etiqueta=0,
                                     profundidad_max=profundidad_max)
@@ -134,26 +137,29 @@ def procesar_archivo(args: tuple) -> dict:
             tam_disperso_kib = ruta_npz_disperso.stat().st_size / 1024
             ruta_npz_disperso.unlink()
 
-            # ── Archivo 2: rejilla densa equivalente, MISMA COMPRESION ──
-            # Se materializa el mismo arbol a un grid denso (4, R, R, R)
-            # y se guarda con np.savez_compressed (el mismo metodo de
-            # compresion usado para el formato disperso), para poder
-            # comparar TAMAÑOS REALES DE ARCHIVO en igualdad de
-            # condiciones -- no el tamaño disperso comprimido contra
-            # una formula teorica sin comprimir.
+            # ══════════════════════════════════════════════════════
+            # RUTA B: REJILLA DENSA, CONSTRUCCION INDEPENDIENTE
+            # ══════════════════════════════════════════════════════
+            # CORRECCION (observacion de Andres Gonzalez): la version
+            # anterior materializaba el grid denso A PARTIR DEL ARBOL YA
+            # CONSTRUIDO (octree_a_grid_denso(raiz, R)), por lo que su
+            # tiempo total incluía -sin quererlo- el costo de construir
+            # el octree primero. Eso no representa el tiempo de
+            # construccion independiente de una voxelizacion densa.
             #
-            # CORRECCION (observacion de Andres Gonzalez): antes solo se
-            # cronometraba np.savez_compressed(), SIN incluir el tiempo
-            # de materializar el grid denso desde el arbol
-            # (octree_a_grid_denso). Ahora ambos pasos se miden por
-            # separado, para poder comparar el costo total de "construir
-            # + guardar" cada representacion en igualdad de condiciones.
+            # Ahora la rejilla densa se construye DIRECTAMENTE desde los
+            # MISMOS puntos y normales ya muestreados (pts, normales),
+            # usando construir_grid_octree() de octree.py, SIN construir
+            # el arbol en esta ruta. Ambas rutas parten del mismo
+            # muestreo (costo compartido, medido aparte en
+            # t_preproceso_ms y t_muestreo_ms), pero divergen desde ahi:
+            # una construye un arbol con poda, la otra cuantiza
+            # directamente a una rejilla completa.
             t0 = time.perf_counter()
-            grid_denso = octree_a_grid_denso(raiz, R)
-            t_materializar_denso_ms = (time.perf_counter() - t0) * 1000
+            grid_denso = construir_grid_octree(pts, normales, R)
+            t_denso_directo_ms = (time.perf_counter() - t0) * 1000
 
             ruta_npz_denso = dir_split / f"{nombre}_denso.npz"
-
             t0 = time.perf_counter()
             np.savez_compressed(ruta_npz_denso, grid=grid_denso, etiqueta=0)
             t_guardado_denso_ms = (time.perf_counter() - t0) * 1000
@@ -163,13 +169,13 @@ def procesar_archivo(args: tuple) -> dict:
 
             factor_ahorro_real = tam_denso_kib / max(tam_disperso_kib, 0.001)
 
-            fila[f"t_arbol_{R}_ms"]              = round(t_arbol_ms, 3)
-            fila[f"t_guardado_{R}_ms"]           = round(t_guardado_ms, 3)
-            fila[f"t_materializar_denso_{R}_ms"] = round(t_materializar_denso_ms, 3)
-            fila[f"t_guardado_denso_{R}_ms"]     = round(t_guardado_denso_ms, 3)
-            fila[f"nodos_totales_{R}"]       = n_nodos
-            fila[f"hojas_ocupadas_{R}"]      = n_hojas
-            fila[f"ocup_hoja_pct_{R}"]       = round(pct_ocup_hoja, 4)
+            fila[f"t_arbol_{R}_ms"]           = round(t_arbol_ms, 3)
+            fila[f"t_guardado_{R}_ms"]        = round(t_guardado_ms, 3)
+            fila[f"t_denso_directo_{R}_ms"]   = round(t_denso_directo_ms, 3)
+            fila[f"t_guardado_denso_{R}_ms"]  = round(t_guardado_denso_ms, 3)
+            fila[f"nodos_totales_{R}"]        = n_nodos
+            fila[f"hojas_ocupadas_{R}"]       = n_hojas
+            fila[f"ocup_hoja_pct_{R}"]        = round(pct_ocup_hoja, 4)
             fila[f"tam_npz_disperso_kib_{R}"] = round(tam_disperso_kib, 3)
             fila[f"tam_npz_denso_kib_{R}"]    = round(tam_denso_kib, 3)
             fila[f"factor_reduccion_almacenamiento_{R}"]  = round(factor_ahorro_real, 3)
@@ -177,22 +183,41 @@ def procesar_archivo(args: tuple) -> dict:
         # CORRECCION (observacion de Andres Gonzalez): t_total_ms
         # corresponde UNICAMENTE al tiempo de procesamiento del octree
         # (lectura + normalizacion + muestreo + construccion del arbol +
-        # guardado disperso). NO incluye la materializacion ni el
-        # guardado de la representacion densa -- eso se mide por
-        # separado en t_total_denso_ms, para poder comparar el costo de
-        # construccion de ambas representaciones en igualdad de
-        # condiciones (ambas comparten lectura+normalizacion+muestreo+
-        # arbol; solo difieren en el paso final de materializar/guardar).
+        # guardado disperso). NO incluye la construccion ni el guardado
+        # de la representacion densa -- eso se mide por separado en
+        # t_total_denso_ms, calculado ahora con una ruta de construccion
+        # verdaderamente INDEPENDIENTE (construir_grid_octree() sobre
+        # los puntos, SIN pasar por el arbol). Los costos compartidos
+        # (lectura+normalizacion+muestreo) se cuentan UNA sola vez en
+        # cada total -- no se duplican al sumarlos por separado.
         fila["t_total_ms"] = round(
             t_preproceso_ms + t_muestreo_ms
             + sum(fila[f"t_arbol_{R}_ms"] for R in RESOLUCIONES)
             + sum(fila[f"t_guardado_{R}_ms"] for R in RESOLUCIONES), 3,
         )
 
+        # RUTA DENSA INDEPENDIENTE: ya NO incluye construccion del
+        # arbol (t_arbol_R_ms). Solo lectura+normalizacion+muestreo
+        # (compartidos) + construccion directa de la rejilla + guardado.
         fila["t_total_denso_ms"] = round(
             t_preproceso_ms + t_muestreo_ms
+            + sum(fila[f"t_denso_directo_{R}_ms"] for R in RESOLUCIONES)
+            + sum(fila[f"t_guardado_denso_{R}_ms"] for R in RESOLUCIONES), 3,
+        )
+
+        # NUEVO: tiempo total del EXPERIMENTO por objeto -- lo que
+        # realmente hace procesar_archivo() (ambas representaciones,
+        # compartiendo lectura+normalizacion+muestreo UNA sola vez).
+        # Sumado sobre todos los objetos, este es el valor comparable
+        # contra el tiempo REAL paralelo (que mide exactamente este
+        # mismo trabajo, pero ejecutado en paralelo entre procesos).
+        # NO debe compararse el tiempo real paralelo contra t_total_ms
+        # solo (eso subestima el trabajo real, que incluye ambas rutas).
+        fila["t_total_experimento_ms"] = round(
+            t_preproceso_ms + t_muestreo_ms
             + sum(fila[f"t_arbol_{R}_ms"] for R in RESOLUCIONES)
-            + sum(fila[f"t_materializar_denso_{R}_ms"] for R in RESOLUCIONES)
+            + sum(fila[f"t_guardado_{R}_ms"] for R in RESOLUCIONES)
+            + sum(fila[f"t_denso_directo_{R}_ms"] for R in RESOLUCIONES)
             + sum(fila[f"t_guardado_denso_{R}_ms"] for R in RESOLUCIONES), 3,
         )
 
@@ -317,10 +342,11 @@ def main():
     # ── Guardar CSV completo ──
     validos = [r for r in todos_resultados if r.get("error") is None]
     campos = ["nombre", "clase", "split", "n_vertices", "n_caras",
-              "t_preproceso_ms", "t_muestreo_ms", "t_total_ms", "t_total_denso_ms"]
+              "t_preproceso_ms", "t_muestreo_ms",
+              "t_total_ms", "t_total_denso_ms", "t_total_experimento_ms"]
     for R in RESOLUCIONES:
         campos += [f"t_arbol_{R}_ms", f"t_guardado_{R}_ms",
-                  f"t_materializar_denso_{R}_ms", f"t_guardado_denso_{R}_ms",
+                  f"t_denso_directo_{R}_ms", f"t_guardado_denso_{R}_ms",
                   f"nodos_totales_{R}", f"hojas_ocupadas_{R}", f"ocup_hoja_pct_{R}",
                   f"tam_npz_disperso_kib_{R}", f"tam_npz_denso_kib_{R}",
                   f"factor_reduccion_almacenamiento_{R}"]
@@ -389,6 +415,25 @@ def main():
         "min":   round(float(np.min([r["t_total_ms"] for r in validos])), 4),
         "max":   round(float(np.max([r["t_total_ms"] for r in validos])), 4),
     }
+    resumen_global["t_total_denso_ms"] = {
+        "media": round(float(np.mean([r["t_total_denso_ms"] for r in validos])), 4),
+        "std":   round(float(np.std([r["t_total_denso_ms"] for r in validos])), 4),
+        "min":   round(float(np.min([r["t_total_denso_ms"] for r in validos])), 4),
+        "max":   round(float(np.max([r["t_total_denso_ms"] for r in validos])), 4),
+    }
+    # t_total_experimento_ms: tiempo por objeto de AMBAS representaciones
+    # combinadas (lo que realmente hace procesar_archivo()). Este es el
+    # valor comparable contra el tiempo REAL paralelo -- ver nota mas
+    # abajo (observacion de Andres Gonzalez).
+    resumen_global["t_total_experimento_ms"] = {
+        "media": round(float(np.mean([r["t_total_experimento_ms"] for r in validos])), 4),
+        "std":   round(float(np.std([r["t_total_experimento_ms"] for r in validos])), 4),
+        "min":   round(float(np.min([r["t_total_experimento_ms"] for r in validos])), 4),
+        "max":   round(float(np.max([r["t_total_experimento_ms"] for r in validos])), 4),
+    }
+    resumen_global["t_secuencial_acumulado_estimado_experimento_min"] = round(
+        len(validos) * resumen_global["t_total_experimento_ms"]["media"] / 60000, 3
+    )
     # Tiempo REAL de ejecucion paralela (wall-clock), medido por split
     # con time.time() alrededor del ProcessPoolExecutor. Distinto del
     # "tiempo secuencial acumulado estimado" (suma de t_total_ms de
@@ -436,8 +481,20 @@ def main():
     print("=" * 70)
     print(f"  Objetos procesados : {resumen_global['n_total']:,}")
     print(f"  Errores            : {resumen_global['n_errores']}")
-    print(f"  Tiempo total/objeto: media={resumen_global['t_total_ms']['media']:.2f} ms, "
+    print(f"  Tiempo octree/objeto (solo octree)   : "
+          f"media={resumen_global['t_total_ms']['media']:.2f} ms, "
           f"max={resumen_global['t_total_ms']['max']:.2f} ms")
+    print(f"  Tiempo experimento/objeto (ambas rep): "
+          f"media={resumen_global['t_total_experimento_ms']['media']:.2f} ms, "
+          f"max={resumen_global['t_total_experimento_ms']['max']:.2f} ms")
+    print()
+    print(f"  CORRECCION (Andres Gonzalez): el tiempo REAL paralelo (wall-clock)")
+    print(f"  mide el tiempo TOTAL DE EJECUCION DEL EXPERIMENTO COMPLETO, es")
+    print(f"  decir, el procesamiento de AMBAS representaciones (octree +")
+    print(f"  rejilla densa) por objeto. NO debe compararse directamente")
+    print(f"  contra 't_total_ms' (que solo cubre el octree) -- la comparacion")
+    print(f"  correcta es contra la suma de 't_total_experimento_ms'.")
+    print()
     print(f"  Tiempo REAL paralelo (wall-clock), por split:")
     for sp, min_reales in tiempo_real_paralelo_por_split.items():
         print(f"    {sp}: {min_reales:.2f} min")
