@@ -1,0 +1,41 @@
+{
+  "n_total": 12311,
+  "n_errores": 0,
+  "t_total_ms": {
+    "media": 479.0244,
+    "std": 249.7979,
+    "min": 31.577,
+    "max": 8547.28
+  },
+  "tiempo_real_paralelo_min": {
+    "train": 8.641,
+    "test": 2.226
+  },
+  "tiempo_real_paralelo_total_min": 10.867,
+  "R32": {
+    "nodos_media": 2243.2,
+    "nodos_std": 1394.5,
+    "hojas_media": 1715.5,
+    "hojas_std": 1098.7,
+    "ocup_pct_media": 5.2352,
+    "ocup_pct_std": 3.3529,
+    "tam_disperso_kib_media": 10.322,
+    "tam_denso_kib_media": 11.955,
+    "tam_disperso_total_dataset_mib": 124.1,
+    "tam_denso_total_dataset_mib": 143.73,
+    "factor_reduccion_almacenamiento": 1.158
+  },
+  "R64": {
+    "nodos_media": 8325.6,
+    "nodos_std": 4427.1,
+    "hojas_media": 6082.4,
+    "hojas_std": 3075.5,
+    "ocup_pct_media": 2.3203,
+    "ocup_pct_std": 1.1732,
+    "tam_disperso_kib_media": 25.117,
+    "tam_denso_kib_media": 38.677,
+    "tam_disperso_total_dataset_mib": 301.97,
+    "tam_denso_total_dataset_mib": 465.0,
+    "factor_reduccion_almacenamiento": 1.54
+  }
+}
