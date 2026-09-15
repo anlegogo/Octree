@@ -43,10 +43,13 @@ RUTA_DEFECTO_TIEMPO_MEMORIA  = RAIZ_PROYECTO / "Scripts_Analisis"
 # UTILIDAD DE DIBUJO DE TABLA (comun a las 3 figuras)
 # ──────────────────────────────────────────────────────────────
 
-def guardar_tabla(columnas, filas, titulo, ruta_salida_base):
+def guardar_tabla(columnas, filas, titulo, ruta_salida_base, alto_minimo=3):
     """Dibuja una tabla con encabezado oscuro y filas alternadas, y la
-    guarda en PNG + SVG con el mismo nombre base."""
-    alto = max(3, 0.5 * len(filas) + 1.5)
+    guarda en PNG + SVG con el mismo nombre base.
+
+    alto_minimo permite subir la altura base para tablas con pocas filas
+    pero encabezados de varias lineas (evita solapamiento visual)."""
+    alto = max(alto_minimo, 0.5 * len(filas) + 1.5)
     fig, ax = plt.subplots(figsize=(max(12, 1.6 * len(columnas)), alto))
     ax.axis("off")
 
@@ -133,7 +136,7 @@ def tabla_metricas_off(ruta_json: Path, nombre: str, dir_salida: Path):
             f"{d[f'ocup_hoja_pct_{R}']:.3f}",
             f"{d[f'tam_npz_disperso_kib_{R}']:.3f}",
             f"{d[f'tam_npz_denso_kib_{R}']:.3f}",
-            f"{d[f'factor_ahorro_real_{R}']:.3f}x",
+            f"{d[f'factor_reduccion_almacenamiento_{R}']:.3f}x",
         ])
 
     if not filas:
@@ -151,6 +154,70 @@ def tabla_metricas_off(ruta_json: Path, nombre: str, dir_salida: Path):
         f"Comparación disperso vs. denso, MISMA compresión",
         dir_salida / f"tabla_metricas_off_{nombre}",
     )
+
+
+def tabla_metricas_off_tiempos(ruta_json: Path, nombre: str, dir_salida: Path):
+    """
+    Segunda tabla: comparacion de TIEMPOS de construccion entre el
+    arbol (con poda) y la rejilla densa construida de forma
+    independiente (construir_grid_octree(), sin pasar por el arbol).
+    """
+    if not ruta_json.exists():
+        print(f"  [Omitido] No existe: {ruta_json}")
+        return
+
+    d = json.load(open(ruta_json))
+
+    if f"t_arbol_32_ms" not in d:
+        print(f"  [Omitido] {ruta_json.name} no tiene campos de tiempo "
+             f"(version antigua del JSON, volver a generar)")
+        return
+
+    columnas = ["Resolución", "T. árbol\n(ms)", "T. denso directo\n(ms)",
+               "Árbol es\nX veces más lento", "T. guardado\ndisperso (ms)",
+               "T. guardado\ndenso (ms)"]
+    filas = []
+    for R in [32, 64]:
+        if f"t_arbol_{R}_ms" not in d:
+            continue
+        t_arbol = d[f"t_arbol_{R}_ms"]
+        t_denso = d[f"t_denso_directo_{R}_ms"]
+        factor = t_arbol / t_denso if t_denso > 0 else 0
+        filas.append([
+            f"{R}³", f"{t_arbol:.3f}", f"{t_denso:.3f}", f"{factor:.1f}x",
+            f"{d[f't_guardado_{R}_ms']:.3f}", f"{d[f't_guardado_denso_{R}_ms']:.3f}",
+        ])
+
+    if not filas:
+        return
+
+    guardar_tabla(
+        columnas, filas,
+        f"medir_metricas_off.py — {nombre}\n"
+        f"Comparación de tiempos de construcción: ÁRBOL (con poda) vs. "
+        f"REJILLA DENSA (construcción independiente,\nsin pasar por el árbol — "
+        f"construir_grid_octree() aplicado directamente a los puntos)",
+        dir_salida / f"tabla_metricas_off_tiempos_{nombre}",
+    )
+
+    # Tabla adicional con los 3 totales por objeto (no depende de R)
+    if "t_total_experimento_ms" in d:
+        columnas_tot = ["Total octree\n(t_total_ms)", "Total denso\n(t_total_denso_ms)",
+                        "Total experimento\n(t_total_experimento_ms)"]
+        filas_tot = [[
+            f"{d['t_total_ms']:.3f} ms",
+            f"{d['t_total_denso_ms']:.3f} ms",
+            f"{d['t_total_experimento_ms']:.3f} ms",
+        ]]
+        guardar_tabla(
+            columnas_tot, filas_tot,
+            f"medir_metricas_off.py — {nombre}\n"
+            f"Totales de tiempo por objeto — 'experimento' es el comparable "
+            f"contra el tiempo REAL paralelo\n(incluye ambas representaciones, "
+            f"sin duplicar los costos compartidos de lectura/muestreo)",
+            dir_salida / f"tabla_metricas_off_totales_{nombre}",
+            alto_minimo=4.5,
+        )
 
 
 # ──────────────────────────────────────────────────────────────
@@ -237,6 +304,7 @@ def main():
 
     print(f"\n[2/3] medir_metricas_off.py -> {ruta_metricas_off}")
     tabla_metricas_off(ruta_metricas_off, nombre, dir_salida)
+    tabla_metricas_off_tiempos(ruta_metricas_off, nombre, dir_salida)
 
     print(f"\n[3/3] medir_tiempo_memoria.py -> {ruta_tiempo_memoria}")
     tabla_tiempo_memoria(ruta_tiempo_memoria, nombre, dir_salida)
