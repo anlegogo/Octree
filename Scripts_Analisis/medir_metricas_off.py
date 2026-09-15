@@ -141,7 +141,17 @@ def procesar_archivo(args: tuple) -> dict:
             # comparar TAMAÑOS REALES DE ARCHIVO en igualdad de
             # condiciones -- no el tamaño disperso comprimido contra
             # una formula teorica sin comprimir.
+            #
+            # CORRECCION (observacion de Andres Gonzalez): antes solo se
+            # cronometraba np.savez_compressed(), SIN incluir el tiempo
+            # de materializar el grid denso desde el arbol
+            # (octree_a_grid_denso). Ahora ambos pasos se miden por
+            # separado, para poder comparar el costo total de "construir
+            # + guardar" cada representacion en igualdad de condiciones.
+            t0 = time.perf_counter()
             grid_denso = octree_a_grid_denso(raiz, R)
+            t_materializar_denso_ms = (time.perf_counter() - t0) * 1000
+
             ruta_npz_denso = dir_split / f"{nombre}_denso.npz"
 
             t0 = time.perf_counter()
@@ -153,9 +163,10 @@ def procesar_archivo(args: tuple) -> dict:
 
             factor_ahorro_real = tam_denso_kib / max(tam_disperso_kib, 0.001)
 
-            fila[f"t_arbol_{R}_ms"]          = round(t_arbol_ms, 3)
-            fila[f"t_guardado_{R}_ms"]       = round(t_guardado_ms, 3)
-            fila[f"t_guardado_denso_{R}_ms"] = round(t_guardado_denso_ms, 3)
+            fila[f"t_arbol_{R}_ms"]              = round(t_arbol_ms, 3)
+            fila[f"t_guardado_{R}_ms"]           = round(t_guardado_ms, 3)
+            fila[f"t_materializar_denso_{R}_ms"] = round(t_materializar_denso_ms, 3)
+            fila[f"t_guardado_denso_{R}_ms"]     = round(t_guardado_denso_ms, 3)
             fila[f"nodos_totales_{R}"]       = n_nodos
             fila[f"hojas_ocupadas_{R}"]      = n_hojas
             fila[f"ocup_hoja_pct_{R}"]       = round(pct_ocup_hoja, 4)
@@ -163,10 +174,26 @@ def procesar_archivo(args: tuple) -> dict:
             fila[f"tam_npz_denso_kib_{R}"]    = round(tam_denso_kib, 3)
             fila[f"factor_reduccion_almacenamiento_{R}"]  = round(factor_ahorro_real, 3)
 
+        # CORRECCION (observacion de Andres Gonzalez): t_total_ms
+        # corresponde UNICAMENTE al tiempo de procesamiento del octree
+        # (lectura + normalizacion + muestreo + construccion del arbol +
+        # guardado disperso). NO incluye la materializacion ni el
+        # guardado de la representacion densa -- eso se mide por
+        # separado en t_total_denso_ms, para poder comparar el costo de
+        # construccion de ambas representaciones en igualdad de
+        # condiciones (ambas comparten lectura+normalizacion+muestreo+
+        # arbol; solo difieren en el paso final de materializar/guardar).
         fila["t_total_ms"] = round(
             t_preproceso_ms + t_muestreo_ms
             + sum(fila[f"t_arbol_{R}_ms"] for R in RESOLUCIONES)
             + sum(fila[f"t_guardado_{R}_ms"] for R in RESOLUCIONES), 3,
+        )
+
+        fila["t_total_denso_ms"] = round(
+            t_preproceso_ms + t_muestreo_ms
+            + sum(fila[f"t_arbol_{R}_ms"] for R in RESOLUCIONES)
+            + sum(fila[f"t_materializar_denso_{R}_ms"] for R in RESOLUCIONES)
+            + sum(fila[f"t_guardado_denso_{R}_ms"] for R in RESOLUCIONES), 3,
         )
 
         return fila
@@ -210,6 +237,11 @@ def main():
 
     DIR_RESULTADOS.mkdir(parents=True, exist_ok=True)
     DIR_TEMP_NPZ.mkdir(parents=True, exist_ok=True)
+
+    # Confirmacion explicita de la carpeta REAL donde se lee/escribe,
+    # para evitar discrepancias de carpeta entre este script y
+    # tabla_resumen_octree.py (ambos deben usar la MISMA carpeta).
+    print(f"[Carpeta de resultados] {DIR_RESULTADOS.resolve()}")
 
     # ── Modo archivo unico: bypass completo de la estructura de dataset ──
     if args.off:
@@ -285,9 +317,10 @@ def main():
     # ── Guardar CSV completo ──
     validos = [r for r in todos_resultados if r.get("error") is None]
     campos = ["nombre", "clase", "split", "n_vertices", "n_caras",
-              "t_preproceso_ms", "t_muestreo_ms", "t_total_ms"]
+              "t_preproceso_ms", "t_muestreo_ms", "t_total_ms", "t_total_denso_ms"]
     for R in RESOLUCIONES:
-        campos += [f"t_arbol_{R}_ms", f"t_guardado_{R}_ms", f"t_guardado_denso_{R}_ms",
+        campos += [f"t_arbol_{R}_ms", f"t_guardado_{R}_ms",
+                  f"t_materializar_denso_{R}_ms", f"t_guardado_denso_{R}_ms",
                   f"nodos_totales_{R}", f"hojas_ocupadas_{R}", f"ocup_hoja_pct_{R}",
                   f"tam_npz_disperso_kib_{R}", f"tam_npz_denso_kib_{R}",
                   f"factor_reduccion_almacenamiento_{R}"]
@@ -311,7 +344,7 @@ def main():
     for R in RESOLUCIONES:
         campos_resumen += [f"nodos_media_{R}", f"hojas_media_{R}", f"ocup_pct_media_{R}",
                            f"tam_disperso_kib_media_{R}", f"tam_denso_kib_media_{R}",
-                           f"factor_ahorro_media_{R}"]
+                           f"factor_reduccion_almacenamiento_{R}"]
 
     with open(csv_resumen, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=campos_resumen)
@@ -329,8 +362,17 @@ def main():
                     np.mean([m[f"tam_npz_disperso_kib_{R}"] for m in muestras]), 3)
                 fila[f"tam_denso_kib_media_{R}"] = round(
                     np.mean([m[f"tam_npz_denso_kib_{R}"] for m in muestras]), 3)
-                fila[f"factor_ahorro_media_{R}"] = round(
-                    np.mean([m[f"factor_reduccion_almacenamiento_{R}"] for m in muestras]), 3)
+                # CORRECCION (observacion de Andres Gonzalez): el factor
+                # de reduccion por clase se calcula como el COCIENTE DE
+                # SUMAS (tamaño denso total de la clase / tamaño disperso
+                # total de la clase), NO como el promedio de los factores
+                # individuales de cada objeto (que es matematicamente
+                # distinto por la desigualdad de Jensen).
+                suma_disperso_clase = sum(m[f"tam_npz_disperso_kib_{R}"] for m in muestras)
+                suma_denso_clase    = sum(m[f"tam_npz_denso_kib_{R}"] for m in muestras)
+                fila[f"factor_reduccion_almacenamiento_{R}"] = round(
+                    suma_denso_clase / max(suma_disperso_clase, 0.001), 3
+                )
             w.writerow(fila)
     print(f"[CSV] Guardado: {csv_resumen.name}")
 
@@ -410,8 +452,8 @@ def main():
         print(f"    Ocupacion hoja (media)  : {g['ocup_pct_media']:.3f}% (±{g['ocup_pct_std']:.3f}%)")
         print(f"    Archivo disperso (media): {g['tam_disperso_kib_media']:.3f} KiB (comprimido)")
         print(f"    Archivo denso (media)   : {g['tam_denso_kib_media']:.3f} KiB (comprimido, misma compresion)")
-        print(f"    Dataset disperso (real) : {g['tam_disperso_total_dataset_mib']:.2f} MiB")
-        print(f"    Dataset denso (real)    : {g['tam_denso_total_dataset_mib']:.2f} MiB")
+        print(f"    Conjunto de datos disperso (real) : {g['tam_disperso_total_dataset_mib']:.2f} MiB")
+        print(f"    Conjunto de datos denso (real)    : {g['tam_denso_total_dataset_mib']:.2f} MiB")
         print(f"    >>> Factor de reduccion del almacenamiento comprimido: {g['factor_reduccion_almacenamiento']:.2f}x <<<")
 
     print("=" * 70)
