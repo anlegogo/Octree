@@ -269,8 +269,8 @@ def imprimir_tabla_consola(stats_clase: dict, stats_global: dict, split: str,
         print(f"    - Archivo disperso (media)     : {gr['tam_disperso_kib_media']:.3f} KiB")
         print(f"    - Archivo denso (media)        : {gr['tam_denso_kib_media']:.3f} KiB "
               f"(misma compresion)")
-        print(f"    - Dataset disperso (real)      : {gr['tam_disperso_total_dataset_mib']:.2f} MiB")
-        print(f"    - Dataset denso (real)         : {gr['tam_denso_total_dataset_mib']:.2f} MiB")
+        print(f"    - Conjunto de datos disperso (real)  : {gr['tam_disperso_total_dataset_mib']:.2f} MiB")
+        print(f"    - Conjunto de datos denso (real)     : {gr['tam_denso_total_dataset_mib']:.2f} MiB")
         print(f"    - >>> Factor de reduccion del almacenamiento comprimido: "
               f"{gr['factor_reduccion_almacenamiento']:.2f}x <<<")
         print(f"      (cociente de sumas: tamaño denso total / tamaño disperso total, "
@@ -355,7 +355,7 @@ def graficar_tabla_resumen(stats_clase: dict, stats_global: dict, split: str):
             cell.set_facecolor("#F5F5F5")
 
     ax.set_title(
-        f"Tabla de estructura del octree real y costo del pipeline — "
+        f"Tabla de estructura del octree real y costo del flujo de procesamiento — "
         f"ModelNet40 ({split})\n"
         f"Disperso y Denso guardados con la MISMA compresion (.npz); "
         f"tamaños REALES medidos, no estimados.\n"
@@ -407,6 +407,12 @@ def main():
     parser.add_argument("--split", type=str, default="ambos",
                         choices=["train", "test", "ambos"])
     args = parser.parse_args()
+
+    # Confirmacion explicita de la carpeta REAL donde se lee/escribe,
+    # para evitar discrepancias de carpeta entre este script y
+    # medir_metricas_off.py (ambos deben usar la MISMA carpeta).
+    print(f"[Carpeta de resultados] {DIR_RESULTADOS.resolve()}")
+    DIR_RESULTADOS.mkdir(parents=True, exist_ok=True)
 
     # PUNTO 2 (correccion): con --split ambos se generan TRES resumenes
     # -- entrenamiento, prueba, y el CONJUNTO COMBINADO -- no solo los
