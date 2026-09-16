@@ -1,0 +1,54 @@
+{
+  "n_total": 12311,
+  "n_errores": 0,
+  "t_total_ms": {
+    "media": 403.769,
+    "std": 209.9994,
+    "min": 35.6,
+    "max": 7636.919
+  },
+  "t_total_denso_ms": {
+    "media": 95.8248,
+    "std": 109.6736,
+    "min": 44.46,
+    "max": 7352.367
+  },
+  "t_total_experimento_ms": {
+    "media": 453.7409,
+    "std": 211.4056,
+    "min": 74.843,
+    "max": 7693.325
+  },
+  "t_secuencial_acumulado_estimado_experimento_min": 93.1,
+  "tiempo_real_paralelo_min": {
+    "train": 7.647,
+    "test": 1.939
+  },
+  "tiempo_real_paralelo_total_min": 9.586,
+  "R32": {
+    "nodos_media": 2243.2,
+    "nodos_std": 1394.5,
+    "hojas_media": 1715.5,
+    "hojas_std": 1098.7,
+    "ocup_pct_media": 5.2352,
+    "ocup_pct_std": 3.3529,
+    "tam_disperso_kib_media": 10.322,
+    "tam_denso_kib_media": 11.955,
+    "tam_disperso_total_dataset_mib": 124.1,
+    "tam_denso_total_dataset_mib": 143.73,
+    "factor_reduccion_almacenamiento": 1.158
+  },
+  "R64": {
+    "nodos_media": 8325.6,
+    "nodos_std": 4427.1,
+    "hojas_media": 6082.4,
+    "hojas_std": 3075.5,
+    "ocup_pct_media": 2.3203,
+    "ocup_pct_std": 1.1732,
+    "tam_disperso_kib_media": 25.117,
+    "tam_denso_kib_media": 38.679,
+    "tam_disperso_total_dataset_mib": 301.97,
+    "tam_denso_total_dataset_mib": 465.02,
+    "factor_reduccion_almacenamiento": 1.54
+  }
+}
