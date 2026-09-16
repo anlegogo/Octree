@@ -1,0 +1,101 @@
+{
+  "lectura": {
+    "descripcion": "Lectura del archivo .off",
+    "n_vertices": 2382,
+    "n_caras": 2234,
+    "t_media_ms": 1.8872,
+    "t_min_ms": 1.6447,
+    "t_max_ms": 2.1801,
+    "mem_pico_kib": 489.28,
+    "mem_vertices_kib": 27.91,
+    "mem_caras_kib": 52.36
+  },
+  "normalizacion": {
+    "descripcion": "Normalizacion al cubo [-1,1]^3",
+    "t_media_ms": 0.0451,
+    "t_min_ms": 0.039,
+    "t_max_ms": 0.0563,
+    "mem_pico_kib": 57.66,
+    "mem_salida_kib": 27.91
+  },
+  "muestreo": {
+    "descripcion": "Muestreo area-weighted (20,000 puntos)",
+    "n_puntos": 20000,
+    "t_media_ms": 3.5253,
+    "t_min_ms": 3.1871,
+    "t_max_ms": 3.7512,
+    "mem_pico_kib": 1689.07,
+    "mem_nube_kib": 468.76
+  },
+  "construccion_arbol_R32": {
+    "descripcion": "Construccion del octree real (con poda), R=32^3",
+    "profundidad_max": 5,
+    "n_nodos_totales": 1121,
+    "n_hojas_ocupadas": 762,
+    "t_media_ms": 26.5807,
+    "t_min_ms": 25.4108,
+    "t_max_ms": 27.6863,
+    "mem_pico_transitorio_kib": 956.11,
+    "mem_python_arbol_kib": 464.48,
+    "mem_python_densa_kib": 512.156,
+    "mem_binaria_estimada_kib": 15.326,
+    "factor_ahorro_arbol_vs_densa": 1.1
+  },
+  "guardado_disco_R32": {
+    "descripcion": "Guardado en disco, estructura jerarquica completa, R=32^3",
+    "t_media_ms": 1.6543,
+    "t_min_ms": 1.6224,
+    "t_max_ms": 1.7205,
+    "mem_pico_kib": 951.48,
+    "tam_archivo_real_kib": 7.642
+  },
+  "extraccion_hce_R32": {
+    "descripcion": "Extraccion de descriptores HCE desde .npz disperso, R=32^3",
+    "n_features": 18,
+    "t_media_ms": 6.4768,
+    "t_min_ms": 6.0156,
+    "t_max_ms": 6.7878,
+    "mem_pico_kib": 1561.31
+  },
+  "construccion_arbol_R64": {
+    "descripcion": "Construccion del octree real (con poda), R=64^3",
+    "profundidad_max": 6,
+    "n_nodos_totales": 3694,
+    "n_hojas_ocupadas": 2573,
+    "t_media_ms": 78.9071,
+    "t_min_ms": 71.2024,
+    "t_max_ms": 95.5463,
+    "mem_pico_transitorio_kib": 2054.65,
+    "mem_python_arbol_kib": 1538.098,
+    "mem_python_densa_kib": 4096.156,
+    "mem_binaria_estimada_kib": 50.504,
+    "factor_ahorro_arbol_vs_densa": 2.66
+  },
+  "guardado_disco_R64": {
+    "descripcion": "Guardado en disco, estructura jerarquica completa, R=64^3",
+    "t_media_ms": 3.6706,
+    "t_min_ms": 3.5619,
+    "t_max_ms": 4.0975,
+    "mem_pico_kib": 831.84,
+    "tam_archivo_real_kib": 17.615
+  },
+  "extraccion_hce_R64": {
+    "descripcion": "Extraccion de descriptores HCE desde .npz disperso, R=64^3",
+    "n_features": 19,
+    "t_media_ms": 21.4791,
+    "t_min_ms": 19.0192,
+    "t_max_ms": 33.5542,
+    "mem_pico_kib": 1835.78
+  },
+  "pipeline_completo": {
+    "descripcion": "Pipeline completo: lectura + normalizacion + muestreo + (construccion arbol + guardado + HCE) x 2 resoluciones",
+    "t_media_ms": 148.6284,
+    "t_min_ms": 145.7797,
+    "t_max_ms": 155.7564,
+    "mem_pico_kib": 4797.83,
+    "mem_pico_mib": 4.685
+  },
+  "archivo": "chair_0001.off",
+  "n_puntos_muestreo": 20000,
+  "repeticiones": 10
+}
