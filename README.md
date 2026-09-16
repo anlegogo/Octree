@@ -3,7 +3,8 @@
 Trabajo de grado que compara un enfoque clásico basado en descriptores manuales
 extraídos de una estructura de octree (HCE + SVM/Random Forest) contra una red
 convolucional jerárquica (Net5-Octree), evaluando ambos en dos resoluciones
-espaciales equivalentes: **32³** y **64³**, sobre el dataset **ModelNet40**.
+espaciales equivalentes: **32³** y **64³**, sobre el conjunto de datos
+**ModelNet40**.
 
 Repositorio: [https://github.com/ricardoal94/Octree](https://github.com/ricardoal94/Octree)
 
@@ -13,18 +14,19 @@ Repositorio: [https://github.com/ricardoal94/Octree](https://github.com/ricardoa
 
 1. [Estructura del repositorio](#estructura-del-repositorio)
 2. [Iteración metodológica: enfoque descartado (PointNet)](#iteración-metodológica-enfoque-descartado-pointnet)
-3. [Requisitos e instalación](#requisitos-e-instalación)
-4. [Dataset ModelNet40](#dataset-modelnet40)
-5. [Reproducibilidad: semillas y configuración](#reproducibilidad-semillas-y-configuración)
-6. [Fase 1 — Configuración y partición](#fase-1--configuración-y-partición)
-7. [Fase 2 — Construcción de octrees](#fase-2--construcción-de-octrees)
-8. [Fase 3a — Enfoque clásico (HCE + SVM + Random Forest)](#fase-3a--enfoque-clásico-hce--svm--random-forest)
-9. [Fase 3b — Enfoque profundo (Net5-Octree)](#fase-3b--enfoque-profundo-net5-octree)
-10. [Fase 4 — Comparación y visualización](#fase-4--comparación-y-visualización)
-11. [Experimento adicional — Img2Voxel](#experimento-adicional--img2voxel)
-12. [Herramientas de análisis y figuras](#herramientas-de-análisis-y-figuras)
-13. [Especificaciones técnicas exactas](#especificaciones-técnicas-exactas)
-14. [Registros y resultados](#registros-y-resultados)
+3. [Condiciones de ejecución de los resultados reportados](#condiciones-de-ejecución-de-los-resultados-reportados)
+4. [Requisitos e instalación](#requisitos-e-instalación)
+5. [Dataset ModelNet40](#dataset-modelnet40)
+6. [Reproducibilidad: semillas y configuración](#reproducibilidad-semillas-y-configuración)
+7. [Fase 1 — Configuración y partición](#fase-1--configuración-y-partición)
+8. [Fase 2 — Construcción del octree real](#fase-2--construcción-del-octree-real)
+9. [Fase 3a — Enfoque clásico (HCE + SVM + Random Forest)](#fase-3a--enfoque-clásico-hce--svm--random-forest)
+10. [Fase 3b — Enfoque profundo (Net5-Octree)](#fase-3b--enfoque-profundo-net5-octree)
+11. [Fase 4 — Comparación y visualización](#fase-4--comparación-y-visualización)
+12. [Experimento adicional — Img2Voxel](#experimento-adicional--img2voxel)
+13. [Herramientas de análisis y figuras](#herramientas-de-análisis-y-figuras)
+14. [Especificaciones técnicas exactas](#especificaciones-técnicas-exactas)
+15. [Registros y resultados](#registros-y-resultados)
 
 ---
 
@@ -42,20 +44,21 @@ Octree/
 │   ├── fase1_setup.py
 │   └── verificar_reproducibilidad.py
 │
-├── fase2_octree/                # Pipeline .off -> octree (32³ y 64³)
-│   ├── octree.py
-│   ├── preprocesar_octrees.py
+├── fase2_octree/                # Pipeline .off -> octree REAL (32³ y 64³)
+│   ├── octree.py                # Lectura, normalización, muestreo, rejilla densa independiente
+│   ├── octree_real.py           # Arbol real: NodoOctree, poda, serialización jerárquica
+│   ├── preprocesar_octrees.py   # Procesa el dataset completo -> formato disperso
 │   └── visualizar_octree_3d.py
 │
 ├── fase3_hce/                   # Enfoque clásico: descriptores + SVM/RF
-│   ├── hce_extraccion.py
+│   ├── hce_extraccion.py        # Extrae descriptores desde el árbol o el .npz disperso
 │   ├── fase3_hce_entrenamiento.py
 │   ├── visualizar_resultados_hce.py
 │   └── visualizar_features_3d.py
 │
 ├── fase3_net5/                  # Enfoque profundo: Net5-Octree (3D-CNN)
 │   ├── net5_modelo.py
-│   ├── net5_dataset.py
+│   ├── net5_dataset.py          # Carga disperso, materializa denso al vuelo
 │   ├── fase3_net5_entrenamiento.py
 │   ├── visualizar_comparativa.py
 │   └── visualizar_matriz_confusion_net5.py
@@ -77,15 +80,16 @@ Octree/
 │       ├── dataset.py
 │       └── modelo.py
 │
-├── Scripts_Analisis/             # Herramientas de medición y figuras del capítulo de metodología
+├── Scripts_Analisis/              # Herramientas de medición y figuras del capítulo de metodología
 │   ├── generar_figuras_metodologia.py
-│   ├── medir_tiempo_memoria.py
-│   ├── medir_metricas_off.py
-│   ├── tabla_resumen_octree.py
+│   ├── medir_tiempo_memoria.py    # Tiempo y memoria de un archivo individual (--off)
+│   ├── medir_metricas_off.py      # Lo mismo sobre el dataset completo o un archivo (--off)
+│   ├── tabla_resumen_octree.py    # Tabla resumen por clase / train / test / conjunto
+│   ├── generar_imagenes_json.py   # Convierte los JSON de medición en tablas SVG/PNG
 │   └── resumen_metricas_completo.py
 │
 ├── Dataset/                      # (NO versionado) ModelNet40 descargado localmente
-├── data/                         # (NO versionado) Octrees y renders preprocesados
+├── data/                         # (NO versionado) Octrees dispersos y renders preprocesados
 ├── checkpoints/                  # (NO versionado) Pesos de modelos entrenados
 ├── logs/                         # (parcialmente versionado) Historiales de entrenamiento
 └── Registros/                    # (versionado) CSV/JSON de métricas y resultados finales
@@ -102,6 +106,13 @@ Octree/
 > scripts de entrenamiento. La carpeta `Registros/` sí se versiona y contiene
 > únicamente los archivos ligeros de métricas (CSV/JSON) necesarios para
 > analizar los resultados sin tener que re-entrenar nada.
+>
+> **Corrección importante:** si tu copia local tiene una carpeta llamada
+> `Scripts_Analisis/Tabla_Resumen_Octree/` u otra subcarpeta similar creada
+> manualmente, bórrala. Todos los scripts de `Scripts_Analisis/` leen y
+> escriben en `resultados/` (o en su propia carpeta, según el script) de
+> forma automática con rutas relativas a la raíz del proyecto — no debe
+> haber una carpeta de resultados paralela.
 
 ---
 
@@ -111,47 +122,109 @@ Octree/
 > conserva únicamente por transparencia respecto al proceso de desarrollo y
 > no debe usarse para reproducir los resultados reportados en el documento.
 
-Antes de adoptar la representación de octree (grilla voxelizada de 32³/64³
-con descriptores HCE y Net5-Octree), la primera aproximación al problema
-implementó una red tipo **PointNet** (con módulos T-Net de alineación
-espacial) que clasificaba directamente **nubes de puntos** muestreadas sobre
-la superficie de cada malla, sin ningún paso de voxelización ni construcción
-de octree.
+Antes de adoptar la representación de octree, la primera aproximación al
+problema implementó una red tipo **PointNet** (con módulos T-Net de
+alineación espacial) que clasificaba directamente **nubes de puntos**
+muestreadas sobre la superficie de cada malla, sin ningún paso de
+voxelización ni construcción de octree.
 
-Esa implementación se encuentra archivada en `explorado_descartado/fase2_modelnet40_pointnet/`
-y contiene:
+Esa implementación se encuentra archivada en
+`explorado_descartado/fase2_modelnet40_pointnet/` y no se recomienda
+ejecutarla como parte del flujo de reproducción del proyecto; se incluye
+exclusivamente como evidencia documental del proceso iterativo de diseño
+metodológico.
 
-- `dataset.py` — carga de nubes de puntos con aumento de datos (rotación,
-  jitter, escala aleatoria).
-- `modelo.py` — arquitectura Net5 con T-Net de entrada (3×3) y T-Net de
-  características (64×64), siguiendo el diseño original de PointNet.
+---
 
-### Por qué se descartó
+## Condiciones de ejecución de los resultados reportados
 
-El primer objetivo específico de la tesis exige explícitamente un enfoque
-basado en **octree** evaluado en resoluciones equivalentes de 32³ y 64³. La
-representación de nube de puntos de PointNet no construye ninguna estructura
-jerárquica ni voxelizada, por lo que **no satisface el objetivo tal como está
-formulado**. El proyecto se reorientó completamente hacia el pipeline
-`.off → normalización → muestreo de superficie → voxelización → octree`
-documentado en la [Fase 2](#fase-2--construcción-de-octrees) de este README,
-que sí permite evaluar el efecto de la resolución espacial sobre el
-desempeño de clasificación — la variable independiente central del diseño
-experimental.
+Esta sección documenta el entorno exacto y los comandos utilizados para
+generar los resultados citados en el documento de tesis. **Debe completarse
+con los valores reales de la corrida oficial** antes de la entrega final;
+los campos marcados `<COMPLETAR>` son obligatorios.
 
-### Diferencias clave frente a la metodología final
+### Equipo y sistema
 
-| Aspecto | Enfoque descartado (PointNet) | Metodología final (Octree) |
+| Campo | Valor |
+|---|---|
+| Equipo (CPU) | `<COMPLETAR>` (ej. AMD Ryzen 7 5700X, 8 núcleos / 16 hilos) |
+| Equipo (GPU) | `<COMPLETAR>` (ej. NVIDIA GeForce RTX 5070, 12 GB VRAM) |
+| Sistema operativo | `<COMPLETAR>` (ej. Windows 11 Pro, build XXXXX) |
+| Versión de Python | `<COMPLETAR>` (verificar con `python --version`) |
+| Versión de PyTorch / CUDA | `<COMPLETAR>` (verificar con el comando de la sección [Requisitos](#requisitos-e-instalación)) |
+
+Para completar automáticamente los campos de hardware y versiones, correr:
+
+```bash
+python -c "import platform, torch; print('SO:', platform.platform()); print('Python:', platform.python_version()); print('PyTorch:', torch.__version__); print('CUDA disponible:', torch.cuda.is_available()); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A')"
+```
+
+Esta misma información queda registrada automáticamente en
+`logs/experiment_log.json` al correr `fase1_setup.py`.
+
+### Parámetros de ejecución del pipeline de octree
+
+| Parámetro | Valor | Dónde se fija |
 |---|---|---|
-| Representación de entrada | Nube de puntos `(3, N)` | Grid voxelizado `(4, R, R, R)` |
-| Resolución espacial evaluada | No aplica (sin discretización) | 32³ y 64³ |
-| Aumento de datos | Sí (rotación, jitter, escala) | No, por criterio de equivalencia experimental |
-| Descriptores clásicos comparables | No implementados | HCE (ocupación por nivel + momentos geométricos) |
-| Satisface el objetivo específico de octree | No | Sí |
+| Puntos muestreados por objeto | **20 000** | `N_PUNTOS_MUESTREO` en `preprocesar_octrees.py` y `medir_metricas_off.py` |
+| Repeticiones (mediciones de tiempo) | `<COMPLETAR>` (ej. 10) | `--repeticiones` en `medir_tiempo_memoria.py` |
+| Trabajadores paralelos (`N_PROCESOS`) | `<COMPLETAR>` (ej. 10; recomendado: núcleos físicos − 1) | `N_PROCESOS` en `preprocesar_octrees.py` y `medir_metricas_off.py` |
+| Semilla global | 42 | Ver [Reproducibilidad](#reproducibilidad-semillas-y-configuración) |
 
-No se recomienda ejecutar los scripts de `explorado_descartado/` como parte
-del flujo de reproducción del proyecto; se incluyen exclusivamente como
-evidencia documental del proceso iterativo de diseño metodológico.
+### Comandos utilizados para la corrida oficial
+
+```bash
+# 1. Configuracion y particion
+cd fase1_modelnet40
+python fase1_setup.py
+
+# 2. Preprocesamiento del dataset completo (formato disperso, ambas resoluciones)
+cd ../fase2_octree
+python preprocesar_octrees.py
+
+# 3. Metricas de tiempo y memoria del pipeline de octree (dataset completo)
+cd ../Scripts_Analisis
+python medir_metricas_off.py --split ambos
+python tabla_resumen_octree.py --split ambos
+
+# 4. Entrenamiento HCE (SVM + Random Forest)
+cd ../fase3_hce
+python fase3_hce_entrenamiento.py --resolucion 32
+python fase3_hce_entrenamiento.py --resolucion 64
+
+# 5. Entrenamiento Net5-Octree
+cd ../fase3_net5
+python fase3_net5_entrenamiento.py --resolucion 32
+python fase3_net5_entrenamiento.py --resolucion 64 --batch_size 8
+```
+
+> Completar/ajustar esta lista con cualquier flag adicional realmente usado
+> (por ejemplo `--n_muestras` si se corrió sobre un subconjunto antes de la
+> corrida completa) para que sea trazable exactamente qué comando produjo
+> qué archivo en `Registros/`.
+
+### Commit del código
+
+| Campo | Valor |
+|---|---|
+| Commit (hash corto) | `<COMPLETAR>` |
+| Rama | `<COMPLETAR>` (ej. `main`) |
+| Fecha de la corrida | `<COMPLETAR>` |
+
+Para obtener el hash exacto del commit vigente al momento de correr los
+scripts:
+
+```bash
+git rev-parse --short HEAD
+git log -1 --format="%H %ci"    # hash completo + fecha del commit
+```
+
+**Recomendación:** anotar este hash inmediatamente después de correr la
+corrida oficial (antes de hacer cualquier commit adicional), y citarlo
+explícitamente en el capítulo de resultados de la tesis. Si se hacen
+cambios al código después de la corrida oficial, este hash permite
+recuperar exactamente la versión que generó los números reportados
+(`git checkout <hash>`).
 
 ---
 
@@ -159,7 +232,7 @@ evidencia documental del proceso iterativo de diseño metodológico.
 
 - Python 3.10 – 3.12
 - Sistema operativo probado: Windows 11 (PowerShell)
-- GPU NVIDIA opcional pero recomendada para las Fases 3b y 5 (probado en RTX 5070)
+- GPU NVIDIA opcional pero recomendada para las Fases 3b y 5
 
 ```bash
 # 1. Clonar el repositorio
@@ -176,10 +249,6 @@ pip install -r requirements.txt
 ```
 
 ### Instalación de PyTorch con soporte GPU (opcional pero recomendado)
-
-Si se dispone de GPU NVIDIA, instalar la variante CUDA de PyTorch **antes** de
-`pip install -r requirements.txt`, o reinstalar después si ya se instaló la
-versión CPU:
 
 ```bash
 pip uninstall torch torchvision torchaudio -y
@@ -198,16 +267,13 @@ python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_
 
 ### Descarga
 
-El dataset **no se distribuye en este repositorio**. Debe descargarse manualmente
-desde la fuente oficial:
+El dataset **no se distribuye en este repositorio**. Debe descargarse
+manualmente desde la fuente oficial:
 
 - **Fuente oficial:** [https://modelnet.cs.princeton.edu](https://modelnet.cs.princeton.edu)
 - **Archivo esperado:** `ModelNet40.zip` (mallas en formato `.off`, partición oficial)
 
 ### Ubicación esperada
-
-Descomprimir el dataset de manera que quede en la siguiente ruta relativa a la
-raíz del repositorio:
 
 ```
 Octree/
@@ -216,132 +282,146 @@ Octree/
         ├── airplane/
         │   ├── train/
         │   │   ├── airplane_0001.off
-        │   │   ├── airplane_0002.off
         │   │   └── ...
         │   └── test/
-        │       ├── airplane_0627.off
         │       └── ...
         ├── bathtub/
-        ├── bed/
         ├── ...
         └── xbox/
 ```
 
 ### Estructura esperada por el código
 
-- 40 subcarpetas de clase (una por categoría de ModelNet40).
-- Cada clase contiene dos subcarpetas: `train/` y `test/`, siguiendo la
-  **partición oficial** del dataset (9 843 modelos de entrenamiento y
-  2 468 de prueba en total).
-- Los archivos son mallas en formato `.off` (vértices + caras triangulares).
+- 40 subcarpetas de clase.
+- Cada clase contiene `train/` y `test/`, siguiendo la partición oficial
+  (9 843 modelos de entrenamiento y 2 468 de prueba en total).
 
-Si la ruta local difiere de `Dataset/ModelNet40/`, debe actualizarse la
-constante `RAIZ_DATASET` (o equivalente) al inicio de cada script que lea
-directamente del dataset (`preprocesar_octrees.py`, `renderizar_vistas.py`,
-`medir_metricas_off.py`, `generar_figuras_metodologia.py`).
+Si la ruta local difiere de `Dataset/ModelNet40/`, actualizar la constante
+`RAIZ_DATASET` al inicio de cada script que lee directamente del conjunto de
+datos (`preprocesar_octrees.py`, `medir_metricas_off.py`,
+`generar_figuras_metodologia.py`, `renderizar_vistas.py`).
 
 ### Cómo se distinguen train y test
 
-La distinción entre entrenamiento y prueba se hereda directamente de la
-estructura de carpetas oficial de ModelNet40 (`.../<clase>/train/` y
-`.../<clase>/test/`), **no** se recalcula ni se mezcla en ningún punto del
-pipeline. Del subconjunto `train/` se reserva adicionalmente un 10 % para
-validación interna (ver Fase 1), manteniendo el conjunto `test/` oficial
-intacto y usado únicamente para la evaluación final reportada.
+Se hereda directamente de la estructura de carpetas oficial
+(`.../<clase>/train/` y `.../<clase>/test/`); no se recalcula ni se mezcla
+en ningún punto del flujo de procesamiento. Del subconjunto `train/` se
+reserva un 10 % para validación interna, manteniendo `test/` intacto para
+la evaluación final.
 
 ---
 
 ## Reproducibilidad: semillas y configuración
 
 Todas las operaciones estocásticas del proyecto usan una **semilla única y
-fija: `seed = 42`**. Esto incluye:
+fija: `seed = 42`**.
 
-| Operación                                   | Dónde se fija                          |
-|----------------------------------------------|-----------------------------------------|
-| Barajado de datos / partición train-val       | `fase1_setup.py::particionar_dataset`   |
-| Inicialización de pesos (Net5, Img2Voxel)     | `set_global_seed()` (Python, NumPy, PyTorch CPU/GPU, CUDNN) |
-| Partición del Random Forest                   | `random_state=42` en `RandomForestClassifier` |
-| Muestreo de superficie (área-weighted)        | `np.random.default_rng(seed + idx)` por muestra |
-| Selección de vista en Img2Voxel (train)       | `np.random.default_rng(seed + idx + hash(nombre))` |
-
-`fase1_setup.py::set_global_seed()` fija adicionalmente `cudnn.deterministic = True`
-y `cudnn.benchmark = False` para maximizar la reproducibilidad en GPU (a costa
-de cierta velocidad de entrenamiento).
+| Operación | Dónde se fija |
+|---|---|
+| Partición train-val | `fase1_setup.py::particionar_dataset` |
+| Inicialización de pesos (Net5, Img2Voxel) | `set_global_seed()` |
+| Random Forest | `random_state=42` |
+| Muestreo de superficie | `np.random.default_rng(seed + idx)` por muestra |
 
 `fase1_modelnet40/verificar_reproducibilidad.py` ejecuta la partición del
-dataset 3 veces con la misma semilla y compara los hashes SHA-256 resultantes,
-confirmando reproducibilidad bit a bit.
+dataset 3 veces con la misma semilla y compara hashes SHA-256, confirmando
+reproducibilidad bit a bit.
 
 ---
 
 ## Fase 1 — Configuración y partición
 
-Define la semilla global, la partición train/val/test y registra la
-configuración del hardware y las versiones de librerías utilizadas.
-
 ```bash
 cd fase1_modelnet40
 python fase1_setup.py
-```
-
-**Salidas:**
-- `logs/experiment_log.json` — configuración completa, hardware, versiones.
-- `logs/particion_indices.npz` — índices de partición train/val (reutilizados
-  por todas las fases posteriores para garantizar consistencia).
-
-**Verificar reproducibilidad:**
-```bash
 python verificar_reproducibilidad.py
 ```
 
-**Parámetros clave (`config.yaml`):**
-- `dataset.train_total`: 9843
-- `dataset.test_total`: 2468
-- `dataset.val_split`: 0.10 (10 % del train reservado para validación)
-- `reproducibilidad.seed`: 42
+**Salidas:** `logs/experiment_log.json`, `logs/particion_indices.npz`.
 
 ---
 
-## Fase 2 — Construcción de octrees
+## Fase 2 — Construcción del octree real
 
-Convierte cada malla `.off` en dos representaciones voxelizadas densas
-(equivalentes a un octree aplanado a su nivel hoja): resolución **32³**
-(profundidad `L = 5`) y **64³** (profundidad `L = 6`).
+> **Corrección metodológica importante:** las versiones iniciales de este
+> proyecto construían una *rejilla densa* que aparentaba ser un octree
+> (reservando memoria para las `R³` celdas posibles, sin poda de regiones
+> vacías). Esto fue corregido: `fase2_octree/octree_real.py` implementa un
+> **octree real**, con nodo raíz único, subdivisión recursiva en 8
+> octantes, y **poda explícita** de las ramas sin geometría (no se crea
+> ningún nodo, ni se reserva memoria, para las regiones vacías).
+
+### Convención de profundidad
+
+La raíz del árbol está en profundidad `L = 0` (un único nodo, cubre todo el
+espacio `[-1, 1]³`). Cada subdivisión aumenta la profundidad en 1, y la
+resolución equivalente en profundidad `d` es `R = 2^d`. Bajo esta
+convención (matemáticamente estándar para octrees):
+
+- Hoja de resolución **32³** → `L = 5`
+- Hoja de resolución **64³** → `L = 6`
 
 ### Flujo determinista
 
-1. **Normalización:** centrado en el origen y escalado al cubo `[-1, 1]³`.
-2. **Muestreo de superficie:** muestreo *area-weighted* de puntos sobre los
-   triángulos de la malla (no sobre los vértices), preservando la
-   representatividad geométrica de la superficie.
-3. **Cuantización jerárquica:** los puntos muestreados se asignan a celdas de
-   una grilla densa de resolución `R = 2^L`.
-4. **Codificación:** cada celda ocupada almacena un valor binario de ocupación
-   y el vector normal promedio de los puntos que caen en ella.
+1. **Normalización:** centrado y escalado al cubo `[-1, 1]³`.
+2. **Muestreo de superficie:** muestreo *area-weighted* sobre los triángulos
+   de la malla (20 000 puntos por objeto).
+3. **Construcción del árbol:** subdivisión recursiva con poda
+   (`fase2_octree/octree_real.py::construir_octree`), hasta la profundidad
+   hoja (`L=5` o `L=6`).
+4. **Codificación:** cada nodo hoja ocupado almacena ocupación binaria y el
+   vector normal promedio de los puntos que caen en él.
+
+### Formato de almacenamiento: DISPERSO, con estructura jerárquica completa
+
+El `.npz` guardado por `guardar_octree_disperso()` **no** es un array denso.
+Contiene, mediante un recorrido DFS (pre-orden) de **todos los nodos
+existentes** (internos y hojas, nunca los podados):
+
+```python
+{
+    "profundidades": np.ndarray,  # uint8, profundidad de cada nodo
+    "mascaras":      np.ndarray,  # uint8, bits 0-7: que hijos existen
+    "normales":      np.ndarray,  # float32 (N, 3), solo valido en hojas
+    "etiqueta":      int,
+    "profundidad_max": int,       # 5 (32^3) o 6 (64^3)
+}
+```
+
+El centro y tamaño de cada nodo **no se guardan explícitamente**: se
+reconstruyen de forma determinista replicando la subdivisión original
+durante la carga (`reconstruir_octree_desde_npz()`). Esto preserva la
+topología completa (relaciones padre-hijo reales), a diferencia de guardar
+solo las hojas, que perdería la información jerárquica del árbol interno.
+
+La materialización a un tensor denso `(4, R, R, R)` — necesaria únicamente
+porque `Conv3d`/`ConvTranspose3D` de PyTorch requieren tensores densos —
+ocurre **al vuelo, solo en memoria RAM**, en el `Dataset` de PyTorch
+(`fase3_net5/net5_dataset.py`), nunca se persiste densa en disco.
 
 ### Comandos
 
 ```bash
 cd fase2_octree
 
-# Procesar el dataset completo (train + test, ambas resoluciones)
+# Procesar el dataset completo (train + test, ambas resoluciones, formato disperso)
 python preprocesar_octrees.py
 
-# Verificación visual de una muestra individual
+# Test rapido del modulo del arbol (esfera sintetica, o --off para un archivo real)
+python octree_real.py --off "ruta\a\archivo.off"
+
+# Verificacion visual de una muestra individual
 python visualizar_octree_3d.py --clase airplane --split train --indice 0
 ```
 
 **Salidas:** `data/octrees_32/<clase>/<split>/<archivo>.npz` y
-`data/octrees_64/<clase>/<split>/<archivo>.npz`, cada uno con:
-- `grid`: array `float32` de forma `(4, R, R, R)` — canal 0 = ocupación,
-  canales 1-3 = vector normal `(nx, ny, nz)`.
-- `etiqueta`: entero de clase (0-39).
+`data/octrees_64/<clase>/<split>/<archivo>.npz`, en formato disperso (ver
+arriba).
 
 **Parámetros de muestreo:**
 - `N_PUNTOS_MUESTREO = 20000` puntos por objeto.
 - `SEED = 42`.
-- `N_PROCESOS = 10` (paralelización vía `ProcessPoolExecutor`, ajustar según
-  núcleos de CPU disponibles).
+- `N_PROCESOS` = ver [Condiciones de ejecución](#condiciones-de-ejecución-de-los-resultados-reportados).
 
 ---
 
@@ -349,14 +429,25 @@ python visualizar_octree_3d.py --clase airplane --split train --indice 0
 
 ### Descriptores manuales (HCE)
 
-`hce_extraccion.py` calcula, a partir del grid de octree, un vector de
-**17 características** (resolución 32³) o **18** (resolución 64³):
+`hce_extraccion.py` calcula, a partir del árbol (ya sea reconstruido en
+memoria o directamente desde el `.npz` disperso), un vector de
+**18 características** (resolución 32³, `L=5`) o **19** (resolución 64³,
+`L=6`):
 
-| Grupo                          | Cantidad | Descripción                                                     |
-|---------------------------------|----------|-------------------------------------------------------------------|
-| Ocupación jerárquica por nivel  | `L` (5 o 6) | % de nodos ocupados en cada nivel del octree, de la raíz a la hoja |
-| Momentos geométricos globales   | 10       | Centroide (3), varianza por eje (3), dispersión radial (1), skewness por eje (3) |
-| Estadísticas del vector normal  | 2        | Norma media y varianza de las normales en celdas ocupadas          |
+| Grupo | Cantidad | Descripción |
+|---|---|---|
+| Ocupación jerárquica por nivel | `L+1` (6 o 7) | % de nodos que existen realmente en el árbol (no podados) en cada profundidad `d=0` (raíz) a `d=L` (hoja), respecto al máximo posible (`8^d`) |
+| Momentos geométricos globales | 10 | Centroide (3), varianza por eje (3), dispersión radial (1), skewness por eje (3) — sobre los centros de las hojas ocupadas |
+| Estadísticas del vector normal | 2 | Norma media y varianza de las normales en hojas ocupadas |
+
+> El conteo de features incluye explícitamente el nivel raíz (`L=0`), por
+> eso son `L+1` valores de ocupación, no `L`. Total: `(L+1) + 12`.
+
+Dos formas de extracción, verificadas numéricamente equivalentes:
+- `extraer_descriptores_hce(raiz, L)` — desde un árbol recién construido en memoria.
+- `extraer_descriptores_hce_desde_npz(ruta)` — directamente desde el `.npz`
+  disperso, sin reconstruir el árbol completo (usado en producción por
+  `fase3_hce_entrenamiento.py`).
 
 ### Entrenamiento
 
@@ -370,16 +461,11 @@ python fase3_hce_entrenamiento.py --resolucion 64
 - **SVM:** kernel RBF, búsqueda en grilla sobre `C ∈ {0.1, 1, 10, 100}` y
   `gamma ∈ {"scale", 0.001, 0.01, 0.1}`, validación cruzada `cv=3`.
 - **Random Forest:** `n_estimators=100`, `max_depth=None`, `random_state=42`.
-- Features escaladas con `StandardScaler` antes del SVM (Random Forest usa
-  las features sin escalar).
 
 **Salidas:**
-- `checkpoints/hce_svm_R{32,64}.joblib`
-- `checkpoints/hce_rf_R{32,64}.joblib`
-- `checkpoints/hce_scaler_R{32,64}.joblib`
-- `resultados/resumen_hce_R{32,64}.json` (accuracy, matriz de confusión,
-  reporte por clase, tiempos de inferencia, tamaño de modelo)
-- `logs/hce_features_R{32,64}.npz` (caché de features extraídas)
+- `checkpoints/hce_svm_R{32,64}.joblib`, `hce_rf_R{32,64}.joblib`, `hce_scaler_R{32,64}.joblib`
+- `resultados/resumen_hce_R{32,64}.json`
+- `logs/hce_features_R{32,64}.npz`
 
 ### Visualización
 
@@ -392,9 +478,9 @@ python visualizar_features_3d.py --resolucion 32 --metodo pca
 
 ## Fase 3b — Enfoque profundo (Net5-Octree)
 
-Red convolucional 3D jerárquica que opera directamente sobre el grid de
-octree (4 canales), con un bloque por nivel de resolución (`stride=2` en cada
-bloque, imitando el ascenso de nivel en el octree).
+Red convolucional 3D jerárquica. `net5_dataset.py` carga los `.npz`
+dispersos y **materializa el grid denso al vuelo**, en cada `__getitem__`
+(solo en RAM, nunca en disco).
 
 ```bash
 cd fase3_net5
@@ -405,16 +491,14 @@ python fase3_net5_entrenamiento.py --resolucion 64 --batch_size 8
 **Hiperparámetros:**
 - Optimizador **Adam**, `lr=0.001`, `weight_decay=1e-4`.
 - Scheduler `StepLR` (`step_size=20`, `gamma=0.7`).
-- **Early stopping** con `patience=20` épocas sin mejora en validación.
-- `batch_size=16` por defecto (ajustar según VRAM disponible).
-- Sin aumento de datos (restricción de equivalencia experimental, ver
-  sección de Criterios de equivalencia más abajo).
+- **Early stopping**, `patience=20`.
+- `batch_size=16` por defecto.
+- Sin aumento de datos (criterio de equivalencia experimental).
 
 **Salidas:**
 - `checkpoints/net5_mejor_R{32,64}.pth`
-- `resultados/resumen_net5_R{32,64}.json` (incluye matriz de confusión,
-  reporte de clasificación, tiempos, VRAM pico, tamaño de modelo)
-- `logs/net5_historial_R{32,64}.csv` / `.json` (curvas de entrenamiento)
+- `resultados/resumen_net5_R{32,64}.json`
+- `logs/net5_historial_R{32,64}.csv` / `.json`
 
 ### Visualización
 
@@ -427,206 +511,224 @@ python visualizar_matriz_confusion_net5.py --resolucion 32
 
 ## Fase 4 — Comparación y visualización
 
-Comparación cualitativa de predicciones entre los tres modelos (SVM, Random
-Forest, Net5) sobre una misma muestra, con visualización 3D del objeto:
-
 ```bash
 cd fase4_comparacion
 python comparar_predicciones.py --clase airplane --indice 0 --resolucion 32
-```
-
-Interpretabilidad de Net5 mediante Grad-CAM 3D (regiones del objeto con mayor
-influencia en la decisión de clasificación; **no** es una reconstrucción
-geométrica):
-
-```bash
 python gradcam_3d.py --clase airplane --indice 0 --resolucion 32
 ```
+
+Ambos scripts construyen el árbol real (o cargan el `.npz` disperso) y
+materializan el grid denso solo para alimentar Net5; para SVM/RF usan
+directamente el vector de descriptores HCE.
 
 ---
 
 ## Experimento adicional — Img2Voxel
 
-> **Nota metodológica:** este experimento está **fuera del alcance de la
-> metodología principal** de la tesis (que compara HCE vs. Net5 como
-> clasificadores). Se incluye como exploración adicional de reconstrucción
-> 3D aproximada a partir de una única imagen 2D, y se documenta por
+> **Fuera del alcance de la metodología principal.** Incluido por
 > transparencia y trazabilidad.
-
-### Renderizado de vistas 2D
 
 ```bash
 cd fase5_img2voxel
 python renderizar_vistas.py --n_vistas 8 --resolucion 128
-```
-
-**Salidas:** `data/renders/<clase>/<split>/<archivo>_v{00..07}.png`
-(imágenes en escala de grises, 128×128 px, 8 vistas por objeto en azimuts
-uniformemente espaciados).
-
-### Entrenamiento
-
-```bash
 python entrenar_img2voxel.py --resolucion 64 --batch_size 16
-```
-
-**Arquitectura:** encoder CNN 2D (128×128 → vector latente de 512) + decoder
-`ConvTranspose3D` (vector latente → grid `(4, R, R, R)`).
-
-**Función de pérdida:** BCE ponderada (`pos_weight` automático por batch,
-compensa el desbalance entre celdas ocupadas y vacías) + MSE de normales
-enmascarado solo en celdas ocupadas.
-
-**Métrica:** IoU (Intersection over Union) sobre el canal de ocupación —
-métrica estándar en reconstrucción volumétrica (no comparable directamente
-con el accuracy de clasificación de HCE/Net5).
-
-**Salidas:**
-- `checkpoints/img2voxel_mejor_R{32,64}.pth`
-- `resultados/resumen_img2voxel_R{32,64}.json`
-
-### Visualización
-
-```bash
 python visualizar_reconstruccion.py --clase airplane --indice 0 --resolucion 64
 python visualizar_costo_img2voxel.py --resolucion 64
 ```
+
+**Salidas:** `checkpoints/img2voxel_mejor_R{32,64}.pth`,
+`resultados/resumen_img2voxel_R{32,64}.json`.
 
 ---
 
 ## Herramientas de análisis y figuras
 
-Scripts de soporte para el capítulo de metodología (no forman parte del
-pipeline experimental, documentan y validan el proceso geométrico):
+Scripts de soporte para el capítulo de metodología. No forman parte del
+flujo de procesamiento experimental (que produce los resultados de
+clasificación); documentan y validan el proceso geométrico y su costo.
 
 ```bash
 cd Scripts_Analisis
 
-# Genera las 6 figuras vectoriales del pipeline .off -> octree
-# (malla normalizada, nube de puntos, voxel 32^3, voxel 64^3,
-#  niveles jerarquicos L=0..4 y L=0..5)
+# 6 figuras vectoriales del flujo .off -> octree
+# (malla, nube de puntos, voxel 32^3, voxel 64^3, niveles L=0..5, L=0..6)
 python generar_figuras_metodologia.py --off "ruta\a\chair_0001.off" --salida figuras_tesis
 
-# Mide tiempo y memoria de cada etapa del pipeline para un archivo especifico
+# Tiempo y memoria de un archivo individual: 4 magnitudes distintas
+# (pico transitorio, memoria ocupada por la representacion en Python,
+#  memoria de la rejilla densa equivalente, almacenamiento en disco)
 python medir_tiempo_memoria.py --off "ruta\a\chair_0001.off" --repeticiones 10
 
-# Procesa TODO el dataset y calcula metricas de ocupacion/tiempo/memoria por objeto
+# Lo mismo para UN SOLO archivo, sin necesitar el dataset completo
+python medir_metricas_off.py --off "ruta\a\chair_0001.off"
+
+# Procesa TODO el conjunto de datos: nodos, ocupacion, tiempos,
+# comparacion disperso vs. denso (ambos con la MISMA compresion .npz)
 python medir_metricas_off.py --split ambos
 
-# Genera la tabla resumen (errores, ocupacion media, nodos medios, tiempo medio, almacenamiento)
-python tabla_resumen_octree.py
+# Genera 3 resumenes: train, test, y CONJUNTO combinado
+python tabla_resumen_octree.py --split ambos
 
-# Tabla comparativa final: SVM vs Random Forest vs Net5 (tiempo, memoria, tamaño, accuracy, epoca optima)
+# Convierte los JSON de los 3 scripts anteriores en tablas SVG/PNG
+python generar_imagenes_json.py --nombre chair_0001
+
+# Tabla comparativa final: SVM vs Random Forest vs Net5
 python resumen_metricas_completo.py
 ```
+
+### Comparación de tiempos de construcción: árbol vs. rejilla densa
+
+`medir_metricas_off.py` mide el tiempo de construcción de **ambas**
+representaciones de forma **verdaderamente independiente**: el árbol se
+construye con `octree_real.py::construir_octree()`, y la rejilla densa se
+construye **directamente desde los mismos puntos y normales**, con
+`octree.py::construir_grid_octree()`, **sin pasar por el árbol en ningún
+momento**. Ambas rutas comparten únicamente el costo de lectura,
+normalización y muestreo (medido aparte, una sola vez).
+
+Esto produce tres totales de tiempo por objeto, claramente diferenciados:
+
+| Campo | Qué mide |
+|---|---|
+| `t_total_ms` | Solo la ruta del octree (lectura+normalización+muestreo+árbol+guardado disperso) |
+| `t_total_denso_ms` | Solo la ruta densa independiente (los mismos costos compartidos+rejilla directa+guardado denso) |
+| `t_total_experimento_ms` | Ambas representaciones juntas, sin duplicar los costos compartidos — **este es el valor comparable contra el tiempo real de ejecución paralela** |
+
+El **tiempo real paralelo** (`tiempo_real_paralelo_min`, medido con
+`time.time()` alrededor del `ProcessPoolExecutor`) refleja el tiempo total
+de ejecución del experimento completo — el procesamiento de **ambas**
+representaciones por objeto. No debe compararse directamente contra
+`t_total_ms` (que solo cubre el árbol); la comparación correcta es contra
+la suma de `t_total_experimento_ms` sobre todos los objetos.
+
+### Memoria: tres magnitudes distintas, nunca deben confundirse
+
+| Magnitud | Qué mide | Cómo se mide |
+|---|---|---|
+| Pico transitorio | Memoria máxima **durante** la construcción (incluye basura temporal de la recursión) | `tracemalloc`, durante la ejecución |
+| Memoria ocupada por la representación en Python | Memoria real y persistente del árbol/rejilla **ya construidos** | `sys.getsizeof()` recursivo, sin doble conteo de `nbytes` |
+| Almacenamiento en disco | Tamaño real del archivo `.npz` comprimido | `Path.stat().st_size` |
+
+> **Corrección de doble conteo:** una versión anterior sumaba
+> `sys.getsizeof(array) + array.nbytes`, pero `sys.getsizeof()` sobre un
+> array de NumPy que posee su propio buffer **ya incluye** `nbytes`.
+> Sumarlos duplicaba la cifra reportada (~1024 KiB en vez de ~512 KiB para
+> 32³). Corregido en `octree_real.py::medir_memoria_real_python()`.
+
+### Comparación de almacenamiento: siempre archivo real contra archivo real
+
+`medir_metricas_off.py` guarda **ambas** representaciones (disperso y
+denso) con la **misma compresión** (`np.savez_compressed`) y compara sus
+tamaños reales de archivo — nunca un archivo comprimido contra una fórmula
+teórica sin comprimir. El campo correspondiente se llama
+`factor_reduccion_almacenamiento_{R}` (antes `factor_ahorro_real`, renombrado
+porque corresponde específicamente a esta comparación de archivos, no a un
+"ahorro" general). Por clase, este factor se calcula como el **cociente de
+sumas totales** (tamaño denso total de la clase / tamaño disperso total de
+la clase), no como el promedio de los factores individuales de cada objeto
+(matemáticamente distinto, por la desigualdad de Jensen).
+
+Todas las unidades de tamaño usan **KiB/MiB** (potencias de 1024), nunca
+KB/MB, para evitar ambigüedad con las unidades decimales (potencias de 1000).
+
+### Con `--split ambos`, tres resúmenes (no dos)
+
+`tabla_resumen_octree.py --split ambos` genera **tres** archivos
+(`resumen_octree_train.json`, `resumen_octree_test.json`,
+`resumen_octree_conjunto.json`), no solo los dos separados — el resumen
+`conjunto` combina ambos splits sin filtrar.
 
 ---
 
 ## Especificaciones técnicas exactas
 
-Esta sección documenta explícitamente los criterios y formatos técnicos del
-proyecto, para eliminar ambigüedad al reproducir o auditar los resultados.
+### Criterio de ocupación de una celda / nodo hoja
 
-### Criterio de ocupación de un vóxel
+Un nodo hoja (o celda de la rejilla densa) se considera **ocupado** si al
+menos uno de los puntos muestreados sobre la superficie cae dentro de sus
+límites espaciales al cuantizar `[-1,1]³` a índices enteros `[0, R)`. No se
+aplica ningún umbral de densidad mínima en las Fases 2, 3a ni 3b; el
+criterio es binario y determinista dado el conjunto de puntos muestreado.
+En el árbol real, un nodo **interno** existe (no fue podado) si y solo si
+al menos una hoja ocupada desciende de él.
 
-Una celda del grid se considera **ocupada** (`ocupación = 1.0`) si al menos
-uno de los puntos muestreados sobre la superficie de la malla cae dentro de
-sus límites espaciales al cuantizar las coordenadas continuas `[-1, 1]³` a
-índices enteros `[0, R)`. No se aplica ningún umbral de densidad mínima en la
-Fase 2; el criterio es binario y determinista dado el conjunto de puntos
-muestreado.
-
-En el experimento adicional Img2Voxel, dado que las mallas de ModelNet40 son
-superficies huecas (no sólidos), la ocupación resultante es muy baja
-(≈1 % en 64³). Para ese experimento específico se aplica una dilatación
-morfológica (`max_pool3d`, kernel 3, 4 pasadas) sobre el canal de ocupación
-únicamente durante el entrenamiento del decoder, para evitar el colapso del
-modelo a predecir "todo vacío". Esta dilatación **no se aplica** en las Fases
-2, 3a ni 3b.
+En el experimento adicional Img2Voxel se aplica una dilatación morfológica
+adicional (`max_pool3d`, kernel 3, 4 pasadas) **únicamente** durante el
+entrenamiento del decoder, para compensar la baja ocupación de las mallas
+huecas de ModelNet40. Esta dilatación **no se aplica** en las Fases 2, 3a
+ni 3b.
 
 ### Tipo de dato
 
-Todos los grids de octree y voxel se almacenan como `numpy.float32`
-(4 bytes por celda), tanto para el canal de ocupación (valores `{0.0, 1.0}`)
-como para los canales de normales (valores en `[-1.0, 1.0]`).
+Todos los arrays numéricos (centros, normales, grids materializados) usan
+`numpy.float32`. Las profundidades y máscaras de hijos en el formato
+disperso usan `numpy.uint8`.
 
-### Estructura guardada por objeto
-
-Cada archivo `.npz` en `data/octrees_{32,64}/` contiene dos arrays:
+### Estructura guardada por objeto (formato disperso, Fase 2)
 
 ```python
 {
-    "grid":     np.ndarray,  # float32, shape (4, R, R, R)
-    "etiqueta": int,         # indice de clase, 0-39
+    "profundidades":    np.ndarray,  # uint8, (M,) -- M = nodos existentes
+    "mascaras":         np.ndarray,  # uint8, (M,) -- bits de hijos existentes
+    "normales":         np.ndarray,  # float32, (M, 3) -- solo valido en hojas
+    "etiqueta":         int,
+    "profundidad_max":  int,         # 5 (32^3) o 6 (64^3)
 }
 ```
 
 ### Nombres y rutas de archivos de salida
 
 | Fase | Patrón de archivo | Contenido |
-|------|--------------------|-----------|
+|---|---|---|
 | 1 | `logs/experiment_log.json` | Config., hardware, versiones |
 | 1 | `logs/particion_indices.npz` | Índices train/val |
-| 2 | `data/octrees_{R}/<clase>/<split>/<nombre>.npz` | Grid + etiqueta |
+| 2 | `data/octrees_{R}/<clase>/<split>/<nombre>.npz` | Árbol disperso, estructura completa |
+| 2 | `resultados/metricas_off_completo.csv` | Métricas por objeto (nodos, tiempos, tamaños disperso/denso) |
+| 2 | `resultados/metricas_off_resumen.csv` | Métricas por clase (factor de reducción con cociente de sumas) |
+| 2 | `resultados/metricas_off_global.json` | Resumen global + tiempo real paralelo por split |
+| 2 | `resultados/resumen_octree_{train,test,conjunto}.json` | Resúmenes de `tabla_resumen_octree.py` |
 | 3a | `resultados/resumen_hce_R{R}.json` | Métricas SVM + RF |
-| 3a | `checkpoints/hce_{svm,rf,scaler}_R{R}.joblib` | Modelos entrenados |
 | 3b | `resultados/resumen_net5_R{R}.json` | Métricas Net5 |
-| 3b | `checkpoints/net5_mejor_R{R}.pth` | Pesos del mejor modelo |
-| 3b | `logs/net5_historial_R{R}.csv` | Curvas de entrenamiento |
-| 5  | `data/renders/<clase>/<split>/<nombre>_v{00-07}.png` | Vistas 2D |
-| 5  | `resultados/resumen_img2voxel_R{R}.json` | Métricas Img2Voxel |
+| 5 | `resultados/resumen_img2voxel_R{R}.json` | Métricas Img2Voxel |
 
 ### Semilla usada en cada fase
 
-`seed = 42` en todas las fases sin excepción (ver sección de
-[Reproducibilidad](#reproducibilidad-semillas-y-configuración) para el
-detalle de dónde se aplica en cada caso).
+`seed = 42` en todas las fases sin excepción.
 
 ### Parámetros de muestreo
 
-- Puntos muestreados por objeto (Fases 2, 3a, 3b): **20 000**.
-- Puntos muestreados por objeto (Fase 5, renderizado): **20 000** (mismo
-  muestreo, reutilizado para generar los renders).
-- Método: muestreo *area-weighted* (probabilidad de elegir un triángulo
-  proporcional a su área), coordenadas baricéntricas uniformes dentro del
-  triángulo elegido.
+- Puntos muestreados por objeto: **20 000** (Fases 2, 3a, 3b, y Fase 5 para renderizado).
+- Método: muestreo *area-weighted* con coordenadas baricéntricas uniformes.
 
 ### Parámetros de HCE
 
-Ver tabla de descriptores en la sección [Fase 3a](#fase-3a--enfoque-clásico-hce--svm--random-forest).
-Total de features: `L + 12`, donde `L` es la profundidad del octree
-(`L=5` para 32³, `L=6` para 64³).
+Total de features: `(L+1) + 12`, donde `L` es la profundidad hoja del
+árbol (`L=5` para 32³ → 18 features; `L=6` para 64³ → 19 features).
 
 ### Hiperparámetros de SVM y Random Forest
 
-| Modelo | Hiperparámetro | Valor / rango de búsqueda |
-|--------|------------------|------------------------------|
+| Modelo | Hiperparámetro | Valor / rango |
+|---|---|---|
 | SVM | kernel | RBF |
-| SVM | `C` | búsqueda en `{0.1, 1, 10, 100}` |
-| SVM | `gamma` | búsqueda en `{"scale", 0.001, 0.01, 0.1}` |
-| SVM | validación cruzada | `cv=3` (`GridSearchCV`) |
+| SVM | `C` | `{0.1, 1, 10, 100}` |
+| SVM | `gamma` | `{"scale", 0.001, 0.01, 0.1}` |
+| SVM | validación cruzada | `cv=3` |
 | Random Forest | `n_estimators` | 100 |
-| Random Forest | `max_depth` | `None` (sin límite) |
+| Random Forest | `max_depth` | `None` |
 | Random Forest | `random_state` | 42 |
 
 ### Criterios de equivalencia experimental
 
-Para que la comparación entre enfoques sea válida:
-- Todas las pruebas de inferencia se ejecutan en el mismo equipo (CPU/GPU
-  documentado en `logs/experiment_log.json`).
-- **No se aplica aumento de datos** en ningún enfoque (HCE ni Net5), para
-  aislar el efecto de la resolución del octree.
-- La exactitud se reporta como promedio global sobre el conjunto de prueba
-  oficial de ModelNet40 (2 468 muestras), nunca sobre el conjunto de
-  validación interno.
+- Todas las pruebas de inferencia se ejecutan en el mismo equipo (ver
+  [Condiciones de ejecución](#condiciones-de-ejecución-de-los-resultados-reportados)).
+- **Sin aumento de datos** en ningún enfoque, para aislar el efecto de la
+  resolución del octree.
+- La exactitud se reporta sobre el conjunto de prueba oficial (2 468
+  muestras), nunca sobre el conjunto de validación interno.
 
 ---
 
 ## Registros y resultados
-
-Los archivos de métricas y resultados finales (ligeros, en formato CSV/JSON)
-se organizan en la carpeta `Registros/` para su consulta directa sin
-necesidad de re-ejecutar el pipeline completo:
 
 ```
 Registros/
@@ -637,7 +739,8 @@ Registros/
 │   ├── metricas_off_resumen.csv
 │   ├── metricas_off_global.json
 │   ├── resumen_octree_train.json
-│   └── resumen_octree_test.json
+│   ├── resumen_octree_test.json
+│   └── resumen_octree_conjunto.json
 ├── fase3_hce/
 │   ├── resumen_hce_R32.json
 │   └── resumen_hce_R64.json
@@ -652,5 +755,8 @@ Registros/
 ```
 
 Estos archivos son la fuente de verdad para las tablas y figuras reportadas
-en el documento de tesis, y permiten auditar cualquier cifra citada sin
-necesidad de acceso al dataset completo ni a los pesos de los modelos.
+en el documento de tesis. Junto con la sección
+[Condiciones de ejecución](#condiciones-de-ejecución-de-los-resultados-reportados)
+(equipo, commit exacto, parámetros), permiten auditar y reproducir
+cualquier cifra citada sin necesidad de acceso al dataset completo ni a los
+pesos de los modelos.
