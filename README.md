@@ -205,9 +205,9 @@ python fase3_net5_entrenamiento.py --resolucion 64 --batch_size 8
 
 | Campo | Valor |
 |---|---|
-| Commit (hash corto) | `e2a098fe7` |
+| Commit (hash corto) | `50ce26008` |
 | Rama | `main` |
-| Fecha de la corrida | `2026-06-24 16:06:48 -0500` |
+| Fecha de la corrida | `22026-09-16 23:31:52 -0500` |
 
 > ⚠️ **Verificar antes de la entrega final:** este commit debe corresponder
 > a la versión del código **después** de corregir `preprocesar_octrees.py`
