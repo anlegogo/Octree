@@ -42,7 +42,10 @@ Octree/
 ├── fase1_modelnet40/            # Configuración global y partición del dataset
 │   ├── config.yaml
 │   ├── fase1_setup.py
-│   └── verificar_reproducibilidad.py
+│   ├── verificar_reproducibilidad.py
+│   └── logs/                    # Registro vigente de Fase 1 (ruta relativa, ver nota abajo)
+│       ├── experiment_log.json
+│       └── particion_indices.npz
 │
 ├── fase2_octree/                # Pipeline .off -> octree REAL (32³ y 64³)
 │   ├── octree.py                # Lectura, normalización, muestreo, rejilla densa independiente
@@ -80,6 +83,8 @@ Octree/
 │       ├── dataset.py
 │       └── modelo.py
 │
+├── Descartado/                    # Versiones superadas de scripts (ver nota abajo)
+│
 ├── Scripts_Analisis/              # Herramientas de medición y figuras del capítulo de metodología
 │   ├── generar_figuras_metodologia.py
 │   ├── medir_tiempo_memoria.py    # Tiempo y memoria de un archivo individual (--off)
@@ -91,7 +96,8 @@ Octree/
 ├── Dataset/                      # (NO versionado) ModelNet40 descargado localmente
 ├── data/                         # (NO versionado) Octrees dispersos y renders preprocesados
 ├── checkpoints/                  # (NO versionado) Pesos de modelos entrenados
-├── logs/                         # (parcialmente versionado) Historiales de entrenamiento
+├── logs/                         # Historiales de Fase 3 (HCE/Net5): hce_features_R{R}.npz,
+│                                  # net5_historial_R{R}.csv/json (rutas absolutas, ver nota abajo)
 └── Registros/                    # (versionado) CSV/JSON de métricas y resultados finales
     ├── fase1/
     ├── fase2_octree/
@@ -113,6 +119,30 @@ Octree/
 > escriben en `resultados/` (o en su propia carpeta, según el script) de
 > forma automática con rutas relativas a la raíz del proyecto — no debe
 > haber una carpeta de resultados paralela.
+>
+> **Sobre las dos carpetas `logs/`:** hay dos ubicaciones distintas,
+> según qué script escribe en ellas, no un error de duplicación:
+> - `fase1_modelnet40/logs/` — registro vigente de la Fase 1
+>   (`experiment_log.json`, `particion_indices.npz`). `fase1_setup.py`
+>   usa una ruta **relativa** (`"./logs"`); como se instruye correr el
+>   script desde dentro de `fase1_modelnet40/` (`cd fase1_modelnet40`),
+>   esa ruta relativa se resuelve ahí, no en la raíz del proyecto.
+> - `logs/` (raíz) — historiales de Fase 3 (`hce_features_R{R}.npz`,
+>   `net5_historial_R{R}.csv`/`.json`). `fase3_hce_entrenamiento.py` y
+>   `fase3_net5_entrenamiento.py` usan una ruta **absoluta** que sí
+>   apunta a la raíz del proyecto, independientemente de desde dónde se
+>   ejecute el script.
+>
+> **Sobre `Descartado/`:** contiene versiones superadas de scripts que en
+> algún momento del desarrollo tuvieron un bug ya corregido en la versión
+> vigente (por ejemplo, una versión antigua de `preprocesar_octrees.py`
+> que guardaba una rejilla densa con claves `grid`/`etiqueta` en vez del
+> formato disperso jerárquico actual). Se conserva por trazabilidad del
+> proceso de depuración, igual que `explorado_descartado/` conserva la
+> iteración metodológica de PointNet — pero a diferencia de esa carpeta,
+> `Descartado/` archiva revisiones de código dentro de la misma
+> metodología de octree, no un enfoque alternativo completo. **No debe
+> usarse para reproducir resultados.**
 
 ---
 
@@ -158,7 +188,7 @@ python -c "import platform, torch; print('SO:', platform.platform()); print('Pyt
 ```
 
 Esta misma información queda registrada automáticamente en
-`logs/experiment_log.json` al correr `fase1_setup.py`.
+`fase1_modelnet40/logs/experiment_log.json` al correr `fase1_setup.py`.
 
 ### Parámetros de ejecución del pipeline de octree
 
@@ -205,9 +235,19 @@ python fase3_net5_entrenamiento.py --resolucion 64 --batch_size 8
 
 | Campo | Valor |
 |---|---|
-| Commit (hash corto) | `50ce26008` |
+| Commit (hash corto) | `e2a098fe7` |
 | Rama | `main` |
-| Fecha de la corrida | `22026-09-16 23:31:52 -0500` |
+| Fecha de la corrida | `2026-06-24 16:06:48 -0500` |
+
+> ⚠️ **Verificar antes de la entrega final:** este commit debe corresponder
+> a la versión del código **después** de corregir `preprocesar_octrees.py`
+> (que en una versión anterior guardaba una rejilla densa con claves
+> `grid`/`etiqueta`, en vez del formato disperso con estructura jerárquica
+> completa `profundidades`/`mascaras`/`normales`). Si la corrida oficial de
+> entrenamiento se hizo con datos generados por la versión corregida,
+> volver a correr `git rev-parse --short HEAD` en ese momento y actualizar
+> este valor. Un commit anterior a esa corrección no debe citarse como el
+> que produjo los resultados finales.
 
 Para obtener el hash exacto del commit vigente al momento de correr los
 scripts:
@@ -335,7 +375,7 @@ python fase1_setup.py
 python verificar_reproducibilidad.py
 ```
 
-**Salidas:** `logs/experiment_log.json`, `logs/particion_indices.npz`.
+**Salidas:** `fase1_modelnet40/logs/experiment_log.json`, `fase1_modelnet40/logs/particion_indices.npz`.
 
 ---
 
@@ -599,6 +639,31 @@ representaciones por objeto. No debe compararse directamente contra
 `t_total_ms` (que solo cubre el árbol); la comparación correcta es contra
 la suma de `t_total_experimento_ms` sobre todos los objetos.
 
+### Por qué pueden aparecer tiempos "totales" distintos entre scripts
+
+`medir_metricas_off.py` y `medir_tiempo_memoria.py` reportan cada uno su
+propio "tiempo total", y **no miden exactamente el mismo alcance de
+trabajo** — por eso pueden dar valores parecidos en magnitud pero
+distintos en milisegundos exactos, sin que eso sea una inconsistencia. No
+es necesario ni correcto intentar que coincidan; cada uno documenta una
+cosa distinta:
+
+| Total | Script | Incluye | No incluye |
+|---|---|---|---|
+| `t_total_ms` | `medir_metricas_off.py` | Lectura+normalización+muestreo+árbol (32³ y 64³)+guardado disperso | Extracción HCE, rejilla densa |
+| `t_total_denso_ms` | `medir_metricas_off.py` | Los mismos costos compartidos+rejilla densa directa (32³ y 64³)+guardado denso | Árbol, extracción HCE |
+| `t_total_experimento_ms` | `medir_metricas_off.py` | Ambas representaciones juntas (árbol+denso), sin duplicar los costos compartidos | Extracción HCE |
+| `pipeline_completo` (JSON de `medir_tiempo_memoria.py`) | `medir_tiempo_memoria.py` | Lectura+normalización+muestreo+árbol (32³ y 64³)+guardado disperso+**extracción HCE** (32³ y 64³) | Rejilla densa |
+
+Por ejemplo, tres valores cercanos como 156,52 ms, 126,50 ms y 161,49 ms
+pueden corresponder perfectamente a tres de estas filas distintas para el
+mismo objeto — el primero podría ser `t_total_ms` (sin HCE), el segundo
+`t_total_denso_ms` (ruta más liviana, sin árbol ni HCE), y el tercero el
+total de `pipeline_completo` (con HCE incluido, pero sin la ruta densa).
+Al citar cualquiera de estos números en el documento de tesis, se debe
+indicar explícitamente de cuál campo y de cuál script proviene, para que
+el lector sepa exactamente qué costo computacional representa.
+
 ### Memoria: tres magnitudes distintas, nunca deben confundirse
 
 | Magnitud | Qué mide | Cómo se mide |
@@ -678,8 +743,8 @@ disperso usan `numpy.uint8`.
 
 | Fase | Patrón de archivo | Contenido |
 |---|---|---|
-| 1 | `logs/experiment_log.json` | Config., hardware, versiones |
-| 1 | `logs/particion_indices.npz` | Índices train/val |
+| 1 | `fase1_modelnet40/logs/experiment_log.json` | Config., hardware, versiones |
+| 1 | `fase1_modelnet40/logs/particion_indices.npz` | Índices train/val |
 | 2 | `data/octrees_{R}/<clase>/<split>/<nombre>.npz` | Árbol disperso, estructura completa |
 | 2 | `resultados/metricas_off_completo.csv` | Métricas por objeto (nodos, tiempos, tamaños disperso/denso) |
 | 2 | `resultados/metricas_off_resumen.csv` | Métricas por clase (factor de reducción con cociente de sumas) |
