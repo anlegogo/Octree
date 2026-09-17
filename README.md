@@ -178,7 +178,7 @@ generar los resultados citados en el documento de tesis.
 | Equipo (CPU) | AMD Ryzen 7 5700X (8 núcleos / 16 hilos) |
 | Equipo (GPU) | NVIDIA GeForce RTX 5070, 12 GB VRAM |
 | Sistema operativo | Windows 11 (PowerShell) |
-| Versión de Python | 3.12 |
+| Versión de Python | 3.14.4 |
 | Versión de PyTorch / CUDA | 2.11.0+cu128 |
 
 Para completar automáticamente los campos de hardware y versiones, correr:
@@ -235,9 +235,9 @@ python fase3_net5_entrenamiento.py --resolucion 64 --batch_size 8
 
 | Campo | Valor |
 |---|---|
-| Commit (hash corto) | `e2a098fe7` |
+| Commit (hash corto) | `c253bad` |
 | Rama | `main` |
-| Fecha de la corrida | `2026-06-24 16:06:48 -0500` |
+| Fecha de la corrida | `2026-09-16 22:07:48 -0500` |
 
 > ⚠️ **Verificar antes de la entrega final:** este commit debe corresponder
 > a la versión del código **después** de corregir `preprocesar_octrees.py`
@@ -268,7 +268,7 @@ recuperar exactamente la versión que generó los números reportados
 
 ## Requisitos e instalación
 
-- Python 3.10 – 3.12
+- Python 3.10 – 3.14.4
 - Sistema operativo probado: Windows 11 (PowerShell)
 - GPU NVIDIA opcional pero recomendada para las Fases 3b y 5
 
