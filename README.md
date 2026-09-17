@@ -13,20 +13,19 @@ Repositorio: [https://github.com/ricardoal94/Octree](https://github.com/ricardoa
 ## Tabla de contenido
 
 1. [Estructura del repositorio](#estructura-del-repositorio)
-2. [Iteración metodológica: enfoque descartado (PointNet)](#iteración-metodológica-enfoque-descartado-pointnet)
-3. [Condiciones de ejecución de los resultados reportados](#condiciones-de-ejecución-de-los-resultados-reportados)
-4. [Requisitos e instalación](#requisitos-e-instalación)
-5. [Dataset ModelNet40](#dataset-modelnet40)
-6. [Reproducibilidad: semillas y configuración](#reproducibilidad-semillas-y-configuración)
-7. [Fase 1 — Configuración y partición](#fase-1--configuración-y-partición)
-8. [Fase 2 — Construcción del octree real](#fase-2--construcción-del-octree-real)
-9. [Fase 3a — Enfoque clásico (HCE + SVM + Random Forest)](#fase-3a--enfoque-clásico-hce--svm--random-forest)
-10. [Fase 3b — Enfoque profundo (Net5-Octree)](#fase-3b--enfoque-profundo-net5-octree)
-11. [Fase 4 — Comparación y visualización](#fase-4--comparación-y-visualización)
-12. [Experimento adicional — Img2Voxel](#experimento-adicional--img2voxel)
-13. [Herramientas de análisis y figuras](#herramientas-de-análisis-y-figuras)
-14. [Especificaciones técnicas exactas](#especificaciones-técnicas-exactas)
-15. [Registros y resultados](#registros-y-resultados)
+2. [Condiciones de ejecución de los resultados reportados](#condiciones-de-ejecución-de-los-resultados-reportados)
+3. [Requisitos e instalación](#requisitos-e-instalación)
+4. [Dataset ModelNet40](#dataset-modelnet40)
+5. [Reproducibilidad: semillas y configuración](#reproducibilidad-semillas-y-configuración)
+6. [Fase 1 — Configuración y partición](#fase-1--configuración-y-partición)
+7. [Fase 2 — Construcción del octree real](#fase-2--construcción-del-octree-real)
+8. [Fase 3a — Enfoque clásico (HCE + SVM + Random Forest)](#fase-3a--enfoque-clásico-hce--svm--random-forest)
+9. [Fase 3b — Enfoque profundo (Net5-Octree)](#fase-3b--enfoque-profundo-net5-octree)
+10. [Fase 4 — Comparación y visualización](#fase-4--comparación-y-visualización)
+11. [Experimento adicional — Img2Voxel](#experimento-adicional--img2voxel)
+12. [Herramientas de análisis y figuras](#herramientas-de-análisis-y-figuras)
+13. [Especificaciones técnicas exactas](#especificaciones-técnicas-exactas)
+14. [Registros y resultados](#registros-y-resultados)
 
 ---
 
@@ -78,13 +77,6 @@ Octree/
 │   ├── visualizar_reconstruccion.py
 │   └── visualizar_costo_img2voxel.py
 │
-├── explorado_descartado/         # Iteración metodológica previa (ver sección dedicada)
-│   └── fase2_modelnet40_pointnet/
-│       ├── dataset.py
-│       └── modelo.py
-│
-├── Descartado/                    # Versiones superadas de scripts (ver nota abajo)
-│
 ├── Scripts_Analisis/              # Herramientas de medición y figuras del capítulo de metodología
 │   ├── generar_figuras_metodologia.py
 │   ├── medir_tiempo_memoria.py    # Tiempo y memoria de un archivo individual (--off)
@@ -132,37 +124,6 @@ Octree/
 >   `fase3_net5_entrenamiento.py` usan una ruta **absoluta** que sí
 >   apunta a la raíz del proyecto, independientemente de desde dónde se
 >   ejecute el script.
->
-> **Sobre `Descartado/`:** contiene versiones superadas de scripts que en
-> algún momento del desarrollo tuvieron un bug ya corregido en la versión
-> vigente (por ejemplo, una versión antigua de `preprocesar_octrees.py`
-> que guardaba una rejilla densa con claves `grid`/`etiqueta` en vez del
-> formato disperso jerárquico actual). Se conserva por trazabilidad del
-> proceso de depuración, igual que `explorado_descartado/` conserva la
-> iteración metodológica de PointNet — pero a diferencia de esa carpeta,
-> `Descartado/` archiva revisiones de código dentro de la misma
-> metodología de octree, no un enfoque alternativo completo. **No debe
-> usarse para reproducir resultados.**
-
----
-
-## Iteración metodológica: enfoque descartado (PointNet)
-
-> ⚠️ **Este código NO forma parte de la metodología final de la tesis.** Se
-> conserva únicamente por transparencia respecto al proceso de desarrollo y
-> no debe usarse para reproducir los resultados reportados en el documento.
-
-Antes de adoptar la representación de octree, la primera aproximación al
-problema implementó una red tipo **PointNet** (con módulos T-Net de
-alineación espacial) que clasificaba directamente **nubes de puntos**
-muestreadas sobre la superficie de cada malla, sin ningún paso de
-voxelización ni construcción de octree.
-
-Esa implementación se encuentra archivada en
-`explorado_descartado/fase2_modelnet40_pointnet/` y no se recomienda
-ejecutarla como parte del flujo de reproducción del proyecto; se incluye
-exclusivamente como evidencia documental del proceso iterativo de diseño
-metodológico.
 
 ---
 
@@ -178,7 +139,7 @@ generar los resultados citados en el documento de tesis.
 | Equipo (CPU) | AMD Ryzen 7 5700X (8 núcleos / 16 hilos) |
 | Equipo (GPU) | NVIDIA GeForce RTX 5070, 12 GB VRAM |
 | Sistema operativo | Windows 11 (PowerShell) |
-| Versión de Python | 3.14.4 |
+| Versión de Python | 3.12 |
 | Versión de PyTorch / CUDA | 2.11.0+cu128 |
 
 Para completar automáticamente los campos de hardware y versiones, correr:
@@ -259,7 +220,7 @@ recuperar exactamente la versión que generó los números reportados
 
 ## Requisitos e instalación
 
-- Python 3.10 – 3.14.4
+- Python 3.10 – 3.12
 - Sistema operativo probado: Windows 11 (PowerShell)
 - GPU NVIDIA opcional pero recomendada para las Fases 3b y 5
 
@@ -646,11 +607,16 @@ cosa distinta:
 | `t_total_experimento_ms` | `medir_metricas_off.py` | Ambas representaciones juntas (árbol+denso), sin duplicar los costos compartidos | Extracción HCE |
 | `pipeline_completo` (JSON de `medir_tiempo_memoria.py`) | `medir_tiempo_memoria.py` | Lectura+normalización+muestreo+árbol (32³ y 64³)+guardado disperso+**extracción HCE** (32³ y 64³) | Rejilla densa |
 
-Por ejemplo, tres valores cercanos como 156,52 ms, 126,50 ms y 161,49 ms
-pueden corresponder perfectamente a tres de estas filas distintas para el
-mismo objeto — el primero podría ser `t_total_ms` (sin HCE), el segundo
-`t_total_denso_ms` (ruta más liviana, sin árbol ni HCE), y el tercero el
-total de `pipeline_completo` (con HCE incluido, pero sin la ruta densa).
+Por ejemplo, para un mismo objeto pueden observarse cuatro valores
+cercanos en magnitud pero correspondientes a alcances distintos:
+
+| Valor | Campo | Qué representa |
+|---|---|---|
+| 156,52 ms | `pipeline_completo` (`medir_tiempo_memoria.py`) | Incluye la extracción HCE; **no** incluye la ruta densa |
+| 126,50 ms | `t_total_ms` (`medir_metricas_off.py`) | Procesamiento del octree, **sin** HCE |
+| 161,49 ms | `t_total_experimento_ms` (`medir_metricas_off.py`) | Octree + rejilla densa juntos, **sin** HCE |
+| 52,51 ms | `t_total_denso_ms` (`medir_metricas_off.py`) | Solo la ruta densa |
+
 Al citar cualquiera de estos números en el documento de tesis, se debe
 indicar explícitamente de cuál campo y de cuál script proviene, para que
 el lector sepa exactamente qué costo computacional representa.
