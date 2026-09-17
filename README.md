@@ -139,19 +139,17 @@ metodológico.
 ## Condiciones de ejecución de los resultados reportados
 
 Esta sección documenta el entorno exacto y los comandos utilizados para
-generar los resultados citados en el documento de tesis. **Debe completarse
-con los valores reales de la corrida oficial** antes de la entrega final;
-los campos marcados `<COMPLETAR>` son obligatorios.
+generar los resultados citados en el documento de tesis.
 
 ### Equipo y sistema
 
 | Campo | Valor |
 |---|---|
-| Equipo (CPU) | `<COMPLETAR>` (ej. AMD Ryzen 7 5700X, 8 núcleos / 16 hilos) |
-| Equipo (GPU) | `<COMPLETAR>` (ej. NVIDIA GeForce RTX 5070, 12 GB VRAM) |
-| Sistema operativo | `<COMPLETAR>` (ej. Windows 11 Pro, build XXXXX) |
-| Versión de Python | `<COMPLETAR>` (verificar con `python --version`) |
-| Versión de PyTorch / CUDA | `<COMPLETAR>` (verificar con el comando de la sección [Requisitos](#requisitos-e-instalación)) |
+| Equipo (CPU) | AMD Ryzen 7 5700X (8 núcleos / 16 hilos) |
+| Equipo (GPU) | NVIDIA GeForce RTX 5070, 12 GB VRAM |
+| Sistema operativo | Windows 11 (PowerShell) |
+| Versión de Python | 3.12 |
+| Versión de PyTorch / CUDA | 2.11.0+cu128 |
 
 Para completar automáticamente los campos de hardware y versiones, correr:
 
@@ -167,8 +165,8 @@ Esta misma información queda registrada automáticamente en
 | Parámetro | Valor | Dónde se fija |
 |---|---|---|
 | Puntos muestreados por objeto | **20 000** | `N_PUNTOS_MUESTREO` en `preprocesar_octrees.py` y `medir_metricas_off.py` |
-| Repeticiones (mediciones de tiempo) | `<COMPLETAR>` (ej. 10) | `--repeticiones` en `medir_tiempo_memoria.py` |
-| Trabajadores paralelos (`N_PROCESOS`) | `<COMPLETAR>` (ej. 10; recomendado: núcleos físicos − 1) | `N_PROCESOS` en `preprocesar_octrees.py` y `medir_metricas_off.py` |
+| Repeticiones (mediciones de tiempo) | 10 | `--repeticiones` en `medir_tiempo_memoria.py` |
+| Trabajadores paralelos (`N_PROCESOS`) | 10 | `N_PROCESOS` en `preprocesar_octrees.py` y `medir_metricas_off.py` |
 | Semilla global | 42 | Ver [Reproducibilidad](#reproducibilidad-semillas-y-configuración) |
 
 ### Comandos utilizados para la corrida oficial
@@ -207,9 +205,19 @@ python fase3_net5_entrenamiento.py --resolucion 64 --batch_size 8
 
 | Campo | Valor |
 |---|---|
-| Commit (hash corto) | `<COMPLETAR>` |
-| Rama | `<COMPLETAR>` (ej. `main`) |
-| Fecha de la corrida | `<COMPLETAR>` |
+| Commit (hash corto) | `e2a098fe7` |
+| Rama | `main` |
+| Fecha de la corrida | `2026-06-24 16:06:48 -0500` |
+
+> ⚠️ **Verificar antes de la entrega final:** este commit debe corresponder
+> a la versión del código **después** de corregir `preprocesar_octrees.py`
+> (que en una versión anterior guardaba una rejilla densa con claves
+> `grid`/`etiqueta`, en vez del formato disperso con estructura jerárquica
+> completa `profundidades`/`mascaras`/`normales`). Si la corrida oficial de
+> entrenamiento se hizo con datos generados por la versión corregida,
+> volver a correr `git rev-parse --short HEAD` en ese momento y actualizar
+> este valor. Un commit anterior a esa corrección no debe citarse como el
+> que produjo los resultados finales.
 
 Para obtener el hash exacto del commit vigente al momento de correr los
 scripts:
