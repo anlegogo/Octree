@@ -239,15 +239,6 @@ python fase3_net5_entrenamiento.py --resolucion 64 --batch_size 8
 | Rama | `main` |
 | Fecha de la corrida | `2026-09-16 22:07:48 -0500` |
 
-> ⚠️ **Verificar antes de la entrega final:** este commit debe corresponder
-> a la versión del código **después** de corregir `preprocesar_octrees.py`
-> (que en una versión anterior guardaba una rejilla densa con claves
-> `grid`/`etiqueta`, en vez del formato disperso con estructura jerárquica
-> completa `profundidades`/`mascaras`/`normales`). Si la corrida oficial de
-> entrenamiento se hizo con datos generados por la versión corregida,
-> volver a correr `git rev-parse --short HEAD` en ese momento y actualizar
-> este valor. Un commit anterior a esa corrección no debe citarse como el
-> que produjo los resultados finales.
 
 Para obtener el hash exacto del commit vigente al momento de correr los
 scripts:
