@@ -1,0 +1,115 @@
+{
+  "objeto": "chair_0001",
+  "resolucion": 64,
+  "profundidad_max": 6,
+  "dimension_vector": 19,
+  "descriptores": [
+    {
+      "nombre": "ocupacion_L0",
+      "valor": 100.0
+    },
+    {
+      "nombre": "ocupacion_L1",
+      "valor": 100.0
+    },
+    {
+      "nombre": "ocupacion_L2",
+      "valor": 48.4375
+    },
+    {
+      "nombre": "ocupacion_L3",
+      "valor": 15.625
+    },
+    {
+      "nombre": "ocupacion_L4",
+      "valor": 5.8349609375
+    },
+    {
+      "nombre": "ocupacion_L5",
+      "valor": 2.325439453125
+    },
+    {
+      "nombre": "ocupacion_L6",
+      "valor": 0.9815216064453125
+    },
+    {
+      "nombre": "centroide_x",
+      "valor": 0.016851680353283882
+    },
+    {
+      "nombre": "centroide_y",
+      "valor": -0.018430577591061592
+    },
+    {
+      "nombre": "centroide_z",
+      "valor": 0.10415250062942505
+    },
+    {
+      "nombre": "varianza_x",
+      "valor": 0.13046300411224365
+    },
+    {
+      "nombre": "varianza_y",
+      "valor": 0.1252654790878296
+    },
+    {
+      "nombre": "varianza_z",
+      "valor": 0.24699284136295319
+    },
+    {
+      "nombre": "dispersion_radial",
+      "valor": 0.6597951054573059
+    },
+    {
+      "nombre": "skew_x",
+      "valor": -0.004238243214786053
+    },
+    {
+      "nombre": "skew_y",
+      "valor": -0.3007753789424896
+    },
+    {
+      "nombre": "skew_z",
+      "valor": 0.053029343485832214
+    },
+    {
+      "nombre": "normal_norma_media",
+      "valor": 0.9879518151283264
+    },
+    {
+      "nombre": "normal_norma_varianza",
+      "valor": 0.011903032660484314
+    }
+  ],
+  "datos_arbol": {
+    "profundidad_max": 6,
+    "n_nodos_totales": 3694,
+    "n_hojas_ocupadas": 2573,
+    "nodos_por_nivel": {
+      "L0": 1,
+      "L1": 8,
+      "L2": 31,
+      "L3": 80,
+      "L4": 239,
+      "L5": 762,
+      "L6": 2573
+    },
+    "pct_ocupacion_hoja": 0.9815
+  },
+  "verificaciones": {
+    "sin_valores_indefinidos": true,
+    "detalle_indefinidos": {
+      "tiene_nan": false,
+      "tiene_inf": false
+    },
+    "reproducible_entre_corridas": true,
+    "convencion_raiz_L0_correcta": true,
+    "detalle_convencion": {
+      "primer_descriptor": "ocupacion_L0",
+      "esperado": "ocupacion_L0",
+      "ultimo_descriptor_ocupacion_hoja": "ocupacion_L6",
+      "presente_en_vector": true
+    },
+    "TODAS_LAS_VERIFICACIONES_OK": true
+  }
+}

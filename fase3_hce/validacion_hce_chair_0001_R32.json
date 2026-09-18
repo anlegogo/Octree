@@ -1,0 +1,110 @@
+{
+  "objeto": "chair_0001",
+  "resolucion": 32,
+  "profundidad_max": 5,
+  "dimension_vector": 18,
+  "descriptores": [
+    {
+      "nombre": "ocupacion_L0",
+      "valor": 100.0
+    },
+    {
+      "nombre": "ocupacion_L1",
+      "valor": 100.0
+    },
+    {
+      "nombre": "ocupacion_L2",
+      "valor": 48.4375
+    },
+    {
+      "nombre": "ocupacion_L3",
+      "valor": 15.625
+    },
+    {
+      "nombre": "ocupacion_L4",
+      "valor": 5.8349609375
+    },
+    {
+      "nombre": "ocupacion_L5",
+      "valor": 2.325439453125
+    },
+    {
+      "nombre": "centroide_x",
+      "valor": 0.0574146993458271
+    },
+    {
+      "nombre": "centroide_y",
+      "valor": -0.021817585453391075
+    },
+    {
+      "nombre": "centroide_z",
+      "valor": 0.05282152071595192
+    },
+    {
+      "nombre": "varianza_x",
+      "valor": 0.132266104221344
+    },
+    {
+      "nombre": "varianza_y",
+      "valor": 0.12696649134159088
+    },
+    {
+      "nombre": "varianza_z",
+      "valor": 0.26001882553100586
+    },
+    {
+      "nombre": "dispersion_radial",
+      "valor": 0.6729628443717957
+    },
+    {
+      "nombre": "skew_x",
+      "valor": -0.13962680101394653
+    },
+    {
+      "nombre": "skew_y",
+      "valor": -0.32489997148513794
+    },
+    {
+      "nombre": "skew_z",
+      "valor": 0.07889386266469955
+    },
+    {
+      "nombre": "normal_norma_media",
+      "valor": 0.9947506785392761
+    },
+    {
+      "nombre": "normal_norma_varianza",
+      "valor": 0.005221787374466658
+    }
+  ],
+  "datos_arbol": {
+    "profundidad_max": 5,
+    "n_nodos_totales": 1121,
+    "n_hojas_ocupadas": 762,
+    "nodos_por_nivel": {
+      "L0": 1,
+      "L1": 8,
+      "L2": 31,
+      "L3": 80,
+      "L4": 239,
+      "L5": 762
+    },
+    "pct_ocupacion_hoja": 2.3254
+  },
+  "verificaciones": {
+    "sin_valores_indefinidos": true,
+    "detalle_indefinidos": {
+      "tiene_nan": false,
+      "tiene_inf": false
+    },
+    "reproducible_entre_corridas": true,
+    "convencion_raiz_L0_correcta": true,
+    "detalle_convencion": {
+      "primer_descriptor": "ocupacion_L0",
+      "esperado": "ocupacion_L0",
+      "ultimo_descriptor_ocupacion_hoja": "ocupacion_L5",
+      "presente_en_vector": true
+    },
+    "TODAS_LAS_VERIFICACIONES_OK": true
+  }
+}
