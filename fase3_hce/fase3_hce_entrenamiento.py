@@ -28,6 +28,7 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 from sklearn.metrics import (
     accuracy_score, classification_report, confusion_matrix,
 )
@@ -129,33 +130,55 @@ def particionar_train_val(X: np.ndarray, y: np.ndarray, val_split: float = 0.10,
 
 def entrenar_svm(X_train, y_train, X_val, y_val, seed=SEED):
     """
-    Entrena SVM con kernel RBF, ajustando C y gamma via grid search
-    sobre el conjunto de validacion interno.
+    Entrena SVM con kernel RBF, ajustando C y gamma via grid search.
+
+    CORRECCION (observacion de rigor metodologico): el escalado
+    (StandardScaler) se incluye DENTRO de un Pipeline pasado a
+    GridSearchCV, en vez de ajustarse una sola vez sobre todo X_train
+    antes de la busqueda. De esa forma, cada fold de la validacion
+    cruzada (cv=3) ajusta su propio scaler solo con los datos de
+    entrenamiento de ESE fold, sin que la porcion de validacion interna
+    del fold influya en las estadisticas de escalado (fuga de datos
+    leve pero real, evitada asi).
     """
     print("\n[SVM] Iniciando busqueda de hiperparametros (C, gamma)...")
 
     param_grid = {
-        "C":     [0.1, 1, 10, 100],
-        "gamma": ["scale", 0.001, 0.01, 0.1],
+        "svm__C":     [0.1, 1, 10, 100],
+        "svm__gamma": ["scale", 0.001, 0.01, 0.1],
     }
 
     t0 = time.time()
-    svm_base = SVC(kernel="rbf", random_state=seed, cache_size=1000)
+    pipeline = Pipeline([
+        ("scaler", StandardScaler()),
+        ("svm", SVC(kernel="rbf", random_state=seed, cache_size=1000)),
+    ])
 
-    # GridSearchCV con cv=3 sobre train; luego validamos en val aparte
-    grid = GridSearchCV(svm_base, param_grid, cv=3, n_jobs=-1, verbose=1)
+    # GridSearchCV con cv=3 sobre train; el Pipeline reajusta el scaler
+    # en cada fold de forma independiente. X_train aqui debe ser el
+    # array SIN escalar (el Pipeline se encarga del escalado interno).
+    grid = GridSearchCV(pipeline, param_grid, cv=3, n_jobs=-1, verbose=1)
     grid.fit(X_train, y_train)
 
-    mejor_svm = grid.best_estimator_
+    mejor_pipeline = grid.best_estimator_
     t1 = time.time()
 
-    val_acc = accuracy_score(y_val, mejor_svm.predict(X_val))
+    # X_val tampoco debe venir pre-escalado: el Pipeline aplica el
+    # scaler ajustado (con TODO X_train, ya con los mejores hiperparametros)
+    # automaticamente al predecir.
+    val_acc = accuracy_score(y_val, mejor_pipeline.predict(X_val))
 
-    print(f"\n[SVM] Mejores hiperparametros: {grid.best_params_}")
+    # best_params_ usa el prefijo "svm__" por el Pipeline; se limpia
+    # para reportarlo igual que antes (C, gamma sueltos)
+    mejores_params_limpios = {
+        k.replace("svm__", ""): v for k, v in grid.best_params_.items()
+    }
+
+    print(f"\n[SVM] Mejores hiperparametros: {mejores_params_limpios}")
     print(f"[SVM] Val accuracy           : {val_acc*100:.2f}%")
     print(f"[SVM] Tiempo de busqueda      : {(t1-t0)/60:.1f} min")
 
-    return mejor_svm, grid.best_params_, val_acc, (t1 - t0)
+    return mejor_pipeline, mejores_params_limpios, val_acc, (t1 - t0)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -259,18 +282,29 @@ def main():
     X_train, y_train, X_val, y_val = particionar_train_val(X_train_full, y_train_full)
     print(f"  Train: {X_train.shape[0]} | Val: {X_val.shape[0]}")
 
-    # 3. Escalado de features (importante para SVM)
-    print("\n[3/5] Escalando features (StandardScaler)...")
+    # 3. Escalado de features -- SOLO para Random Forest (que no lo
+    # necesita, se deja X_train sin escalar para RF mas abajo) y para
+    # el reporte final en test. El SVM YA NO recibe datos pre-escalados
+    # aqui: el escalado esta DENTRO del Pipeline de entrenar_svm(), para
+    # que se reajuste correctamente en cada fold de la validacion cruzada.
+    print("\n[3/5] Preparando escalador para evaluacion final en test...")
     scaler = StandardScaler()
-    X_train_s = scaler.fit_transform(X_train)
-    X_val_s   = scaler.transform(X_val)
-    X_test_s  = scaler.transform(X_test)
+    scaler.fit(X_train)   # se ajusta una sola vez, con TODO train, para
+                          # la evaluacion final en test (fuera de CV) --
+                          # esto es correcto porque test nunca participa
+                          # en ningun ajuste de hiperparametros.
+    # Nota: X_test ya NO se transforma aqui -- el SVM es un Pipeline que
+    # escala internamente (ver entrenar_svm). 'scaler' se conserva y se
+    # guarda como artefacto (checkpoints/hce_scaler_R{R}.joblib) solo
+    # por referencia/auditoria, no se usa para transformar datos de test.
 
     # 4. Entrenar ambos clasificadores
     print("\n[4/5] Entrenando clasificadores...")
 
+    # X_train SIN escalar: el Pipeline interno de entrenar_svm() aplica
+    # el StandardScaler correctamente dentro de cada fold de GridSearchCV.
     svm_modelo, svm_params, svm_val_acc, svm_tiempo = entrenar_svm(
-        X_train_s, y_train, X_val_s, y_val,
+        X_train, y_train, X_val, y_val,
     )
     rf_modelo, rf_val_acc, rf_tiempo = entrenar_random_forest(
         X_train, y_train, X_val, y_val,   # RF no necesita escalado
@@ -279,8 +313,8 @@ def main():
 
     # 5. Evaluacion final en test
     print("\n[5/5] Evaluando en conjunto de test oficial...")
-    resultados_svm = evaluar_modelo(svm_modelo, X_test_s, y_test, "SVM")
-    resultados_rf  = evaluar_modelo(rf_modelo,  X_test,   y_test, "RandomForest")
+    resultados_svm = evaluar_modelo(svm_modelo, X_test, y_test, "SVM")
+    resultados_rf  = evaluar_modelo(rf_modelo,  X_test, y_test, "RandomForest")
 
     # Tamaño de los modelos guardados (MB)
     ruta_svm = DIR_CKPT / f"hce_svm_R{R}.joblib"
