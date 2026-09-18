@@ -2,12 +2,13 @@
   "objeto": "chair_0001",
   "resolucion": 64,
   "profundidad_max": 6,
-  "dimension_vector": 19,
+  "configuracion_reproduccion": {
+    "seed": 42,
+    "n_puntos_muestreados": 20000,
+    "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+  },
+  "dimension_vector": 18,
   "descriptores": [
-    {
-      "nombre": "ocupacion_L0",
-      "valor": 100.0
-    },
     {
       "nombre": "ocupacion_L1",
       "valor": 100.0
@@ -73,12 +74,12 @@
       "valor": 0.053029343485832214
     },
     {
-      "nombre": "normal_norma_media",
-      "valor": 0.9879518151283264
+      "nombre": "normal_coherencia_media",
+      "valor": 0.6131775379180908
     },
     {
-      "nombre": "normal_norma_varianza",
-      "valor": 0.011903032660484314
+      "nombre": "normal_coherencia_varianza",
+      "valor": 0.14387854933738708
     }
   ],
   "datos_arbol": {
@@ -94,7 +95,8 @@
       "L5": 762,
       "L6": 2573
     },
-    "pct_ocupacion_hoja": 0.9815
+    "pct_ocupacion_hoja": 0.9815,
+    "ocupacion_L0_raiz_verificacion": 100.0
   },
   "verificaciones": {
     "sin_valores_indefinidos": true,
@@ -105,10 +107,25 @@
     "reproducible_entre_corridas": true,
     "convencion_raiz_L0_correcta": true,
     "detalle_convencion": {
-      "primer_descriptor": "ocupacion_L0",
-      "esperado": "ocupacion_L0",
-      "ultimo_descriptor_ocupacion_hoja": "ocupacion_L6",
-      "presente_en_vector": true
+      "ocupacion_raiz_L0": 100.0,
+      "esperado_raiz": 100.0,
+      "primer_descriptor_del_vector": "ocupacion_L1",
+      "esperado_primer_descriptor": "ocupacion_L1",
+      "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+    },
+    "recorrido_produccion": {
+      "sin_errores_estructura_padre_hijo": true,
+      "n_discrepancias_estructura": 0,
+      "primeras_discrepancias": [],
+      "nodos_por_nivel_coinciden": true,
+      "n_hojas_original": 2573,
+      "n_hojas_desde_disco": 2573,
+      "n_hojas_coinciden": true,
+      "vector_descriptores_coincide": true,
+      "etiqueta_preservada": true,
+      "profundidad_max_preservada": true,
+      "tam_archivo_kib": 23.2656,
+      "RECORRIDO_PRODUCCION_OK": true
     },
     "TODAS_LAS_VERIFICACIONES_OK": true
   }
