@@ -54,10 +54,24 @@ class NodoOctree:
     normal_promedio : np.ndarray (3,) o None -- solo definido en hojas ocupadas
     n_puntos     : int -- cantidad de puntos de la nube que caen en este nodo
                    (diagnostico / verificacion, no se persiste en disco)
+    normal_coherencia : float o None -- MAGNITUD del promedio de normales
+                   ANTES de normalizar a vector unitario (observacion de
+                   Andres Gonzalez). Equivale a la "longitud resultante
+                   media" de estadistica direccional: cercano a 1 si las
+                   normales de los puntos de la hoja apuntan casi todas
+                   en la misma direccion (superficie plana/coherente);
+                   cercano a 0 si apuntan en direcciones dispersas que
+                   se cancelan parcialmente (superficie rugosa, curva
+                   pronunciada, o una hoja que abarca una arista/esquina).
+                   normal_promedio, en cambio, SI se normaliza a vector
+                   unitario (se conserva asi para materializar el grid
+                   denso con una direccion normal consistente); por eso
+                   la norma de normal_promedio es siempre ~1 o exactamente
+                   0, y no debe usarse como medida de coherencia.
     """
 
     __slots__ = ("centro", "tamano", "profundidad", "ocupado", "es_hoja",
-                "hijos", "normal_promedio", "n_puntos")
+                "hijos", "normal_promedio", "normal_coherencia", "n_puntos")
 
     def __init__(self, centro: np.ndarray, tamano: float, profundidad: int):
         self.centro = centro
@@ -67,6 +81,7 @@ class NodoOctree:
         self.es_hoja = True
         self.hijos = [None] * 8
         self.normal_promedio = None
+        self.normal_coherencia = None
         self.n_puntos = 0
 
 
@@ -144,6 +159,12 @@ def construir_octree(
         nodo.es_hoja = True
         normal_prom = normales.mean(axis=0)
         norma = np.linalg.norm(normal_prom)
+        # CORRECCION (observacion de Andres Gonzalez): guardar la
+        # magnitud ANTES de normalizar. Esta es la medida de coherencia
+        # angular real -- normal_promedio (abajo) se normaliza a vector
+        # unitario y pierde esta informacion (su norma queda siempre
+        # ~1 o exactamente 0).
+        nodo.normal_coherencia = float(norma)
         nodo.normal_promedio = (
             (normal_prom / norma).astype(np.float32)
             if norma > 1e-12 else np.zeros(3, dtype=np.float32)
@@ -323,15 +344,18 @@ def _mascara_hijos(nodo: NodoOctree) -> int:
 
 def _serializar_dfs(raiz: NodoOctree) -> tuple:
     """
-    Recorre el arbol en pre-orden (DFS) y produce 3 arrays paralelos,
+    Recorre el arbol en pre-orden (DFS) y produce 4 arrays paralelos,
     uno por cada nodo EXISTENTE (internos y hojas, nunca podados):
         profundidades : (M,) uint8
         mascaras      : (M,) uint8 -- 0 para hojas
-        normales      : (M, 3) float32 -- solo valida si mascara==0
+        normales      : (M, 3) float32 -- direccion UNITARIA, solo valida si mascara==0
+        coherencias   : (M,) float32 -- magnitud PRE-normalizacion (observacion
+                        de Andres Gonzalez), solo valida si mascara==0
     """
     profundidades = []
     mascaras = []
     normales = []
+    coherencias = []
 
     def _rec(nodo):
         if nodo is None:
@@ -343,8 +367,12 @@ def _serializar_dfs(raiz: NodoOctree) -> tuple:
             normales.append(nodo.normal_promedio
                            if nodo.normal_promedio is not None
                            else np.zeros(3, dtype=np.float32))
+            coherencias.append(
+                nodo.normal_coherencia if nodo.normal_coherencia is not None else 0.0
+            )
         else:
             normales.append(np.zeros(3, dtype=np.float32))
+            coherencias.append(0.0)
             for i in range(8):
                 if nodo.hijos[i] is not None:
                     _rec(nodo.hijos[i])
@@ -355,15 +383,16 @@ def _serializar_dfs(raiz: NodoOctree) -> tuple:
         np.array(profundidades, dtype=np.uint8),
         np.array(mascaras, dtype=np.uint8),
         np.array(normales, dtype=np.float32),
+        np.array(coherencias, dtype=np.float32),
     )
 
 
 def _reconstruir_dfs(profundidades: np.ndarray, mascaras: np.ndarray,
-                     normales: np.ndarray) -> NodoOctree:
+                     normales: np.ndarray, coherencias: np.ndarray) -> NodoOctree:
     """
     Reconstruye el arbol NodoOctree completo (topologia identica al
     original: mismos nodos, mismas relaciones padre-hijo, mismas
-    profundidades) a partir de los 3 arrays paralelos producidos por
+    profundidades) a partir de los 4 arrays paralelos producidos por
     _serializar_dfs(). El centro y tamaño de cada nodo se derivan
     deterministicamente de la ruta de descenso, replicando la misma
     formula usada durante la construccion original (_centro_hijo).
@@ -378,6 +407,7 @@ def _reconstruir_dfs(profundidades: np.ndarray, mascaras: np.ndarray,
         )
         mascara = int(mascaras[i])
         normal = normales[i]
+        coherencia = float(coherencias[i])
         puntero[0] += 1
 
         nodo = NodoOctree(centro, tamano, profundidad)
@@ -388,6 +418,7 @@ def _reconstruir_dfs(profundidades: np.ndarray, mascaras: np.ndarray,
             # tiene al menos un hijo -- ver construir_octree)
             nodo.es_hoja = True
             nodo.normal_promedio = normal
+            nodo.normal_coherencia = coherencia
         else:
             nodo.es_hoja = False
             for bit in range(8):
@@ -416,13 +447,14 @@ def guardar_octree_disperso(raiz: NodoOctree, ruta_npz: str, etiqueta: int,
     numero de nodos reales del arbol (internos + hojas), tipicamente
     muy por debajo de una rejilla densa R^3 (ver comparar_memoria()).
     """
-    profundidades, mascaras, normales = _serializar_dfs(raiz)
+    profundidades, mascaras, normales, coherencias = _serializar_dfs(raiz)
 
     np.savez_compressed(
         ruta_npz,
         profundidades=profundidades,
         mascaras=mascaras,
         normales=normales,
+        coherencias=coherencias,
         etiqueta=etiqueta,
         profundidad_max=profundidad_max,
     )
@@ -432,13 +464,15 @@ def reconstruir_octree_desde_npz(ruta_npz: str) -> tuple:
     """
     Carga el archivo y reconstruye el arbol NodoOctree COMPLETO, con
     la topologia identica al arbol original (mismos nodos internos,
-    mismas relaciones padre-hijo, mismas hojas con sus normales).
+    mismas relaciones padre-hijo, mismas hojas con sus normales y su
+    coherencia angular pre-normalizacion).
 
     Retorna (raiz: NodoOctree, etiqueta: int, profundidad_max: int).
     """
     data = np.load(ruta_npz)
     raiz = _reconstruir_dfs(
         data["profundidades"], data["mascaras"], data["normales"],
+        data["coherencias"],
     )
     etiqueta = int(data["etiqueta"])
     profundidad_max = int(data["profundidad_max"])
@@ -450,10 +484,8 @@ def cargar_octree_disperso(ruta_npz: str) -> dict:
     Interfaz de compatibilidad con el resto del pipeline (net5_dataset.py,
     hce_extraccion.py): reconstruye el arbol completo desde el archivo
     (ver reconstruir_octree_desde_npz) y deriva de el las hojas ocupadas,
-    devolviendo el mismo diccionario que la version anterior. La
-    diferencia es que ahora el .npz en disco SI contiene la jerarquia
-    completa; las hojas se derivan del arbol reconstruido, no se leen
-    directamente de un array plano de hojas.
+    devolviendo el mismo diccionario que la version anterior, mas el
+    nuevo campo 'coherencias_hoja'.
     """
     raiz, etiqueta, profundidad_max = reconstruir_octree_desde_npz(ruta_npz)
     hojas = recolectar_hojas(raiz)
@@ -461,13 +493,16 @@ def cargar_octree_disperso(ruta_npz: str) -> dict:
     n = len(hojas)
     centros = np.zeros((n, 3), dtype=np.float32)
     normales = np.zeros((n, 3), dtype=np.float32)
+    coherencias = np.zeros(n, dtype=np.float32)
     for i, h in enumerate(hojas):
         centros[i] = h.centro
         normales[i] = h.normal_promedio
+        coherencias[i] = h.normal_coherencia if h.normal_coherencia is not None else 0.0
 
     return {
         "centros_hoja": centros,
         "normales_hoja": normales,
+        "coherencias_hoja": coherencias,
         "etiqueta": etiqueta,
         "profundidad_max": profundidad_max,
     }
