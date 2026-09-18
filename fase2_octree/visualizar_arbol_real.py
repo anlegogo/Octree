@@ -5,8 +5,11 @@ uniforme. Aqui cada caja dibujada es un nodo que REALMENTE EXISTE en
 el arbol (no fue podado), y su tamano varia segun la profundidad --
 la caracteristica visual distintiva de un octree adaptativo real.
 """
+import argparse
 import sys
-sys.path.insert(0, '/mnt/user-data/outputs/fase2_octree')
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
@@ -98,14 +101,33 @@ def graficar_niveles_arbol_real(raiz, profundidad_max, R_hoja, salida_base):
     plt.close()
 
 
-# ── Generar para chair_0001.off ──
-verts, caras = leer_off("/mnt/user-data/uploads/chair_0001.off")
-verts = normalizar_malla(verts)
-rng = np.random.default_rng(42)
-pts, norms = muestrear_superficie_con_normales(verts, caras, 20000, rng)
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--off", type=Path, required=True)
+    parser.add_argument("--salida-dir", type=Path, default=Path("figuras_octree"))
+    parser.add_argument("--n-puntos", type=int, default=20000)
+    parser.add_argument("--semilla", type=int, default=42)
+    args = parser.parse_args()
 
-for R, L in [(32, 5), (64, 6)]:
-    raiz = construir_octree(pts, norms, profundidad_max=L)
-    graficar_niveles_arbol_real(raiz, L, R, f"/home/claude/svg_final/octree_real_niveles_R{R}")
+    if not args.off.is_file():
+        raise FileNotFoundError(args.off)
+    args.salida_dir.mkdir(parents=True, exist_ok=True)
 
-print("\nListo.")
+    verts, caras = leer_off(str(args.off))
+    verts = normalizar_malla(verts)
+    rng = np.random.default_rng(args.semilla)
+    pts, norms = muestrear_superficie_con_normales(
+        verts, caras, args.n_puntos, rng,
+    )
+
+    for resolucion, profundidad in ((32, 5), (64, 6)):
+        raiz = construir_octree(pts, norms, profundidad_max=profundidad)
+        salida = args.salida_dir / f"octree_real_niveles_R{resolucion}"
+        graficar_niveles_arbol_real(
+            raiz, profundidad, resolucion, str(salida),
+        )
+    print("\nListo.")
+
+
+if __name__ == "__main__":
+    main()

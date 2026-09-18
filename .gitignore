@@ -84,7 +84,7 @@ desktop.ini
 
 # ── Rutas locales especificas de la maquina de desarrollo ────
 # (evitar hardcodear, pero por si quedan archivos de prueba)
-test_*.py
+/test_*.py
 /tmp/
 *.local
 
