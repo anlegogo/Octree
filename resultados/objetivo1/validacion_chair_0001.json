@@ -1,0 +1,78 @@
+{
+  "archivo": "C:\\Users\\ricar\\Documents\\Codigos\\Tesis\\Dataset\\ModelNet40\\chair\\train\\chair_0001.off",
+  "archivo_sha256": "1a45689801fb37fe8c91ed3ebd35ba5409f34cb5cd4eef8a26bace0432dd289c",
+  "n_puntos": 20000,
+  "octree_format_version": "1.0.0",
+  "prueba": "chair_0001_equivalencia_y_persistencia",
+  "prueba_superada": true,
+  "resoluciones": {
+    "32": {
+      "equivalencia_despues_carga": {
+        "celdas_iguales": true,
+        "equivalente": true,
+        "max_error_absoluto_normales": 1.1920928955078125e-07,
+        "n_celdas_denso": 762,
+        "n_hojas_octree": 762,
+        "normales_iguales": true,
+        "ocupacion_grid_igual": true,
+        "resolucion": 32
+      },
+      "equivalencia_directa": {
+        "celdas_iguales": true,
+        "equivalente": true,
+        "max_error_absoluto_normales": 1.1920928955078125e-07,
+        "n_celdas_denso": 762,
+        "n_hojas_octree": 762,
+        "normales_iguales": true,
+        "ocupacion_grid_igual": true,
+        "resolucion": 32
+      },
+      "n_hojas_ocupadas": 762,
+      "n_nodos_totales": 1121,
+      "nodos_por_nivel": [
+        1,
+        8,
+        31,
+        80,
+        239,
+        762
+      ],
+      "porcentaje_ocupacion_hoja": 2.325439453125
+    },
+    "64": {
+      "equivalencia_despues_carga": {
+        "celdas_iguales": true,
+        "equivalente": true,
+        "max_error_absoluto_normales": 1.1920928955078125e-07,
+        "n_celdas_denso": 2573,
+        "n_hojas_octree": 2573,
+        "normales_iguales": true,
+        "ocupacion_grid_igual": true,
+        "resolucion": 64
+      },
+      "equivalencia_directa": {
+        "celdas_iguales": true,
+        "equivalente": true,
+        "max_error_absoluto_normales": 1.1920928955078125e-07,
+        "n_celdas_denso": 2573,
+        "n_hojas_octree": 2573,
+        "normales_iguales": true,
+        "ocupacion_grid_igual": true,
+        "resolucion": 64
+      },
+      "n_hojas_ocupadas": 2573,
+      "n_nodos_totales": 3694,
+      "nodos_por_nivel": [
+        1,
+        8,
+        31,
+        80,
+        239,
+        762,
+        2573
+      ],
+      "porcentaje_ocupacion_hoja": 0.9815216064453125
+    }
+  },
+  "semilla": 42
+}

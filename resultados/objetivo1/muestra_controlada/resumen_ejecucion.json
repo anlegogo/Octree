@@ -14,7 +14,7 @@
   },
   "corrida_completa_modelnet40": false,
   "dataset_root": "C:\\Users\\ricar\\Documents\\Codigos\\Tesis\\Dataset\\ModelNet40",
-  "duracion_total_s": 3.1834978000001684,
+  "duracion_total_s": 3.312532800000554,
   "errores": [],
   "limite_global": null,
   "muestra_por_categoria_split": 1,

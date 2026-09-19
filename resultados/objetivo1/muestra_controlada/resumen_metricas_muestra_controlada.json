@@ -1,323 +1,10 @@
 {
   "alcance": "muestra_controlada",
   "conteos_por_split": {
-    "test": 40,
-    "train": 38
+    "test": 5,
+    "train": 5
   },
-  "errores": [
-    {
-      "error": "ValueError: manifiesto duplicado",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\airplane_0001.json"
-    },
-    {
-      "error": "ValueError: manifiesto duplicado",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\airplane_0627.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bathtub_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bathtub_0107.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bed_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bed_0516.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bench_0174.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bookshelf_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bookshelf_0573.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bottle_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bottle_0336.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bowl_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\bowl_0065.json"
-    },
-    {
-      "error": "ValueError: manifiesto duplicado",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\car_0001.json"
-    },
-    {
-      "error": "ValueError: manifiesto duplicado",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\car_0198.json"
-    },
-    {
-      "error": "ValueError: manifiesto duplicado",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\chair_0001.json"
-    },
-    {
-      "error": "ValueError: manifiesto duplicado",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\chair_0890.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\cone_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\cone_0168.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\cup_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\cup_0080.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\curtain_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\curtain_0139.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\desk_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\desk_0201.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\door_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\door_0110.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\dresser_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\dresser_0201.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\flower_pot_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\flower_pot_0150.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\glass_box_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\glass_box_0172.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\guitar_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\guitar_0156.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\keyboard_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\keyboard_0146.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\lamp_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\lamp_0125.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\laptop_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\laptop_0150.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\mantel_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\mantel_0285.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\monitor_0466.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\night_stand_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\night_stand_0201.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\person_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\person_0089.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\piano_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\piano_0232.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\plant_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\plant_0241.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\radio_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\radio_0105.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\range_hood_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\range_hood_0116.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\sink_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\sink_0129.json"
-    },
-    {
-      "error": "ValueError: manifiesto duplicado",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\sofa_0001.json"
-    },
-    {
-      "error": "ValueError: manifiesto duplicado",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\sofa_0681.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\stairs_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\stairs_0125.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\stool_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\stool_0091.json"
-    },
-    {
-      "error": "ValueError: manifiesto duplicado",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\table_0001.json"
-    },
-    {
-      "error": "ValueError: manifiesto duplicado",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\table_0393.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\tent_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\tent_0164.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\toilet_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\toilet_0345.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\tv_stand_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\tv_stand_0268.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\vase_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\vase_0476.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\wardrobe_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\wardrobe_0088.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\xbox_0001.json"
-    },
-    {
-      "error": "ValueError: Formato de octree antiguo o incompleto; faltan campos: archivo_origen_sha256, categoria, format_name, model_id, n_puntos_muestreo, resolucion, semilla_muestreo, split",
-      "manifiesto": "data\\objetivo1_muestra\\manifests\\xbox_0104.json"
-    }
-  ],
+  "errores": [],
   "estadisticas": {
     "test_R32": {
       "carga_binaria_sin_comprimir_bytes": {
@@ -377,11 +64,11 @@
         "n": 5
       },
       "tiempo_construccion_ms": {
-        "desviacion_estandar": 83.08845402361081,
-        "maximo": 280.0963999998203,
-        "media": 155.39283999987674,
-        "mediana": 166.12789999999222,
-        "minimo": 48.82869999983086,
+        "desviacion_estandar": 83.05534946791674,
+        "maximo": 285.92699999990145,
+        "media": 161.52986000015517,
+        "mediana": 163.18779999983235,
+        "minimo": 52.160200000798795,
         "n": 5
       }
     },
@@ -443,11 +130,11 @@
         "n": 5
       },
       "tiempo_construccion_ms": {
-        "desviacion_estandar": 276.6312783206635,
-        "maximo": 899.4936999997662,
-        "media": 546.7563400000472,
-        "mediana": 562.5420000001213,
-        "minimo": 198.34540000010747,
+        "desviacion_estandar": 275.37522358324543,
+        "maximo": 911.110899999585,
+        "media": 570.3938599999674,
+        "mediana": 594.1114999995989,
+        "minimo": 224.62369999993825,
         "n": 5
       }
     },
@@ -469,10 +156,10 @@
         "n": 5
       },
       "memoria_pico_construccion_bytes": {
-        "desviacion_estandar": 350267.3341855332,
+        "desviacion_estandar": 350260.718303152,
         "maximo": 1747582.0,
-        "media": 1272054.4,
-        "mediana": 1014558.0,
+        "media": 1272063.4,
+        "mediana": 1014603.0,
         "minimo": 961876.0,
         "n": 5
       },
@@ -509,11 +196,11 @@
         "n": 5
       },
       "tiempo_construccion_ms": {
-        "desviacion_estandar": 57.46834086548394,
-        "maximo": 217.26619999981267,
-        "media": 134.33731999994052,
-        "mediana": 105.28890000023239,
-        "minimo": 77.20719999997527,
+        "desviacion_estandar": 53.47160838399083,
+        "maximo": 206.06320000024425,
+        "media": 133.93275999987964,
+        "mediana": 107.83129999981611,
+        "minimo": 80.39209999969898,
         "n": 5
       }
     },
@@ -575,19 +262,19 @@
         "n": 5
       },
       "tiempo_construccion_ms": {
-        "desviacion_estandar": 223.29564468313245,
-        "maximo": 778.7460999998075,
-        "media": 512.458979999974,
-        "mediana": 481.3928000003216,
-        "minimo": 269.93769999990036,
+        "desviacion_estandar": 239.1397639987681,
+        "maximo": 811.8256999996447,
+        "media": 530.148779999945,
+        "mediana": 490.52599999959057,
+        "minimo": 265.888900000391,
         "n": 5
       }
     }
   },
   "manifest_format_version": "1.0.0",
   "modelnet40_completo": false,
-  "n_errores": 78,
-  "n_modelos_unicos": 78,
+  "n_errores": 0,
+  "n_modelos_unicos": 10,
   "n_registros_modelo_resolucion": 20,
   "octree_format_version": "1.0.0"
 }
