@@ -1,0 +1,3057 @@
+{
+  "modelos": [
+    "airplane/test/airplane_0627",
+    "airplane/train/airplane_0001",
+    "car/test/car_0198",
+    "car/train/car_0001",
+    "chair/test/chair_0890",
+    "chair/train/chair_0001",
+    "sofa/test/sofa_0681",
+    "sofa/train/sofa_0001",
+    "table/test/table_0393",
+    "table/train/table_0001"
+  ],
+  "seed": 42,
+  "n_puntos": 20000,
+  "resultados_detallados": {
+    "R32": [
+      {
+        "objeto": "airplane_test_airplane_0627",
+        "resolucion": 32,
+        "profundidad_max": 5,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 17,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 31.25
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 8.7890625
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 2.8076171875
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 1.519775390625
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.005020080134272575
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": 0.12889055907726288
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": 0.01380522083491087
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.04763830080628395
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.18226471543312073
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.009084809571504593
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.4384787678718567
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.13005183637142181
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.1367831528186798
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.7346733212471008
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.20870769023895264
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.055512961000204086
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 5,
+          "n_nodos_totales": 687,
+          "n_hojas_ocupadas": 498,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 20,
+            "L3": 45,
+            "L4": 115,
+            "L5": 498
+          },
+          "pct_ocupacion_hoja": 1.5198,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 498,
+            "n_hojas_desde_disco": 498,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 11.0947,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "airplane",
+        "split": "test"
+      },
+      {
+        "objeto": "airplane_train_airplane_0001",
+        "resolucion": 32,
+        "profundidad_max": 5,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 17,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 28.125
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 9.375
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 4.638671875
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 2.2552490234375
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.00520128570497036
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.11041102558374405
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.05619925633072853
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.13947075605392456
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.09778016805648804
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.020568521693348885
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.45791879296302795
+          },
+          {
+            "nombre": "skew_x",
+            "valor": 0.0011013373732566833
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -1.21858549118042
+          },
+          {
+            "nombre": "skew_z",
+            "valor": -0.025977997109293938
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.23695960640907288
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.059928782284259796
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 5,
+          "n_nodos_totales": 1004,
+          "n_hojas_ocupadas": 739,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 18,
+            "L3": 48,
+            "L4": 190,
+            "L5": 739
+          },
+          "pct_ocupacion_hoja": 2.2552,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 739,
+            "n_hojas_desde_disco": 739,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 14.2803,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "airplane",
+        "split": "train"
+      },
+      {
+        "objeto": "car_test_car_0198",
+        "resolucion": 32,
+        "profundidad_max": 5,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 17,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 25.0
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 18.359375
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 11.474609375
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 7.366943359375
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.08740679174661636
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.025579949840903282
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": 0.004479080438613892
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.2795551121234894
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.06154712662100792
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.033183753490448
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.572307288646698
+          },
+          {
+            "nombre": "skew_x",
+            "valor": 0.0747530609369278
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.006321396678686142
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.398546040058136
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.50005704164505
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.1221284419298172
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 5,
+          "n_nodos_totales": 3003,
+          "n_hojas_ocupadas": 2414,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 16,
+            "L3": 94,
+            "L4": 470,
+            "L5": 2414
+          },
+          "pct_ocupacion_hoja": 7.3669,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 2414,
+            "n_hojas_desde_disco": 2414,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 32.0859,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "car",
+        "split": "test"
+      },
+      {
+        "objeto": "car_train_car_0001",
+        "resolucion": 32,
+        "profundidad_max": 5,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 17,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 25.0
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 13.671875
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 6.689453125
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 3.7017822265625
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": 0.0014169415226206183
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.16078421473503113
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.07994125783443451
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.03559939190745354
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.20436044037342072
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.019008819013834
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.4722857177257538
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.024480482563376427
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.06036102771759033
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.304305762052536
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.28820765018463135
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.062402017414569855
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 5,
+          "n_nodos_totales": 1582,
+          "n_hojas_ocupadas": 1213,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 16,
+            "L3": 70,
+            "L4": 274,
+            "L5": 1213
+          },
+          "pct_ocupacion_hoja": 3.7018,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 1213,
+            "n_hojas_desde_disco": 1213,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 19.7012,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "car",
+        "split": "train"
+      },
+      {
+        "objeto": "chair_test_chair_0890",
+        "resolucion": 32,
+        "profundidad_max": 5,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 17,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 50.0
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 14.2578125
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 5.6640625
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 2.4169921875
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": 0.020991161465644836
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": 0.03787878900766373
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.05681818351149559
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.13264775276184082
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.1396935135126114
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.1146201342344284
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.5784777402877808
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.028437642380595207
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.4037717580795288
+          },
+          {
+            "nombre": "skew_z",
+            "valor": -0.5622888803482056
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.23040366172790527
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.053390588611364365
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 5,
+          "n_nodos_totales": 1138,
+          "n_hojas_ocupadas": 792,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 32,
+            "L3": 73,
+            "L4": 232,
+            "L5": 792
+          },
+          "pct_ocupacion_hoja": 2.417,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 792,
+            "n_hojas_desde_disco": 792,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 15.7949,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "chair",
+        "split": "test"
+      },
+      {
+        "objeto": "chair_train_chair_0001",
+        "resolucion": 32,
+        "profundidad_max": 5,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 17,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 48.4375
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 15.625
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 5.8349609375
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 2.325439453125
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": 0.0574146993458271
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.021817585453391075
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": 0.05282152071595192
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.132266104221344
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.12696649134159088
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.26001882553100586
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.6729628443717957
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.13962680101394653
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.32489997148513794
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.07889386266469955
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.5109662413597107
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.1603858917951584
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 5,
+          "n_nodos_totales": 1121,
+          "n_hojas_ocupadas": 762,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 31,
+            "L3": 80,
+            "L4": 239,
+            "L5": 762
+          },
+          "pct_ocupacion_hoja": 2.3254,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 762,
+            "n_hojas_desde_disco": 762,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 11.9121,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "chair",
+        "split": "train"
+      },
+      {
+        "objeto": "sofa_test_sofa_0681",
+        "resolucion": 32,
+        "profundidad_max": 5,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 17,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 84.375
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 32.8125
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 18.017578125
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 8.563232421875
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": 0.0756860300898552
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.019734498113393784
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": 0.2867961525917053
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.1722760796546936
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.23623444139957428
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.1662517637014389
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.7356708645820618
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.08968622237443924
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.022059008479118347
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.07758183777332306
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.3353556990623474
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.07221890985965729
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 5,
+          "n_nodos_totales": 3775,
+          "n_hojas_ocupadas": 2806,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 54,
+            "L3": 168,
+            "L4": 738,
+            "L5": 2806
+          },
+          "pct_ocupacion_hoja": 8.5632,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 2806,
+            "n_hojas_desde_disco": 2806,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 10.5547,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "sofa",
+        "split": "test"
+      },
+      {
+        "objeto": "sofa_train_sofa_0001",
+        "resolucion": 32,
+        "profundidad_max": 5,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 17,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 37.5
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 20.703125
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 12.060546875
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 6.5521240234375
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.10632568597793579
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.0015865160385146737
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.07063635438680649
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.09314005076885223
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.30027976632118225
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.040001798421144485
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.6170703768730164
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.44995927810668945
+          },
+          {
+            "nombre": "skew_y",
+            "valor": 0.0023099700920283794
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.7235713005065918
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.8052565455436707
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.10023998469114304
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 5,
+          "n_nodos_totales": 2780,
+          "n_hojas_ocupadas": 2147,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 24,
+            "L3": 106,
+            "L4": 494,
+            "L5": 2147
+          },
+          "pct_ocupacion_hoja": 6.5521,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 2147,
+            "n_hojas_desde_disco": 2147,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 23.6904,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "sofa",
+        "split": "train"
+      },
+      {
+        "objeto": "table_test_table_0393",
+        "resolucion": 32,
+        "profundidad_max": 5,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 17,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 37.5
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 17.1875
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 7.8125
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 5.1910400390625
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": 0.0001653439103392884
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": 0.0032517637591809034
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": 0.09999632835388184
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.08323986083269119
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.4026288390159607
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.08758461475372314
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.7233164310455322
+          },
+          {
+            "nombre": "skew_x",
+            "valor": 0.014118487946689129
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.0045244754292070866
+          },
+          {
+            "nombre": "skew_z",
+            "valor": -0.9720892310142517
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.29140767455101013
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.05867195874452591
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 5,
+          "n_nodos_totales": 2142,
+          "n_hojas_ocupadas": 1701,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 24,
+            "L3": 88,
+            "L4": 320,
+            "L5": 1701
+          },
+          "pct_ocupacion_hoja": 5.191,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 1701,
+            "n_hojas_desde_disco": 1701,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 13.9268,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "table",
+        "split": "test"
+      },
+      {
+        "objeto": "table_train_table_0001",
+        "resolucion": 32,
+        "profundidad_max": 5,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 17,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 56.25
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 26.5625
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 14.404296875
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 6.6741943359375
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.007501714862883091
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": 0.0011288294335827231
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.04653920978307724
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.3863624334335327
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.3888140022754669
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.020993877202272415
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.8300241827964783
+          },
+          {
+            "nombre": "skew_x",
+            "valor": 0.0011888255830854177
+          },
+          {
+            "nombre": "skew_y",
+            "valor": 0.0013386857463046908
+          },
+          {
+            "nombre": "skew_z",
+            "valor": -2.747964382171631
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.35707300901412964
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.0752660483121872
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 5,
+          "n_nodos_totales": 2958,
+          "n_hojas_ocupadas": 2187,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 36,
+            "L3": 136,
+            "L4": 590,
+            "L5": 2187
+          },
+          "pct_ocupacion_hoja": 6.6742,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 2187,
+            "n_hojas_desde_disco": 2187,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 15.9082,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "table",
+        "split": "train"
+      }
+    ],
+    "R64": [
+      {
+        "objeto": "airplane_test_airplane_0627",
+        "resolucion": 64,
+        "profundidad_max": 6,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 18,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 31.25
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 8.7890625
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 2.8076171875
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 1.519775390625
+          },
+          {
+            "nombre": "ocupacion_L6",
+            "valor": 0.795745849609375
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": 0.0008539070258848369
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": 0.12995865941047668
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": 0.013392857275903225
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.047241512686014175
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.1687520295381546
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.007778906729072332
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.42146700620651245
+          },
+          {
+            "nombre": "skew_x",
+            "valor": 0.03857245668768883
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.1577790081501007
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.7702934741973877
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.36418652534484863
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.09492213279008865
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 6,
+          "n_nodos_totales": 2773,
+          "n_hojas_ocupadas": 2086,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 20,
+            "L3": 45,
+            "L4": 115,
+            "L5": 498,
+            "L6": 2086
+          },
+          "pct_ocupacion_hoja": 0.7957,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 2086,
+            "n_hojas_desde_disco": 2086,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 34.1914,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "airplane",
+        "split": "test"
+      },
+      {
+        "objeto": "airplane_train_airplane_0001",
+        "resolucion": 64,
+        "profundidad_max": 6,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 18,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 28.125
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 9.375
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 4.638671875
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 2.2552490234375
+          },
+          {
+            "nombre": "ocupacion_L6",
+            "valor": 1.0860443115234375
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.0028264401480555534
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.10647721588611603
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.054295092821121216
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.13516907393932343
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.09436454623937607
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.01939726062119007
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.44933223724365234
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.006663297303020954
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -1.2474946975708008
+          },
+          {
+            "nombre": "skew_z",
+            "valor": -0.0858803540468216
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.38229501247406006
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.09850995242595673
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 6,
+          "n_nodos_totales": 3851,
+          "n_hojas_ocupadas": 2847,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 18,
+            "L3": 48,
+            "L4": 190,
+            "L5": 739,
+            "L6": 2847
+          },
+          "pct_ocupacion_hoja": 1.086,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 2847,
+            "n_hojas_desde_disco": 2847,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 42.2559,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "airplane",
+        "split": "train"
+      },
+      {
+        "objeto": "car_test_car_0198",
+        "resolucion": 64,
+        "profundidad_max": 6,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 18,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 25.0
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 18.359375
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 11.474609375
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 7.366943359375
+          },
+          {
+            "nombre": "ocupacion_L6",
+            "valor": 3.284454345703125
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.09799288958311081
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.016898954287171364
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.017719222232699394
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.2759500741958618
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.06333333998918533
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.030161557719111443
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.5685596466064453
+          },
+          {
+            "nombre": "skew_x",
+            "valor": 0.13160482048988342
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.005032040644437075
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.5304552316665649
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.7231619954109192
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.13659535348415375
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 6,
+          "n_nodos_totales": 11613,
+          "n_hojas_ocupadas": 8610,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 16,
+            "L3": 94,
+            "L4": 470,
+            "L5": 2414,
+            "L6": 8610
+          },
+          "pct_ocupacion_hoja": 3.2845,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 8610,
+            "n_hojas_desde_disco": 8610,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 73.7588,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "car",
+        "split": "test"
+      },
+      {
+        "objeto": "car_train_car_0001",
+        "resolucion": 64,
+        "profundidad_max": 6,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 18,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 25.0
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 13.671875
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 6.689453125
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 3.7017822265625
+          },
+          {
+            "nombre": "ocupacion_L6",
+            "valor": 2.0843505859375
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.004609717987477779
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.15106835961341858
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.09677548706531525
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.03408511355519295
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.19062070548534393
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.018242768943309784
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.45746269822120667
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.015140875242650509
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.10567295551300049
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.5520347952842712
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.5430866479873657
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.13770641386508942
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 6,
+          "n_nodos_totales": 7046,
+          "n_hojas_ocupadas": 5464,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 16,
+            "L3": 70,
+            "L4": 274,
+            "L5": 1213,
+            "L6": 5464
+          },
+          "pct_ocupacion_hoja": 2.0844,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 5464,
+            "n_hojas_desde_disco": 5464,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 53.2012,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "car",
+        "split": "train"
+      },
+      {
+        "objeto": "chair_test_chair_0890",
+        "resolucion": 64,
+        "profundidad_max": 6,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 18,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 50.0
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 14.2578125
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 5.6640625
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 2.4169921875
+          },
+          {
+            "nombre": "ocupacion_L6",
+            "valor": 1.0913848876953125
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": 0.004472868051379919
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": 0.044843368232250214
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.05082903802394867
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.13193978369235992
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.13255897164344788
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.10155889391899109
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.5638600587844849
+          },
+          {
+            "nombre": "skew_x",
+            "valor": 0.008243348449468613
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.4296269416809082
+          },
+          {
+            "nombre": "skew_z",
+            "valor": -0.5601935982704163
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.3872557580471039
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.09385601431131363
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 6,
+          "n_nodos_totales": 3999,
+          "n_hojas_ocupadas": 2861,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 32,
+            "L3": 73,
+            "L4": 232,
+            "L5": 792,
+            "L6": 2861
+          },
+          "pct_ocupacion_hoja": 1.0914,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 2861,
+            "n_hojas_desde_disco": 2861,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 43.3711,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "chair",
+        "split": "test"
+      },
+      {
+        "objeto": "chair_train_chair_0001",
+        "resolucion": 64,
+        "profundidad_max": 6,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 18,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 48.4375
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 15.625
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 5.8349609375
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 2.325439453125
+          },
+          {
+            "nombre": "ocupacion_L6",
+            "valor": 0.9815216064453125
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": 0.016851680353283882
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.018430577591061592
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": 0.10415250062942505
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.13046300411224365
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.1252654790878296
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.24699284136295319
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.6597951054573059
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.004238243214786053
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.3007753789424896
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.053029343485832214
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.6131775379180908
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.14387854933738708
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 6,
+          "n_nodos_totales": 3694,
+          "n_hojas_ocupadas": 2573,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 31,
+            "L3": 80,
+            "L4": 239,
+            "L5": 762,
+            "L6": 2573
+          },
+          "pct_ocupacion_hoja": 0.9815,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 2573,
+            "n_hojas_desde_disco": 2573,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 25.0908,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "chair",
+        "split": "train"
+      },
+      {
+        "objeto": "sofa_test_sofa_0681",
+        "resolucion": 64,
+        "profundidad_max": 6,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 18,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 84.375
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 32.8125
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 18.017578125
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 8.563232421875
+          },
+          {
+            "nombre": "ocupacion_L6",
+            "valor": 3.4778594970703125
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": 0.07824839651584625
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.0008414911571890116
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": 0.28886112570762634
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.16618308424949646
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.23500703275203705
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.16123174130916595
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.7275878190994263
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.10798699408769608
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.03671367093920708
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.08489491045475006
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.6605130434036255
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.16998697817325592
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 6,
+          "n_nodos_totales": 12892,
+          "n_hojas_ocupadas": 9117,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 54,
+            "L3": 168,
+            "L4": 738,
+            "L5": 2806,
+            "L6": 9117
+          },
+          "pct_ocupacion_hoja": 3.4779,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 9117,
+            "n_hojas_desde_disco": 9117,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 20.7891,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "sofa",
+        "split": "test"
+      },
+      {
+        "objeto": "sofa_train_sofa_0001",
+        "resolucion": 64,
+        "profundidad_max": 6,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 18,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 37.5
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 20.703125
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 12.060546875
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 6.5521240234375
+          },
+          {
+            "nombre": "ocupacion_L6",
+            "valor": 3.00140380859375
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.10390584915876389
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": 0.0011994788656011224
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.06409268826246262
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.09491109848022461
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.30309799313545227
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.03775295615196228
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.6171887516975403
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.49291712045669556
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.0019536365289241076
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.7965638637542725
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.9110143780708313
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.05563018471002579
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 6,
+          "n_nodos_totales": 10648,
+          "n_hojas_ocupadas": 7868,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 24,
+            "L3": 106,
+            "L4": 494,
+            "L5": 2147,
+            "L6": 7868
+          },
+          "pct_ocupacion_hoja": 3.0014,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 7868,
+            "n_hojas_desde_disco": 7868,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 51.3691,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "sofa",
+        "split": "train"
+      },
+      {
+        "objeto": "table_test_table_0393",
+        "resolucion": 64,
+        "profundidad_max": 6,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 18,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 37.5
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 17.1875
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 7.8125
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 5.1910400390625
+          },
+          {
+            "nombre": "ocupacion_L6",
+            "valor": 2.3456573486328125
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": 2.286957169417292e-05
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": -0.0007597780204378068
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": 0.09845350682735443
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.07952968031167984
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.40131261944770813
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.08114313334226608
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.7151405215263367
+          },
+          {
+            "nombre": "skew_x",
+            "valor": 0.024716950953006744
+          },
+          {
+            "nombre": "skew_y",
+            "valor": 0.005420188419520855
+          },
+          {
+            "nombre": "skew_z",
+            "valor": -1.0476925373077393
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.5547568798065186
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.14928901195526123
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 6,
+          "n_nodos_totales": 8291,
+          "n_hojas_ocupadas": 6149,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 24,
+            "L3": 88,
+            "L4": 320,
+            "L5": 1701,
+            "L6": 6149
+          },
+          "pct_ocupacion_hoja": 2.3457,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 6149,
+            "n_hojas_desde_disco": 6149,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 25.3467,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "table",
+        "split": "test"
+      },
+      {
+        "objeto": "table_train_table_0001",
+        "resolucion": 64,
+        "profundidad_max": 6,
+        "configuracion_reproduccion": {
+          "seed": 42,
+          "n_puntos_muestreados": 20000,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+        },
+        "dimension_vector": 18,
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
+          },
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 56.25
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 26.5625
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 14.404296875
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 6.6741943359375
+          },
+          {
+            "nombre": "ocupacion_L6",
+            "valor": 3.118133544921875
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.002672345144674182
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": 0.012872369959950447
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.031012967228889465
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.39205607771873474
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.3951297998428345
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.020021261647343636
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.8376570343971252
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.013294007629156113
+          },
+          {
+            "nombre": "skew_y",
+            "valor": -0.030968911945819855
+          },
+          {
+            "nombre": "skew_z",
+            "valor": -2.786679983139038
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.6519718170166016
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.15026557445526123
+          }
+        ],
+        "datos_arbol": {
+          "profundidad_max": 6,
+          "n_nodos_totales": 11132,
+          "n_hojas_ocupadas": 8174,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 36,
+            "L3": 136,
+            "L4": 590,
+            "L5": 2187,
+            "L6": 8174
+          },
+          "pct_ocupacion_hoja": 3.1181,
+          "ocupacion_L0_raiz_verificacion": 100.0
+        },
+        "verificaciones": {
+          "sin_valores_indefinidos": true,
+          "detalle_indefinidos": {
+            "tiene_nan": false,
+            "tiene_inf": false
+          },
+          "reproducible_entre_corridas": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "ocupacion_raiz_L0": 100.0,
+            "esperado_raiz": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1",
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+          },
+          "recorrido_produccion": {
+            "sin_errores_estructura_padre_hijo": true,
+            "n_discrepancias_estructura": 0,
+            "primeras_discrepancias": [],
+            "nodos_por_nivel_coinciden": true,
+            "n_hojas_original": 8174,
+            "n_hojas_desde_disco": 8174,
+            "n_hojas_coinciden": true,
+            "vector_descriptores_coincide": true,
+            "etiqueta_preservada": true,
+            "profundidad_max_preservada": true,
+            "tam_archivo_kib": 30.2363,
+            "RECORRIDO_PRODUCCION_OK": true
+          },
+          "TODAS_LAS_VERIFICACIONES_OK": true
+        },
+        "categoria": "table",
+        "split": "train"
+      }
+    ]
+  },
+  "estadisticas_agregadas": {
+    "R32": {
+      "n_modelos": 10,
+      "dimension_vector": 17,
+      "orden_descriptores": [
+        "ocupacion_L1",
+        "ocupacion_L2",
+        "ocupacion_L3",
+        "ocupacion_L4",
+        "ocupacion_L5",
+        "centroide_x",
+        "centroide_y",
+        "centroide_z",
+        "varianza_x",
+        "varianza_y",
+        "varianza_z",
+        "dispersion_radial",
+        "skew_x",
+        "skew_y",
+        "skew_z",
+        "normal_coherencia_media",
+        "normal_coherencia_varianza"
+      ],
+      "todas_verificaciones_ok_todos_modelos": true,
+      "estadisticas_por_descriptor": {
+        "ocupacion_L1": {
+          "min": 100.0,
+          "max": 100.0,
+          "media": 100.0,
+          "desviacion_estandar": 0.0,
+          "mediana": 100.0,
+          "n_valores_unicos": 1,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "ocupacion_L2": {
+          "min": 25.0,
+          "max": 84.375,
+          "media": 42.34375,
+          "desviacion_estandar": 17.405576737428152,
+          "mediana": 37.5,
+          "n_valores_unicos": 8,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "ocupacion_L3": {
+          "min": 8.7890625,
+          "max": 32.8125,
+          "media": 17.734375,
+          "desviacion_estandar": 7.054973000867456,
+          "mediana": 16.40625,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "ocupacion_L4": {
+          "min": 2.8076171875,
+          "max": 18.017578125,
+          "media": 8.9404296875,
+          "desviacion_estandar": 4.596083275554315,
+          "mediana": 7.2509765625,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "ocupacion_L5": {
+          "min": 1.519775390625,
+          "max": 8.563232421875,
+          "media": 4.65667724609375,
+          "desviacion_estandar": 2.398437972954073,
+          "mediana": 4.4464111328125,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "centroide_x": {
+          "min": -0.10632568597793579,
+          "max": 0.0756860300898552,
+          "media": -0.005578138209239114,
+          "desviacion_estandar": 0.05311304882985222,
+          "mediana": -0.0024273681119666435,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "centroide_y": {
+          "min": -0.16078421473503113,
+          "max": 0.12889055907726288,
+          "media": -0.016876384848728776,
+          "desviacion_estandar": 0.07401065466537238,
+          "mediana": -0.010660507075954229,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "centroide_z": {
+          "min": -0.07994125783443451,
+          "max": 0.2867961525917053,
+          "media": 0.014776404108852148,
+          "desviacion_estandar": 0.10630206803186815,
+          "mediana": -0.021030064672231674,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "varianza_x": {
+          "min": 0.03559939190745354,
+          "max": 0.3863624334335327,
+          "media": 0.1502195842564106,
+          "desviacion_estandar": 0.10253258588957535,
+          "mediana": 0.1324569284915924,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "varianza_y": {
+          "min": 0.06154712662100792,
+          "max": 0.4026288390159607,
+          "media": 0.2140569504350424,
+          "desviacion_estandar": 0.11181438781555025,
+          "mediana": 0.19331257790327072,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "varianza_z": {
+          "min": 0.009084809571504593,
+          "max": 0.26001882553100586,
+          "media": 0.07713169176131487,
+          "desviacion_estandar": 0.07782948094439542,
+          "mediana": 0.03659277595579624,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "dispersion_radial": {
+          "min": 0.4384787678718567,
+          "max": 0.8300241827964783,
+          "media": 0.6098513007164001,
+          "desviacion_estandar": 0.12449351515003476,
+          "mediana": 0.5977740585803986,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "skew_x": {
+          "min": -0.44995927810668945,
+          "max": 0.0747530609369278,
+          "media": -0.07710805509705096,
+          "desviacion_estandar": 0.13951972768640256,
+          "mediana": -0.026459062471985817,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "skew_y": {
+          "min": -1.21858549118042,
+          "max": 0.0023099700920283794,
+          "media": -0.21736576260300353,
+          "desviacion_estandar": 0.36110534741010214,
+          "mediana": -0.04121001809835434,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "skew_z": {
+          "min": -2.747964382171631,
+          "max": 0.7346733212471008,
+          "media": -0.19907483663409947,
+          "desviacion_estandar": 0.9871061693697286,
+          "mediana": 0.0782378502190113,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "normal_coherencia_media": {
+          "min": 0.20870769023895264,
+          "max": 0.8052565455436707,
+          "media": 0.37643948197364807,
+          "desviacion_estandar": 0.17414249234673687,
+          "mediana": 0.31338168680667877,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "normal_coherencia_varianza": {
+          "min": 0.053390588611364365,
+          "max": 0.1603858917951584,
+          "media": 0.0820145584642887,
+          "desviacion_estandar": 0.033412317148951286,
+          "mediana": 0.06731046363711357,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        }
+      }
+    },
+    "R64": {
+      "n_modelos": 10,
+      "dimension_vector": 18,
+      "orden_descriptores": [
+        "ocupacion_L1",
+        "ocupacion_L2",
+        "ocupacion_L3",
+        "ocupacion_L4",
+        "ocupacion_L5",
+        "ocupacion_L6",
+        "centroide_x",
+        "centroide_y",
+        "centroide_z",
+        "varianza_x",
+        "varianza_y",
+        "varianza_z",
+        "dispersion_radial",
+        "skew_x",
+        "skew_y",
+        "skew_z",
+        "normal_coherencia_media",
+        "normal_coherencia_varianza"
+      ],
+      "todas_verificaciones_ok_todos_modelos": true,
+      "estadisticas_por_descriptor": {
+        "ocupacion_L1": {
+          "min": 100.0,
+          "max": 100.0,
+          "media": 100.0,
+          "desviacion_estandar": 0.0,
+          "mediana": 100.0,
+          "n_valores_unicos": 1,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "ocupacion_L2": {
+          "min": 25.0,
+          "max": 84.375,
+          "media": 42.34375,
+          "desviacion_estandar": 17.405576737428152,
+          "mediana": 37.5,
+          "n_valores_unicos": 8,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "ocupacion_L3": {
+          "min": 8.7890625,
+          "max": 32.8125,
+          "media": 17.734375,
+          "desviacion_estandar": 7.054973000867456,
+          "mediana": 16.40625,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "ocupacion_L4": {
+          "min": 2.8076171875,
+          "max": 18.017578125,
+          "media": 8.9404296875,
+          "desviacion_estandar": 4.596083275554315,
+          "mediana": 7.2509765625,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "ocupacion_L5": {
+          "min": 1.519775390625,
+          "max": 8.563232421875,
+          "media": 4.65667724609375,
+          "desviacion_estandar": 2.398437972954073,
+          "mediana": 4.4464111328125,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "ocupacion_L6": {
+          "min": 0.795745849609375,
+          "max": 3.4778594970703125,
+          "media": 2.1266555786132812,
+          "desviacion_estandar": 1.0100259530909743,
+          "mediana": 2.2150039672851562,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "centroide_x": {
+          "min": -0.10390584915876389,
+          "max": 0.07824839651584625,
+          "media": -0.011155752050399315,
+          "desviacion_estandar": 0.050614652492554084,
+          "mediana": -0.0013247377864900045,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "centroide_y": {
+          "min": -0.15106835961341858,
+          "max": 0.12995865941047668,
+          "media": -0.01056025000871159,
+          "desviacion_estandar": 0.07262074199644833,
+          "mediana": -0.0008006345888134092,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "centroide_z": {
+          "min": -0.09677548706531525,
+          "max": 0.28886112570762634,
+          "media": 0.019013549480587245,
+          "desviacion_estandar": 0.10992110584221444,
+          "mediana": -0.02436609473079443,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "varianza_x": {
+          "min": 0.03408511355519295,
+          "max": 0.39205607771873474,
+          "media": 0.14875285029411317,
+          "desviacion_estandar": 0.10374254044213178,
+          "mediana": 0.1312013939023018,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "varianza_y": {
+          "min": 0.06333333998918533,
+          "max": 0.40131261944770813,
+          "media": 0.21094425171613693,
+          "desviacion_estandar": 0.11414635535358242,
+          "mediana": 0.17968636751174927,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "varianza_z": {
+          "min": 0.007778906729072332,
+          "max": 0.24699284136295319,
+          "media": 0.07242813217453659,
+          "desviacion_estandar": 0.07412599525017566,
+          "mediana": 0.03395725693553686,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "dispersion_radial": {
+          "min": 0.42146700620651245,
+          "max": 0.8376570343971252,
+          "media": 0.6018050879240036,
+          "desviacion_estandar": 0.12924452013667626,
+          "mediana": 0.5928741991519928,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "skew_x": {
+          "min": -0.49291712045669556,
+          "max": 0.13160482048988342,
+          "media": -0.04371029613539577,
+          "desviacion_estandar": 0.15983662323654146,
+          "mediana": -0.005450770258903503,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "skew_y": {
+          "min": -1.2474946975708008,
+          "max": 0.005420188419520855,
+          "media": -0.2310597053496167,
+          "desviacion_estandar": 0.3654899118105308,
+          "mediana": -0.07119331322610378,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "skew_z": {
+          "min": -2.786679983139038,
+          "max": 0.7965638637542725,
+          "media": -0.16931748539209365,
+          "desviacion_estandar": 1.035459493454298,
+          "mediana": 0.06896212697029114,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "normal_coherencia_media": {
+          "min": 0.36418652534484863,
+          "max": 0.9110143780708313,
+          "media": 0.5791419595479965,
+          "desviacion_estandar": 0.16359536244216816,
+          "mediana": 0.5839672088623047,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        },
+        "normal_coherencia_varianza": {
+          "min": 0.05563018471002579,
+          "max": 0.16998697817325592,
+          "media": 0.12306401655077934,
+          "desviacion_estandar": 0.03354918460328591,
+          "mediana": 0.13715088367462158,
+          "n_valores_unicos": 10,
+          "n_nan": 0,
+          "n_inf": 0
+        }
+      }
+    }
+  }
+}
