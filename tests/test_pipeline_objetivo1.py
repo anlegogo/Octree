@@ -2,7 +2,23 @@ import json
 from pathlib import Path
 
 from octree_real import OCTREE_FORMAT_VERSION, leer_metadatos_octree
-from preprocesar_octrees import procesar_modelo
+from preprocesar_octrees import procesar_modelo, seleccionar_muestra_controlada
+
+
+def test_muestra_controlada_es_balanceada_y_determinista():
+    modelos = [
+        {"model_id": f"{categoria}_{split}_{indice}",
+         "categoria": categoria, "split": split}
+        for split in ("train", "test")
+        for categoria in ("airplane", "chair")
+        for indice in range(3)
+    ]
+    muestra = seleccionar_muestra_controlada(modelos, 1)
+
+    assert [modelo["model_id"] for modelo in muestra] == [
+        "airplane_train_0", "chair_train_0",
+        "airplane_test_0", "chair_test_0",
+    ]
 
 
 def test_pipeline_genera_npz_manifiesto_y_metricas(tmp_path: Path):

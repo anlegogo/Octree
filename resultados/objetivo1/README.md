@@ -7,9 +7,18 @@ Los archivos históricos ubicados directamente en `resultados/` fueron
 generados con versiones anteriores del pipeline y no demuestran por sí solos
 el cumplimiento del objetivo específico 1.
 
-La entrega final debe incluir, como mínimo:
+La evidencia para aceptar la implementación del objetivo específico 1 debe
+incluir, como mínimo:
 
 - `validacion_chair_0001.json`;
-- `resumen_ejecucion.json` con `corrida_completa_modelnet40: true`;
-- `metricas_modelnet40_verificadas.csv`;
-- `resumen_metricas_modelnet40.json` con `modelnet40_completo: true`.
+- `muestra_controlada/resumen_ejecucion.json`, sin
+  modelos fallidos;
+- `muestra_controlada/metricas_muestra_controlada.csv`;
+- `muestra_controlada/metricas_muestra_controlada_verificadas.csv`;
+- `muestra_controlada/resumen_metricas_muestra_controlada.json` sin errores de
+  integridad o equivalencia.
+
+La regeneración de los 12 311 modelos de ModelNet40 se conserva como una
+etapa posterior, necesaria antes de extraer las características y entrenar los
+clasificadores, pero no como requisito para validar la implementación del
+octree.

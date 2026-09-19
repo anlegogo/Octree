@@ -1,9 +1,11 @@
-"""Genera el conjunto definitivo de octrees del objetivo especifico 1.
+"""Genera y valida octrees para el objetivo especifico 1.
 
 La ejecucion parte exclusivamente de las mallas ``.off`` de ModelNet40,
 muestrea una sola nube por modelo y usa esa misma nube para las
 resoluciones 32^3 y 64^3. Cada salida incluye un octree v1 validado y un
-manifiesto trazable. No se ejecutan HCE, clasificadores ni Net5.
+manifiesto trazable. Admite una muestra controlada para aceptar la
+implementacion sin procesar todavia ModelNet40 completo. No se ejecutan HCE,
+clasificadores ni Net5.
 """
 
 from __future__ import annotations
@@ -90,6 +92,23 @@ def recolectar_modelos(dataset_root: Path, splits: list[str]) -> list[dict]:
                     "split": split,
                 })
     return modelos
+
+
+def seleccionar_muestra_controlada(
+    modelos: list[dict], n_por_categoria_split: int,
+) -> list[dict]:
+    """Selecciona deterministamente hasta ``n`` modelos por categoria y split."""
+    if n_por_categoria_split <= 0:
+        raise ValueError("--muestra-por-categoria-split debe ser positivo")
+    conteos: dict[tuple[str, str], int] = {}
+    seleccion = []
+    for modelo in modelos:
+        clave = (modelo["categoria"], modelo["split"])
+        usados = conteos.get(clave, 0)
+        if usados < n_por_categoria_split:
+            seleccion.append(modelo)
+            conteos[clave] = usados + 1
+    return seleccion
 
 
 def _guardar_npz_atomico(raiz, destino: Path, etiqueta: int,
@@ -322,13 +341,24 @@ def construir_parser() -> argparse.ArgumentParser:
     parser.add_argument("--resoluciones", type=int, nargs="+", default=[32, 64])
     parser.add_argument("--splits", nargs="+", choices=["train", "test"],
                         default=["train", "test"])
+    parser.add_argument(
+        "--categorias", nargs="+", choices=CLASES_MODELNET40, default=None,
+        help="Categorias incluidas; por defecto se consideran las 40",
+    )
     parser.add_argument("--n-puntos", type=int, default=20000)
     parser.add_argument("--semilla", type=int, default=42)
     parser.add_argument("--procesos", type=int,
                         default=max(1, (os.cpu_count() or 2) - 1))
     parser.add_argument(
         "--limite", type=int, default=None,
-        help="Limite global para una prueba corta; omitir en la corrida final",
+        help="Limite global para una prueba tecnica rapida",
+    )
+    parser.add_argument(
+        "--muestra-por-categoria-split", type=int, default=None,
+        help=(
+            "Seleccion determinista de N modelos por cada categoria y split; "
+            "recomendado para la validacion controlada del objetivo 1"
+        ),
     )
     parser.add_argument("--sobrescribir", action="store_true")
     return parser
@@ -345,17 +375,29 @@ def main() -> int:
         _validar_resolucion(resolucion)
     if args.n_puntos <= 0 or args.procesos <= 0:
         raise ValueError("--n-puntos y --procesos deben ser positivos")
+    if args.limite is not None and args.muestra_por_categoria_split is not None:
+        raise ValueError(
+            "--limite y --muestra-por-categoria-split son mutuamente excluyentes"
+        )
     if not dataset_root.is_dir():
         raise FileNotFoundError(
             f"No se encontro ModelNet40 en {dataset_root}. "
             "Indique la ubicacion con --dataset-root."
         )
 
-    modelos = recolectar_modelos(dataset_root, args.splits)
+    modelos_encontrados = recolectar_modelos(dataset_root, args.splits)
     conteos_encontrados = {
-        split: sum(modelo["split"] == split for modelo in modelos)
+        split: sum(modelo["split"] == split for modelo in modelos_encontrados)
         for split in args.splits
     }
+    modelos = modelos_encontrados
+    if args.categorias is not None:
+        categorias = set(args.categorias)
+        modelos = [m for m in modelos if m["categoria"] in categorias]
+    if args.muestra_por_categoria_split is not None:
+        modelos = seleccionar_muestra_controlada(
+            modelos, args.muestra_por_categoria_split,
+        )
     if args.limite is not None:
         modelos = modelos[:args.limite]
     if not modelos:
@@ -417,24 +459,43 @@ def main() -> int:
 
     duracion_s = time.perf_counter() - inicio
     filas = [fila for resultado in resultados for fila in resultado["filas"]]
-    _escribir_csv_atomico(filas, resultados_dir / "metricas_modelnet40.csv")
+    if args.muestra_por_categoria_split is not None:
+        nombre_metricas = "metricas_muestra_controlada.csv"
+    elif args.limite is not None or args.categorias is not None:
+        nombre_metricas = "metricas_prueba_parcial.csv"
+    else:
+        nombre_metricas = "metricas_modelnet40.csv"
+    _escribir_csv_atomico(filas, resultados_dir / nombre_metricas)
 
     corrida_completa = (
         args.limite is None
+        and args.muestra_por_categoria_split is None
+        and args.categorias is None
         and set(args.splits) == {"train", "test"}
         and set(args.resoluciones) == {32, 64}
         and conteos_encontrados == CONTEOS_OFICIALES
         and len(resultados) == sum(CONTEOS_OFICIALES.values())
         and not errores
     )
+    if args.muestra_por_categoria_split is not None:
+        alcance = "muestra_controlada"
+    elif args.limite is not None or args.categorias is not None:
+        alcance = "prueba_parcial"
+    else:
+        alcance = "modelnet40_completo" if corrida_completa else "incompleto"
     resumen = {
         "octree_format_version": OCTREE_FORMAT_VERSION,
+        "alcance_ejecucion": alcance,
         "dataset_root": str(dataset_root),
         "output_root": str(output_root),
         "resoluciones": args.resoluciones,
         "n_puntos_muestreo": args.n_puntos,
         "semilla_base": args.semilla,
-        "conteos_encontrados_antes_de_limite": conteos_encontrados,
+        "categorias_solicitadas": args.categorias or CLASES_MODELNET40,
+        "muestra_por_categoria_split": args.muestra_por_categoria_split,
+        "limite_global": args.limite,
+        "conteos_encontrados_dataset": conteos_encontrados,
+        "archivo_metricas": nombre_metricas,
         "n_modelos_solicitados": len(modelos),
         "n_modelos_exitosos": len(resultados),
         "n_modelos_fallidos": len(errores),
@@ -446,7 +507,7 @@ def main() -> int:
 
     print(f"Exitosos : {len(resultados)}")
     print(f"Fallidos : {len(errores)}")
-    print(f"Completo : {'SI' if corrida_completa else 'NO'}")
+    print(f"Alcance  : {alcance.replace('_', ' ').upper()}")
     print(f"Resumen  : {resultados_dir / 'resumen_ejecucion.json'}")
     return 0 if not errores else 1
 

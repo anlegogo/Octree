@@ -1,8 +1,9 @@
-"""Verifica y consolida las metricas finales del objetivo especifico 1.
+"""Verifica y consolida metricas del flujo de octrees.
 
 Los manifiestos son la fuente de verdad. Este programa comprueba su
 formato, la presencia e integridad de cada NPZ y la equivalencia en
-32^3 y 64^3 antes de producir el resumen global de ModelNet40.
+32^3 y 64^3. Puede consolidar una muestra controlada o, en una etapa futura,
+auditar el conjunto completo de ModelNet40.
 """
 
 from __future__ import annotations
@@ -67,7 +68,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--permitir-incompleto", action="store_true",
-        help="Permite consolidar una corrida corta de diagnostico",
+        help="Consolida una muestra controlada sin exigir los conteos globales",
     )
     args = parser.parse_args()
 
@@ -154,7 +155,8 @@ def main() -> int:
     fallo_por_incompleto = not completo and not args.permitir_incompleto
 
     args.resultados_dir.mkdir(parents=True, exist_ok=True)
-    ruta_csv = args.resultados_dir / "metricas_modelnet40_verificadas.csv"
+    nombre_alcance = "modelnet40" if completo else "muestra_controlada"
+    ruta_csv = args.resultados_dir / f"metricas_{nombre_alcance}_verificadas.csv"
     with ruta_csv.open("w", newline="", encoding="utf-8") as archivo:
         campos = list(filas[0]) if filas else []
         escritor = csv.DictWriter(archivo, fieldnames=campos)
@@ -171,6 +173,7 @@ def main() -> int:
         "manifest_format_version": MANIFEST_FORMAT_VERSION,
         "octree_format_version": OCTREE_FORMAT_VERSION,
         "modelnet40_completo": completo,
+        "alcance": "modelnet40_completo" if completo else "muestra_controlada",
         "conteos_por_split": dict(conteos_split),
         "n_modelos_unicos": len(modelos),
         "n_registros_modelo_resolucion": len(filas),
@@ -178,15 +181,15 @@ def main() -> int:
         "errores": errores,
         "estadisticas": resumen_grupos,
     }
-    ruta_resumen = args.resultados_dir / "resumen_metricas_modelnet40.json"
+    ruta_resumen = args.resultados_dir / f"resumen_metricas_{nombre_alcance}.json"
     guardar_json_atomico(resumen, ruta_resumen)
-    print(f"ModelNet40 completo: {'SI' if completo else 'NO (diagnostico)'}")
+    print(f"Alcance verificado: {'ModelNet40 completo' if completo else 'muestra controlada'}")
     print(f"CSV: {ruta_csv}")
     print(f"Resumen: {ruta_resumen}")
     if fallo_por_incompleto:
         print(
-            "ERROR: la corrida no contiene ModelNet40 completo. "
-            "Los resultados se conservaron para diagnostico."
+            "ERROR: la corrida no contiene ModelNet40 completo. Use "
+            "--permitir-incompleto unicamente para una muestra controlada."
         )
     if errores:
         return 1
