@@ -1,4 +1,4 @@
-name: Objetivo 1 - pruebas
+name: Objetivos 1 y 2 - pruebas de octree y HCE
 
 on:
   push:

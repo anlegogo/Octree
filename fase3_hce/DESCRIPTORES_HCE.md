@@ -127,10 +127,31 @@ coeficientes/vectores de soporte del SVM.
 
 Ver `validar_extraccion_hce.py` (validación individual, usada para
 `chair_0001`: `validacion_hce_chair_0001_R32.json` /
-`validacion_hce_chair_0001_R64.json`) y el resultado agregado sobre los
+`validacion_hce_chair_0001_R64.json`). La validación agregada y sus
+estadísticas se generan de forma reproducible con
+`validar_muestra_controlada_hce.py` sobre los
 **10 modelos de la muestra controlada** (`airplane`, `car`, `chair`,
 `sofa`, `table`, cada uno con 1 modelo de `train` y 1 de `test`) en
 `validacion_hce_muestra_controlada.json`, separado por `R32`/`R64`.
+
+Comando de referencia:
+
+```bash
+python fase3_hce/validar_muestra_controlada_hce.py \
+  --dataset-root Dataset/ModelNet40 \
+  --salida fase3_hce/validacion_hce_muestra_controlada.json \
+  --categorias airplane car chair sofa table \
+  --muestra-por-categoria-split 1 \
+  --resoluciones 32 64 \
+  --n-puntos 20000 \
+  --semilla 42 \
+  --auditoria-train-npz-root data
+```
+
+El último argumento audita los NPZ ya generados del split `train`; no
+reconstruye ModelNet40 ni entrena clasificadores. Las pruebas unitarias
+se ejecutan con `python -m pytest` y cubren dimensión, orden, valores
+finitos, reproducibilidad, coherencia y equivalencia árbol–NPZ.
 
 Para cada uno de los 10 modelos, en cada resolución, se verifica:
 
@@ -150,7 +171,11 @@ Para cada uno de los 10 modelos, en cada resolución, se verifica:
    vs. `extraer_descriptores_hce_desde_npz`) — coinciden exactamente en
    los 20 casos.
 
-### Estadísticas agregadas por descriptor (10 modelos, `n_puntos=20000`, `seed=42`)
+### Resultado preliminar actualmente versionado
+
+Las siguientes estadísticas corresponden a la entrega preliminar de 10
+modelos (`n_puntos=20000`, `seed=42`). Deben regenerarse con el comando
+anterior; el JSON producido por el script será la evidencia autoritativa.
 
 **R32 (17 descriptores, `L=5`):**
 
@@ -197,10 +222,13 @@ Para cada uno de los 10 modelos, en cada resolución, se verifica:
 | `normal_coherencia_media` | 0.3642 | 0.9110 | 0.5791 | 0.1636 | 0.5840 | 10 | 0 | 0 |
 | `normal_coherencia_varianza` | 0.0556 | 0.1700 | 0.1231 | 0.0335 | 0.1372 | 10 | 0 | 0 |
 
-`ocupacion_L1` es constante (1 valor único, `100.0` en los 10 modelos)
-en ambas resoluciones — confirma empíricamente por qué `ocupacion_L0`
-(raíz, también siempre `100.0`) se excluye del vector: cualquier nivel
-con ocupación constante no aporta información discriminante al
-clasificador. A partir de `L2` todos los descriptores muestran variación
-entre modelos (≥ 8 valores únicos sobre 10), sin NaN ni Inf en ningún
-caso.
+`ocupacion_L1` es constante (1 valor único, `100.0`) en esta muestra
+reducida y en ambas resoluciones. Esto es una **alerta diagnóstica**, no
+una decisión definitiva basada en los 10 modelos: cinco pertenecen a
+`test`, y ese split no puede intervenir en la selección de
+características. Antes de entrenar, debe auditarse `ocupacion_L1` sobre
+todos los NPZ de `train`. Si permanece constante, se excluirá y las
+dimensiones finales pasarán a 16 (32³) y 17 (64³); si presenta
+variabilidad, se conservará con la evidencia correspondiente. Hasta
+resolver esta auditoría, las dimensiones 17/18 son provisionales y no
+deben iniciarse SVM ni Bosque Aleatorio.

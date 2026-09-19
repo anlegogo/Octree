@@ -63,6 +63,12 @@ Descriptores extraidos:
 Total de features: L + 10 + 2 = L + 12
   Para R=32 (L=5): 5 + 12 = 17 features
   Para R=64 (L=6): 6 + 12 = 18 features
+
+Estas son las dimensiones de la implementacion vigente. ``ocupacion_L1``
+permanece provisionalmente incluida hasta completar la auditoria sobre todos
+los NPZ de ``train`` con ``validar_muestra_controlada_hce.py``. Si resulta
+constante en train completo, debe excluirse antes del entrenamiento y las
+dimensiones pasan a 16/17.
 """
 
 import sys
@@ -265,9 +271,12 @@ if __name__ == "__main__":
         feats_memoria = extraer_descriptores_hce(raiz, L)
         nombres = nombres_features(L)
 
-        ruta_tmp = str(Path(tempfile.gettempdir()) / f"test_hce_R{R}.npz")
-        guardar_octree_disperso(raiz, ruta_tmp, etiqueta=0, profundidad_max=L)
-        feats_disco = extraer_descriptores_hce_desde_npz(ruta_tmp)
+        with tempfile.TemporaryDirectory(prefix=f"test_hce_R{R}_") as dir_tmp:
+            ruta_tmp = str(Path(dir_tmp) / "octree.npz")
+            guardar_octree_disperso(
+                raiz, ruta_tmp, etiqueta=0, profundidad_max=L,
+            )
+            feats_disco = extraer_descriptores_hce_desde_npz(ruta_tmp)
 
         print(f"  Dimension del vector: {len(feats_memoria)}  (esperado {L + 12})")
         print(f"  Primer descriptor   : {nombres[0]}  (debe ser 'ocupacion_L1', NO L0)")

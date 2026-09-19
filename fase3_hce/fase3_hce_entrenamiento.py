@@ -12,8 +12,8 @@ Restriccion metodologica: NO se usa aumento de datos (criterio de
 equivalencia experimental, seccion 6.6).
 
 Uso:
-    python fase3_hce_entrenamiento.py --resolucion 32
-    python fase3_hce_entrenamiento.py --resolucion 64
+    python fase3_hce_entrenamiento.py --resolucion 32 --data-root data
+    python fase3_hce_entrenamiento.py --resolucion 64 --data-root data
 """
 
 import sys
@@ -38,10 +38,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from hce_extraccion import extraer_descriptores_hce_desde_npz, nombres_features
 
 # ── Configuracion ──────────────────────────────────────────────
-RAIZ_DATA      = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\data")
-DIR_LOGS       = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\logs")
-DIR_CKPT       = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\checkpoints")
-DIR_RESULTADOS = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\resultados")
+RAIZ_PROYECTO = Path(__file__).resolve().parent.parent
 SEED = 42
 
 PROFUNDIDAD_POR_RESOLUCION = {32: 5, 64: 6}
@@ -85,6 +82,10 @@ def extraer_features_split(raiz_resolucion: Path, split: str, profundidad: int) 
     """
     archivos = recolectar_npz(raiz_resolucion, split)
     print(f"  [{split}] Archivos encontrados: {len(archivos)}")
+    if not archivos:
+        raise FileNotFoundError(
+            f"No se encontraron NPZ para '{split}' en {raiz_resolucion}"
+        )
 
     X = []
     y = []
@@ -94,6 +95,12 @@ def extraer_features_split(raiz_resolucion: Path, split: str, profundidad: int) 
         # normales_hoja, etiqueta, profundidad_max) -- no se carga
         # ningun grid denso, ver hce_extraccion.py::extraer_descriptores_hce_desde_npz
         feats = extraer_descriptores_hce_desde_npz(str(ruta))
+        dimension_esperada = len(nombres_features(profundidad))
+        if len(feats) != dimension_esperada:
+            raise ValueError(
+                f"Dimension HCE inesperada en {ruta}: {len(feats)} != "
+                f"{dimension_esperada}"
+            )
 
         data = np.load(ruta)
         etiqueta = int(data["etiqueta"])
@@ -248,6 +255,21 @@ def evaluar_modelo(modelo, X_test, y_test, nombre_modelo: str) -> dict:
 def main():
     parser = argparse.ArgumentParser(description="Entrenamiento HCE (SVM + Random Forest)")
     parser.add_argument("--resolucion", type=int, default=32, choices=[32, 64])
+    parser.add_argument(
+        "--data-root", type=Path, default=RAIZ_PROYECTO / "data",
+        help="Raiz que contiene octrees_32/ y octrees_64/",
+    )
+    parser.add_argument(
+        "--logs-dir", type=Path, default=RAIZ_PROYECTO / "logs",
+    )
+    parser.add_argument(
+        "--checkpoints-dir", type=Path,
+        default=RAIZ_PROYECTO / "checkpoints",
+    )
+    parser.add_argument(
+        "--resultados-dir", type=Path,
+        default=RAIZ_PROYECTO / "resultados",
+    )
     args = parser.parse_args()
 
     R = args.resolucion
@@ -257,22 +279,43 @@ def main():
     print(f"  FASE 3: ENFOQUE CLASICO (HCE) — Resolucion {R}^3")
     print("=" * 60)
 
-    raiz_resolucion = RAIZ_DATA / f"octrees_{R}"
-    DIR_LOGS.mkdir(parents=True, exist_ok=True)
-    DIR_CKPT.mkdir(parents=True, exist_ok=True)
-    DIR_RESULTADOS.mkdir(parents=True, exist_ok=True)
+    raiz_resolucion = args.data_root.resolve() / f"octrees_{R}"
+    dir_logs = args.logs_dir.resolve()
+    dir_ckpt = args.checkpoints_dir.resolve()
+    dir_resultados = args.resultados_dir.resolve()
+    if not raiz_resolucion.is_dir():
+        raise FileNotFoundError(
+            f"No se encontro {raiz_resolucion}; indique la raiz con --data-root"
+        )
+    dir_logs.mkdir(parents=True, exist_ok=True)
+    dir_ckpt.mkdir(parents=True, exist_ok=True)
+    dir_resultados.mkdir(parents=True, exist_ok=True)
 
-    # 1. Extraer features de train y test
-    print("\n[1/5] Extrayendo descriptores HCE...")
+    # 1. Extraer y auditar train antes de tocar el conjunto oficial de test.
+    print("\n[1/5] Extrayendo y auditando descriptores HCE de train...")
     X_train_full, y_train_full = extraer_features_split(raiz_resolucion, "train", L)
-    X_test, y_test             = extraer_features_split(raiz_resolucion, "test", L)
 
+    # Salvaguarda metodologica: no iniciar clasificadores mientras el vector
+    # contenga caracteristicas constantes en train (por ejemplo, ocupacion_L1).
+    nombres = nombres_features(L)
+    constantes = [
+        nombre for indice, nombre in enumerate(nombres)
+        if np.unique(X_train_full[:, indice]).size == 1
+    ]
+    if constantes:
+        raise RuntimeError(
+            "Se detectaron caracteristicas constantes en train: "
+            f"{constantes}. Resuelva y documente su exclusion antes de entrenar."
+        )
+
+    # Test solo se carga cuando el vector supero la auditoria de train.
+    X_test, y_test = extraer_features_split(raiz_resolucion, "test", L)
     print(f"\n  X_train_full : {X_train_full.shape}")
     print(f"  X_test       : {X_test.shape}")
 
     # Guardar features extraidas (cache para no recalcular)
     np.savez_compressed(
-        DIR_LOGS / f"hce_features_R{R}.npz",
+        dir_logs / f"hce_features_R{R}.npz",
         X_train=X_train_full, y_train=y_train_full,
         X_test=X_test, y_test=y_test,
     )
@@ -317,9 +360,9 @@ def main():
     resultados_rf  = evaluar_modelo(rf_modelo,  X_test, y_test, "RandomForest")
 
     # Tamaño de los modelos guardados (MB)
-    ruta_svm = DIR_CKPT / f"hce_svm_R{R}.joblib"
-    ruta_rf  = DIR_CKPT / f"hce_rf_R{R}.joblib"
-    ruta_scaler = DIR_CKPT / f"hce_scaler_R{R}.joblib"
+    ruta_svm = dir_ckpt / f"hce_svm_R{R}.joblib"
+    ruta_rf  = dir_ckpt / f"hce_rf_R{R}.joblib"
+    ruta_scaler = dir_ckpt / f"hce_scaler_R{R}.joblib"
 
     joblib.dump(svm_modelo, ruta_svm)
     joblib.dump(rf_modelo,  ruta_rf)
@@ -329,7 +372,6 @@ def main():
     tam_rf_mb  = ruta_rf.stat().st_size / 1e6
 
     # Feature importances del Random Forest (interpretabilidad)
-    nombres = nombres_features(L)
     importancias = sorted(
         zip(nombres, rf_modelo.feature_importances_),
         key=lambda t: -t[1],
@@ -368,7 +410,7 @@ def main():
         },
     }
 
-    ruta_resumen = DIR_RESULTADOS / f"resumen_hce_R{R}.json"
+    ruta_resumen = dir_resultados / f"resumen_hce_R{R}.json"
     with open(ruta_resumen, "w") as f:
         json.dump(resumen, f, indent=2)
 
