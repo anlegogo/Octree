@@ -13,7 +13,7 @@ Uso:
 import shutil
 from pathlib import Path
 
-RAIZ = Path(r"C:\Users\ricar\Documents\Codigos\Tesis")
+RAIZ = Path(__file__).resolve().parent.parent
 DIR_LOGS = RAIZ / "logs"
 DIR_RESULTADOS = RAIZ / "resultados"
 DIR_REGISTROS = RAIZ / "Registros"

@@ -29,8 +29,9 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from pathlib import Path
 
-DIR_RESULTADOS = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\resultados")
-DIR_LOGS       = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\logs")
+RAIZ_PROYECTO  = Path(__file__).resolve().parent.parent
+DIR_RESULTADOS = RAIZ_PROYECTO / "resultados"
+DIR_LOGS       = RAIZ_PROYECTO / "logs"
 
 
 # ──────────────────────────────────────────────────────────────

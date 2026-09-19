@@ -1,276 +1,455 @@
-"""
-preprocesar_octrees.py - Fase 2
-=================================
-Convierte TODO el dataset ModelNet40 (train + test) a un OCTREE REAL
-(arbol con nodo raiz, subdivision recursiva y poda de ramas vacias,
-ver octree_real.py) en ambas resoluciones (32^3 y 64^3), y lo guarda
-en disco en FORMATO DISPERSO -- solo las hojas ocupadas, no una
-rejilla densa R^3.
+"""Genera el conjunto definitivo de octrees del objetivo especifico 1.
 
-CAMBIO IMPORTANTE respecto a versiones anteriores: el .npz generado
-ya NO contiene un array denso (4, R, R, R). Contiene unicamente los
-centros y normales de las hojas ocupadas del arbol real, mas la
-etiqueta de clase y la profundidad maxima. El tamaño en disco es
-proporcional al numero de hojas ocupadas (tipicamente 1-3% de R^3),
-no al volumen total del espacio.
-
-Estructura de salida:
-    data/octrees_32/<clase>/<split>/<archivo>.npz
-    data/octrees_64/<clase>/<split>/<archivo>.npz
-
-Cada .npz contiene (ver octree_real.py::guardar_octree_disperso):
-    centros_hoja    : array (N_hojas, 3) float32
-    normales_hoja   : array (N_hojas, 3) float32
-    etiqueta        : int (indice de clase)
-    profundidad_max : int (L de la hoja: 5 para R=32, 6 para R=64)
-
-La materializacion a grid denso (necesaria solo para alimentar Net5,
-que usa Conv3d) ocurre en el Dataset de PyTorch en el momento de cargar
-cada muestra (ver fase3_net5/net5_dataset.py), nunca se persiste densa
-en disco.
-
-Uso:
-    python preprocesar_octrees.py
+La ejecucion parte exclusivamente de las mallas ``.off`` de ModelNet40,
+muestrea una sola nube por modelo y usa esa misma nube para las
+resoluciones 32^3 y 64^3. Cada salida incluye un octree v1 validado y un
+manifiesto trazable. No se ejecutan HCE, clasificadores ni Net5.
 """
 
+from __future__ import annotations
+
+import argparse
+import csv
+import os
 import sys
+import tempfile
 import time
-import json
-import numpy as np
-from pathlib import Path
+import tracemalloc
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from tqdm import tqdm
+from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
-from octree import leer_off, normalizar_malla, muestrear_superficie_con_normales, profundidad_de
-from octree_real import (
-    construir_octree, guardar_octree_disperso, recolectar_hojas,
-    contar_nodos_totales,
+import numpy as np
+
+RAIZ_PROYECTO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from octree import (  # noqa: E402
+    construir_grid_octree,
+    leer_off,
+    muestrear_superficie_con_normales,
+    normalizar_malla,
+    profundidad_de,
+)
+from octree_real import (  # noqa: E402
+    OCTREE_FORMAT_VERSION,
+    carga_binaria_sin_comprimir,
+    carga_npz_sin_comprimir,
+    construir_octree,
+    guardar_octree_disperso,
+    medir_memoria_real_python,
+    octree_a_grid_denso,
+    reconstruir_octree_desde_npz,
+)
+from validacion_objetivo1 import (  # noqa: E402
+    guardar_json_atomico,
+    manifiesto_base,
+    metricas_estructura,
+    semilla_estable_modelo,
+    sha256_archivo,
+    validar_equivalencia_denso_octree,
 )
 
-# ── Configuracion ──────────────────────────────────────────────
-RAIZ_DATASET = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\Dataset\ModelNet40")
-RAIZ_SALIDA  = Path(r"C:\Users\ricar\Documents\Codigos\Tesis\data")
-RESOLUCIONES = [32, 64]
-N_PUNTOS_MUESTREO = 20000
-SEED = 42
-N_PROCESOS = 10  # Ryzen 7 5700X: 8 nucleos/16 hilos. Dejamos algo de margen para el sistema.
+try:
+    from tqdm import tqdm
+except ImportError:  # pragma: no cover - solo afecta la barra visual
+    def tqdm(iterable, **_kwargs):
+        return iterable
 
-CLASES = [
-    "airplane", "bathtub", "bed", "bench", "bookshelf",
-    "bottle", "bowl", "car", "chair", "cone",
-    "cup", "curtain", "desk", "door", "dresser",
-    "flower_pot", "glass_box", "guitar", "keyboard", "lamp",
-    "laptop", "mantel", "monitor", "night_stand", "person",
-    "piano", "plant", "radio", "range_hood", "sink",
-    "sofa", "stairs", "stool", "table", "tent",
-    "toilet", "tv_stand", "vase", "wardrobe", "xbox",
+
+CLASES_MODELNET40 = [
+    "airplane", "bathtub", "bed", "bench", "bookshelf", "bottle",
+    "bowl", "car", "chair", "cone", "cup", "curtain", "desk", "door",
+    "dresser", "flower_pot", "glass_box", "guitar", "keyboard", "lamp",
+    "laptop", "mantel", "monitor", "night_stand", "person", "piano",
+    "plant", "radio", "range_hood", "sink", "sofa", "stairs", "stool",
+    "table", "tent", "toilet", "tv_stand", "vase", "wardrobe", "xbox",
 ]
-CLASE2IDX = {c: i for i, c in enumerate(CLASES)}
+CLASE_A_INDICE = {clase: indice for indice, clase in enumerate(CLASES_MODELNET40)}
+CONTEOS_OFICIALES = {"train": 9843, "test": 2468}
 
 
-# ──────────────────────────────────────────────────────────────
-# RECOLECCION DE ARCHIVOS
-# ──────────────────────────────────────────────────────────────
-
-def recolectar_archivos(raiz: Path, split: str) -> list:
-    """Retorna lista de (ruta_off, etiqueta_int, nombre_archivo, clase)."""
-    muestras = []
-    for clase in CLASES:
-        carpeta = raiz / clase / split
-        if not carpeta.exists():
-            continue
-        etiqueta = CLASE2IDX[clase]
-        for archivo in sorted(carpeta.glob("*.off")):
-            muestras.append((str(archivo), etiqueta, archivo.stem, clase))
-    return muestras
+def _validar_resolucion(resolucion: int) -> None:
+    if resolucion < 2 or resolucion & (resolucion - 1):
+        raise ValueError(f"La resolucion debe ser potencia de dos: {resolucion}")
 
 
-# ──────────────────────────────────────────────────────────────
-# PROCESAMIENTO DE UNA MUESTRA (ejecutado en worker process)
-# ──────────────────────────────────────────────────────────────
+def recolectar_modelos(dataset_root: Path, splits: list[str]) -> list[dict]:
+    """Enumera ModelNet40 en un orden canonico e independiente del sistema."""
+    modelos = []
+    for split in splits:
+        for categoria in CLASES_MODELNET40:
+            directorio = dataset_root / categoria / split
+            for ruta in sorted(directorio.glob("*.off")):
+                relativa = ruta.relative_to(dataset_root).as_posix()
+                modelos.append({
+                    "ruta": str(ruta),
+                    "ruta_relativa": relativa,
+                    "model_id": ruta.stem,
+                    "categoria": categoria,
+                    "etiqueta": CLASE_A_INDICE[categoria],
+                    "split": split,
+                })
+    return modelos
 
-def procesar_una_muestra(args: tuple) -> tuple:
-    """
-    Procesa un archivo .off: construye el octree REAL (con poda) para
-    cada resolucion y guarda su forma DISPERSA en disco.
 
-    Retorna (nombre_archivo, exito: bool, error: str|None, stats: dict|None)
-    stats contiene, por resolucion, el numero de hojas ocupadas y el
-    numero total de nodos del arbol, para el resumen final de ahorro
-    de memoria.
-    """
-    ruta_off, etiqueta, nombre, clase, split, idx_global = args
-
+def _guardar_npz_atomico(raiz, destino: Path, etiqueta: int,
+                         profundidad_max: int, metadatos: dict) -> None:
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporal = tempfile.mkstemp(
+        prefix=f".{destino.stem}.", suffix=".npz", dir=destino.parent,
+    )
+    os.close(descriptor)
     try:
-        # Leer y normalizar la malla UNA sola vez (compartido entre
-        # resoluciones, ya que el muestreo de puntos es identico salvo
-        # por la seed determinista por muestra)
-        verts, caras = leer_off(ruta_off)
-        verts = normalizar_malla(verts)
+        guardar_octree_disperso(
+            raiz, temporal, etiqueta, profundidad_max, metadatos=metadatos,
+        )
+        os.replace(temporal, destino)
+    except Exception:
+        try:
+            os.unlink(temporal)
+        except FileNotFoundError:
+            pass
+        raise
 
-        rng = np.random.default_rng(SEED + idx_global)
-        pts, normales = muestrear_superficie_con_normales(
-            verts, caras, N_PUNTOS_MUESTREO, rng,
+
+def _tamano_npz_denso_temporal(grid: np.ndarray, directorio: Path) -> int:
+    directorio.mkdir(parents=True, exist_ok=True)
+    descriptor, temporal = tempfile.mkstemp(suffix=".npz", dir=directorio)
+    os.close(descriptor)
+    try:
+        np.savez_compressed(temporal, grid=grid)
+        return Path(temporal).stat().st_size
+    finally:
+        try:
+            os.unlink(temporal)
+        except FileNotFoundError:
+            pass
+
+
+def procesar_modelo(tarea: dict) -> dict:
+    """Procesa un modelo de forma autocontenida; funcion segura para workers."""
+    ruta = Path(tarea["ruta"])
+    output_root = Path(tarea["output_root"])
+    manifest_root = Path(tarea["manifest_root"])
+    resoluciones = tarea["resoluciones"]
+    semilla_modelo = semilla_estable_modelo(
+        tarea["semilla_base"], tarea["ruta_relativa"],
+    )
+    sha_origen = sha256_archivo(ruta)
+
+    t0 = time.perf_counter()
+    vertices, caras = leer_off(str(ruta))
+    vertices = normalizar_malla(vertices)
+    rng = np.random.default_rng(semilla_modelo)
+    puntos, normales = muestrear_superficie_con_normales(
+        vertices, caras, tarea["n_puntos"], rng,
+    )
+    tiempo_preparacion_ms = (time.perf_counter() - t0) * 1000.0
+
+    manifiesto = manifiesto_base(
+        model_id=tarea["model_id"],
+        categoria=tarea["categoria"],
+        split=tarea["split"],
+        ruta_origen_relativa=tarea["ruta_relativa"],
+        sha256_origen=sha_origen,
+        semilla_base=tarea["semilla_base"],
+        semilla_muestreo=semilla_modelo,
+        n_puntos_muestreo=tarea["n_puntos"],
+    )
+    manifiesto["tiempo_preparacion_nube_ms"] = tiempo_preparacion_ms
+
+    filas = []
+    for resolucion in resoluciones:
+        _validar_resolucion(resolucion)
+        profundidad_max = profundidad_de(resolucion)
+
+        tracemalloc.start()
+        t0 = time.perf_counter()
+        raiz = construir_octree(puntos, normales, profundidad_max)
+        tiempo_construccion_ms = (time.perf_counter() - t0) * 1000.0
+        _, memoria_pico = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        estructura = metricas_estructura(raiz, resolucion, profundidad_max)
+        memoria_python = medir_memoria_real_python(raiz)
+        carga_binaria = carga_binaria_sin_comprimir(raiz)
+
+        t0 = time.perf_counter()
+        grid_directo = construir_grid_octree(puntos, normales, resolucion)
+        tiempo_denso_ms = (time.perf_counter() - t0) * 1000.0
+        grid_arbol = octree_a_grid_denso(raiz, resolucion)
+        equivalencia = validar_equivalencia_denso_octree(
+            puntos, normales, raiz, resolucion,
+            grid_directo=grid_directo, grid_arbol=grid_arbol,
         )
 
-        stats = {}
-        for R in RESOLUCIONES:
-            profundidad_max = profundidad_de(R)   # 5 para R=32, 6 para R=64
+        destino = (
+            output_root / f"octrees_{resolucion}" / tarea["categoria"]
+            / tarea["split"] / f"{tarea['model_id']}.npz"
+        )
+        if destino.exists() and not tarea["sobrescribir"]:
+            raise FileExistsError(
+                f"Ya existe {destino}; use --sobrescribir para regenerarlo"
+            )
 
-            raiz = construir_octree(pts, normales, profundidad_max=profundidad_max)
+        metadatos_npz = {
+            "model_id": tarea["model_id"],
+            "categoria": tarea["categoria"],
+            "split": tarea["split"],
+            "semilla_muestreo": semilla_modelo,
+            "n_puntos_muestreo": tarea["n_puntos"],
+            "archivo_origen_sha256": sha_origen,
+        }
+        t0 = time.perf_counter()
+        _guardar_npz_atomico(
+            raiz, destino, tarea["etiqueta"], profundidad_max, metadatos_npz,
+        )
+        tiempo_guardado_ms = (time.perf_counter() - t0) * 1000.0
 
-            dir_salida = RAIZ_SALIDA / f"octrees_{R}" / clase / split
-            dir_salida.mkdir(parents=True, exist_ok=True)
-            ruta_salida = dir_salida / f"{nombre}.npz"
+        # Verificacion del archivo realmente escrito: cargar, reconstruir y
+        # volver a comparar contra la rejilla construida desde los puntos.
+        raiz_cargada, etiqueta_cargada, profundidad_cargada = (
+            reconstruir_octree_desde_npz(str(destino))
+        )
+        if etiqueta_cargada != tarea["etiqueta"]:
+            raise AssertionError("La etiqueta cambio durante la persistencia")
+        if profundidad_cargada != profundidad_max:
+            raise AssertionError("La profundidad cambio durante la persistencia")
+        equivalencia_persistida = validar_equivalencia_denso_octree(
+            puntos, normales, raiz_cargada, resolucion,
+            grid_directo=grid_directo,
+        )
 
-            guardar_octree_disperso(raiz, str(ruta_salida), etiqueta, profundidad_max)
+        tamano_npz = destino.stat().st_size
+        carga_npz = carga_npz_sin_comprimir(destino)
+        tamano_npz_denso = _tamano_npz_denso_temporal(
+            grid_directo, output_root / ".temp_referencia_densa",
+        )
+        salida_relativa = destino.relative_to(output_root).as_posix()
+        datos_resolucion = {
+            "resolucion": resolucion,
+            "profundidad_max": profundidad_max,
+            **estructura,
+            "tiempo_construccion_ms": tiempo_construccion_ms,
+            "tiempo_guardado_ms": tiempo_guardado_ms,
+            "memoria_pico_construccion_bytes": int(memoria_pico),
+            "memoria_estructura_python_bytes": memoria_python["memoria_python_bytes"],
+            "carga_binaria_nodos_sin_comprimir_bytes": carga_binaria["total_bytes"],
+            "carga_binaria_sin_comprimir_bytes": carga_npz["total_bytes"],
+            "bytes_binarios_por_nodo": carga_binaria["bytes_por_nodo"],
+            "tamano_npz_bytes": tamano_npz,
+            "archivo_npz": salida_relativa,
+            "archivo_npz_sha256": sha256_archivo(destino),
+            "referencia_densa": {
+                "forma": list(grid_directo.shape),
+                "dtype": str(grid_directo.dtype),
+                "tiempo_construccion_ms": tiempo_denso_ms,
+                "carga_sin_comprimir_bytes": int(grid_directo.nbytes),
+                "tamano_npz_comprimido_bytes": int(tamano_npz_denso),
+            },
+            "equivalencia_antes_guardado": equivalencia,
+            "equivalencia_despues_carga": equivalencia_persistida,
+        }
+        manifiesto["salidas"][str(resolucion)] = datos_resolucion
 
-            n_hojas = len(recolectar_hojas(raiz))
-            n_nodos = contar_nodos_totales(raiz)
-            tam_archivo_kb = ruta_salida.stat().st_size / 1024
+        filas.append({
+            "model_id": tarea["model_id"],
+            "categoria": tarea["categoria"],
+            "split": tarea["split"],
+            "semilla_muestreo": semilla_modelo,
+            **{clave: valor for clave, valor in datos_resolucion.items()
+               if clave not in {"referencia_densa", "equivalencia_antes_guardado",
+                                "equivalencia_despues_carga", "nodos_por_nivel"}},
+            "nodos_por_nivel": "|".join(map(str, estructura["nodos_por_nivel"])),
+            "densa_carga_sin_comprimir_bytes": int(grid_directo.nbytes),
+            "densa_tamano_npz_comprimido_bytes": int(tamano_npz_denso),
+            "equivalencia": True,
+        })
 
-            stats[R] = {
-                "n_hojas": n_hojas,
-                "n_nodos_arbol": n_nodos,
-                "tam_archivo_kb": round(tam_archivo_kb, 3),
-            }
-
-        return (nombre, True, None, stats)
-
-    except Exception as e:
-        return (nombre, False, str(e), None)
-
-
-# ──────────────────────────────────────────────────────────────
-# MAIN: procesar train y test en paralelo
-# ──────────────────────────────────────────────────────────────
-
-def procesar_split(split: str):
-    print(f"\n{'='*60}")
-    print(f"  Procesando split: {split.upper()}")
-    print(f"{'='*60}")
-
-    muestras = recolectar_archivos(RAIZ_DATASET, split)
-    print(f"  Archivos encontrados: {len(muestras)}")
-
-    if len(muestras) == 0:
-        print(f"  ADVERTENCIA: no se encontraron archivos para '{split}'")
-        return [], [], {}
-
-    tareas = [
-        (ruta, etiqueta, nombre, clase, split, i)
-        for i, (ruta, etiqueta, nombre, clase) in enumerate(muestras)
-    ]
-
-    exitosos = []
-    fallidos  = []
-    stats_por_resolucion = {R: {"n_hojas": [], "n_nodos_arbol": [], "tam_archivo_kb": []}
-                            for R in RESOLUCIONES}
-
-    t0 = time.time()
-    with ProcessPoolExecutor(max_workers=N_PROCESOS) as executor:
-        futuros = {executor.submit(procesar_una_muestra, t): t for t in tareas}
-
-        barra = tqdm(as_completed(futuros), total=len(futuros), ncols=80, desc=f"  {split}")
-        for futuro in barra:
-            nombre, exito, error, stats = futuro.result()
-            if exito:
-                exitosos.append(nombre)
-                for R in RESOLUCIONES:
-                    stats_por_resolucion[R]["n_hojas"].append(stats[R]["n_hojas"])
-                    stats_por_resolucion[R]["n_nodos_arbol"].append(stats[R]["n_nodos_arbol"])
-                    stats_por_resolucion[R]["tam_archivo_kb"].append(stats[R]["tam_archivo_kb"])
-            else:
-                fallidos.append((nombre, error))
-
-    t1 = time.time()
-
-    print(f"\n  Completado en {(t1-t0)/60:.1f} min")
-    print(f"  Exitosos : {len(exitosos)}")
-    print(f"  Fallidos : {len(fallidos)}")
-
-    if fallidos:
-        print("\n  Primeros errores:")
-        for nombre, error in fallidos[:5]:
-            print(f"    {nombre}: {error}")
-
-    # Resumen de ahorro de memoria (disperso vs. formato denso anterior)
-    print(f"\n  Resumen de almacenamiento disperso ({split}):")
-    for R in RESOLUCIONES:
-        s = stats_por_resolucion[R]
-        if not s["n_hojas"]:
-            continue
-        n_hojas_media = np.mean(s["n_hojas"])
-        tam_kb_media = np.mean(s["tam_archivo_kb"])
-        tam_kb_total = np.sum(s["tam_archivo_kb"])
-        mem_densa_kb = 4 * (R ** 3) * 4 / 1024   # 4 canales, float32, formato anterior
-        mem_densa_total_mb = len(exitosos) * mem_densa_kb / 1024
-
-        print(f"    R={R}^3:")
-        print(f"      Hojas ocupadas (media)    : {n_hojas_media:.0f}")
-        print(f"      Tamano .npz (media)       : {tam_kb_media:.2f} KB")
-        print(f"      Tamano .npz (total split) : {tam_kb_total/1024:.1f} MB")
-        print(f"      Memoria densa equivalente : {mem_densa_total_mb:.1f} MB "
-              f"(formato anterior, ya no se usa)")
-        if tam_kb_total > 0:
-            print(f"      Factor de ahorro          : "
-                  f"{(mem_densa_total_mb*1024)/tam_kb_total:.1f}x")
-
-    return exitosos, fallidos, stats_por_resolucion
+    ruta_manifiesto = (
+        manifest_root / tarea["categoria"] / tarea["split"]
+        / f"{tarea['model_id']}.json"
+    )
+    guardar_json_atomico(manifiesto, ruta_manifiesto)
+    return {
+        "ok": True,
+        "model_id": tarea["model_id"],
+        "categoria": tarea["categoria"],
+        "split": tarea["split"],
+        "manifiesto": str(ruta_manifiesto),
+        "filas": filas,
+    }
 
 
-def main():
-    print("=" * 60)
-    print("  FASE 2: PREPROCESAMIENTO DE OCTREES REALES (32^3 y 64^3)")
-    print("  Formato de salida: DISPERSO (solo hojas ocupadas)")
-    print("=" * 60)
-    print(f"  Dataset origen : {RAIZ_DATASET}")
-    print(f"  Salida         : {RAIZ_SALIDA}")
-    print(f"  Resoluciones   : {RESOLUCIONES}")
-    print(f"  Puntos muestreo: {N_PUNTOS_MUESTREO}")
-    print(f"  Procesos       : {N_PROCESOS}")
+def _escribir_csv_atomico(filas: list[dict], destino: Path) -> None:
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporal = tempfile.mkstemp(
+        prefix=f".{destino.name}.", suffix=".tmp", dir=destino.parent,
+    )
+    os.close(descriptor)
+    try:
+        campos = sorted({clave for fila in filas for clave in fila})
+        with open(temporal, "w", newline="", encoding="utf-8") as archivo:
+            escritor = csv.DictWriter(archivo, fieldnames=campos)
+            escritor.writeheader()
+            escritor.writerows(filas)
+        os.replace(temporal, destino)
+    except Exception:
+        try:
+            os.unlink(temporal)
+        except FileNotFoundError:
+            pass
+        raise
 
-    resumen = {}
-    stats_globales = {}
-    for split in ["train", "test"]:
-        exitosos, fallidos, stats = procesar_split(split)
-        resumen[split] = {"exitosos": len(exitosos), "fallidos": len(fallidos)}
-        stats_globales[split] = stats
 
-    print("\n" + "=" * 60)
-    print("  RESUMEN FINAL")
-    print("=" * 60)
-    for split, datos in resumen.items():
-        print(f"  {split:10s}: {datos['exitosos']} exitosos, {datos['fallidos']} fallidos")
-    print(f"\n  Archivos guardados en: {RAIZ_SALIDA}")
-    print("  Estructura: data/octrees_<R>/<clase>/<split>/<archivo>.npz")
-    print("  Formato: DISPERSO (centros_hoja, normales_hoja, etiqueta, profundidad_max)")
-    print("=" * 60)
+def construir_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Genera y valida los octrees definitivos de ModelNet40",
+    )
+    parser.add_argument(
+        "--dataset-root", type=Path,
+        default=RAIZ_PROYECTO / "Dataset" / "ModelNet40",
+        help="Directorio que contiene las 40 carpetas de ModelNet40",
+    )
+    parser.add_argument(
+        "--output-root", type=Path, default=RAIZ_PROYECTO / "data",
+        help="Directorio para octrees_<R>/ y manifests/",
+    )
+    parser.add_argument(
+        "--resultados-dir", type=Path,
+        default=RAIZ_PROYECTO / "resultados" / "objetivo1",
+    )
+    parser.add_argument("--resoluciones", type=int, nargs="+", default=[32, 64])
+    parser.add_argument("--splits", nargs="+", choices=["train", "test"],
+                        default=["train", "test"])
+    parser.add_argument("--n-puntos", type=int, default=20000)
+    parser.add_argument("--semilla", type=int, default=42)
+    parser.add_argument("--procesos", type=int,
+                        default=max(1, (os.cpu_count() or 2) - 1))
+    parser.add_argument(
+        "--limite", type=int, default=None,
+        help="Limite global para una prueba corta; omitir en la corrida final",
+    )
+    parser.add_argument("--sobrescribir", action="store_true")
+    return parser
 
-    # Guardar estadisticas de ahorro de memoria para citar en la tesis
-    resumen_memoria = {}
-    for split, stats in stats_globales.items():
-        resumen_memoria[split] = {}
-        for R, s in stats.items():
-            if not s["n_hojas"]:
-                continue
-            resumen_memoria[split][str(R)] = {
-                "n_objetos": len(s["n_hojas"]),
-                "hojas_media": round(float(np.mean(s["n_hojas"])), 1),
-                "hojas_std": round(float(np.std(s["n_hojas"])), 1),
-                "tam_npz_medio_kb": round(float(np.mean(s["tam_archivo_kb"])), 3),
-                "tam_npz_total_mb": round(float(np.sum(s["tam_archivo_kb"])) / 1024, 2),
-                "mem_densa_equivalente_total_mb": round(
-                    len(s["n_hojas"]) * 4 * (R**3) * 4 / 1024 / 1024, 1
-                ),
-            }
 
-    ruta_json = RAIZ_SALIDA / "resumen_preprocesamiento_disperso.json"
-    with open(ruta_json, "w") as f:
-        json.dump(resumen_memoria, f, indent=2)
-    print(f"\n  Resumen de ahorro de memoria guardado en: {ruta_json}")
+def main() -> int:
+    args = construir_parser().parse_args()
+    dataset_root = args.dataset_root.resolve()
+    output_root = args.output_root.resolve()
+    resultados_dir = args.resultados_dir.resolve()
+    manifest_root = output_root / "manifests"
+
+    for resolucion in args.resoluciones:
+        _validar_resolucion(resolucion)
+    if args.n_puntos <= 0 or args.procesos <= 0:
+        raise ValueError("--n-puntos y --procesos deben ser positivos")
+    if not dataset_root.is_dir():
+        raise FileNotFoundError(
+            f"No se encontro ModelNet40 en {dataset_root}. "
+            "Indique la ubicacion con --dataset-root."
+        )
+
+    modelos = recolectar_modelos(dataset_root, args.splits)
+    conteos_encontrados = {
+        split: sum(modelo["split"] == split for modelo in modelos)
+        for split in args.splits
+    }
+    if args.limite is not None:
+        modelos = modelos[:args.limite]
+    if not modelos:
+        raise RuntimeError("No se encontraron archivos .off en la estructura esperada")
+
+    print("=" * 72)
+    print("OBJETIVO ESPECIFICO 1 — GENERACION VALIDADA DE OCTREES")
+    print(f"Dataset      : {dataset_root}")
+    print(f"Modelos      : {len(modelos)}")
+    print(f"Resoluciones : {args.resoluciones}")
+    print(f"Formato      : {OCTREE_FORMAT_VERSION}")
+    print(f"Procesos     : {args.procesos}")
+    print("=" * 72)
+
+    tareas = []
+    for modelo in modelos:
+        tareas.append({
+            **modelo,
+            "output_root": str(output_root),
+            "manifest_root": str(manifest_root),
+            "resoluciones": list(args.resoluciones),
+            "n_puntos": args.n_puntos,
+            "semilla_base": args.semilla,
+            "sobrescribir": args.sobrescribir,
+        })
+
+    resultados = []
+    errores = []
+    inicio = time.perf_counter()
+
+    if args.procesos == 1:
+        iterador = tqdm(tareas, total=len(tareas), desc="Modelos", ncols=88)
+        for tarea in iterador:
+            try:
+                resultados.append(procesar_modelo(tarea))
+            except Exception as exc:  # continuar y consolidar todos los fallos
+                errores.append({
+                    "model_id": tarea["model_id"],
+                    "categoria": tarea["categoria"],
+                    "split": tarea["split"],
+                    "error": f"{type(exc).__name__}: {exc}",
+                })
+    else:
+        with ProcessPoolExecutor(max_workers=args.procesos) as executor:
+            futuros = {executor.submit(procesar_modelo, tarea): tarea for tarea in tareas}
+            for futuro in tqdm(
+                as_completed(futuros), total=len(futuros), desc="Modelos", ncols=88,
+            ):
+                tarea = futuros[futuro]
+                try:
+                    resultados.append(futuro.result())
+                except Exception as exc:
+                    errores.append({
+                        "model_id": tarea["model_id"],
+                        "categoria": tarea["categoria"],
+                        "split": tarea["split"],
+                        "error": f"{type(exc).__name__}: {exc}",
+                    })
+
+    duracion_s = time.perf_counter() - inicio
+    filas = [fila for resultado in resultados for fila in resultado["filas"]]
+    _escribir_csv_atomico(filas, resultados_dir / "metricas_modelnet40.csv")
+
+    corrida_completa = (
+        args.limite is None
+        and set(args.splits) == {"train", "test"}
+        and set(args.resoluciones) == {32, 64}
+        and conteos_encontrados == CONTEOS_OFICIALES
+        and len(resultados) == sum(CONTEOS_OFICIALES.values())
+        and not errores
+    )
+    resumen = {
+        "octree_format_version": OCTREE_FORMAT_VERSION,
+        "dataset_root": str(dataset_root),
+        "output_root": str(output_root),
+        "resoluciones": args.resoluciones,
+        "n_puntos_muestreo": args.n_puntos,
+        "semilla_base": args.semilla,
+        "conteos_encontrados_antes_de_limite": conteos_encontrados,
+        "n_modelos_solicitados": len(modelos),
+        "n_modelos_exitosos": len(resultados),
+        "n_modelos_fallidos": len(errores),
+        "duracion_total_s": duracion_s,
+        "corrida_completa_modelnet40": corrida_completa,
+        "errores": errores,
+    }
+    guardar_json_atomico(resumen, resultados_dir / "resumen_ejecucion.json")
+
+    print(f"Exitosos : {len(resultados)}")
+    print(f"Fallidos : {len(errores)}")
+    print(f"Completo : {'SI' if corrida_completa else 'NO'}")
+    print(f"Resumen  : {resultados_dir / 'resumen_ejecucion.json'}")
+    return 0 if not errores else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

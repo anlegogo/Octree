@@ -7,17 +7,14 @@ mallas .OFF de ModelNet40.
 Flujo determinista (segun metodologia):
     1. Normalizacion   : escalado al cubo unitario [-1,1]^3, centrado en origen
     2. Muestreo         : nube de puntos uniforme sobre la superficie (area-weighted)
-    3. Cuantizacion     : grid denso equivalente al nivel hoja de un octree
-                          cuya raiz se identifica como L=0 (2^3, 8 nodos),
-                          con R = 2^(L+1). Hoja L=4 para 32^3, L=5 para 64^3.
+    3. Cuantizacion     : rejilla densa de referencia, construida directamente
+                          desde la nube con la misma particion espacial que las
+                          hojas del octree (R=2^d; d=5 y d=6).
     4. Codificacion     : cada nodo hoja almacena ocupacion + vector normal promedio
 
-La representacion final es un grid denso (voxel grid) de resolucion 2^L,
-donde cada celda ocupada contiene su vector normal promedio (nx,ny,nz)
-y un canal adicional de ocupacion binaria. Esto es equivalente a un
-octree completo "aplanado" a su nivel hoja, mas eficiente de procesar
-en GPU que un arbol disperso real, y trivialmente convertible de vuelta
-a estructura de arbol si se requiere.
+Este modulo produce la referencia densa usada para validar, celda por celda,
+las hojas del octree adaptativo implementado en ``octree_real.py``. La rejilla
+no se considera un octree ni reemplaza su estructura jerarquica.
 
 Canales por celda: [ocupacion, nx, ny, nz]  -> grid shape (4, R, R, R)
 """
@@ -172,29 +169,16 @@ def muestrear_superficie_con_normales(
 
 
 # ──────────────────────────────────────────────────────────────
-# 4. CUANTIZACION JERARQUICA + CODIFICACION
-#    Grid denso de resolucion R, equivalente al nivel hoja de un
-#    octree cuya raiz se identifica como L=0 (convencion documental:
-#    R = 2^(L+1), donde L=0 -> 2^3 con 8 nodos).
+# 4. CUANTIZACION DENSA DE REFERENCIA
+#    Grid de resolucion R, construido directamente desde los puntos y
+#    equivalente a la particion espacial del nivel hoja de un octree
+#    con profundidad d=log2(R).
 #    Canal 0: ocupacion binaria
 #    Canales 1-3: vector normal promedio de los puntos en esa celda
 # ──────────────────────────────────────────────────────────────
 
-# IMPORTANTE - dos convenciones distintas, no intercambiables:
-#
-# 1) PROFUNDIDAD_POR_RESOLUCION: numero de ITERACIONES usado
-#    internamente por ocupacion_por_nivel() (hce_extraccion.py) para
-#    reconstruir la jerarquia desde la hoja hasta 2^3 (sin llegar a
-#    1^3). Este valor NO debe reinterpretarse como una etiqueta "L".
-#    Se mantiene por compatibilidad con el codigo de extraccion HCE
-#    ya validado.
-#
-# 2) nivel_hoja(R): la etiqueta "L" que se presenta en el documento
-#    de tesis y en las figuras, bajo la convencion acordada con el
-#    profesor: la raiz conceptual es L=0 (resolucion 2^3, 8 nodos),
-#    y R = 2^(L+1). Bajo esta convencion, la hoja de 32^3 es L=4 y
-#    la hoja de 64^3 es L=5. Esta es la UNICA convencion que debe
-#    aparecer en texto, figuras y nombres de columnas del documento.
+# Convencion unica: raiz d=0, un nodo que cubre [-1,1]^3; R=2^d.
+# Por tanto, las hojas de 32^3 y 64^3 estan en d=5 y d=6.
 PROFUNDIDAD_POR_RESOLUCION = {32: 5, 64: 6}
 
 
@@ -407,10 +391,8 @@ def nivel_hoja(resolucion: int) -> int:
     Alias de profundidad_de(), mantenido por compatibilidad con codigo
     y figuras existentes que ya llaman a nivel_hoja(). Desde que se
     implemento el arbol real (octree_real.py), profundidad_de() y
-    nivel_hoja() son el MISMO valor: la convencion "L=0 en 2^3, 8 nodos"
-    usada anteriormente para las figuras de la rejilla densa quedo
-    reemplazada por la convencion matematica estandar de un octree con
-    raiz unica (ver docstring de octree_real.py).
+    nivel_hoja() son el MISMO valor y siguen la convencion matematica
+    estandar de un octree con raiz unica (ver octree_real.py).
         32^3 -> L=5 (hoja)
         64^3 -> L=6 (hoja)
     """

@@ -28,8 +28,27 @@ de verdad, se recomienda usar esta convencion matematica estandar
 que ahora si existe una raiz unica que puede mostrarse como tal.
 """
 
-import numpy as np
+import sys
 from pathlib import Path
+
+import numpy as np
+
+
+# Formato unico aprobado para los artefactos del objetivo especifico 1.
+# Cualquier cambio incompatible debe incrementar esta version y disponer
+# de una migracion explicita; los lectores rechazan silenciosamente los
+# formatos antiguos para evitar mezclar resultados no comparables.
+OCTREE_FORMAT_NAME = "octree_adaptativo_modelnet40"
+OCTREE_FORMAT_VERSION = "1.0.0"
+
+_METADATA_DEFAULTS = {
+    "model_id": "",
+    "categoria": "",
+    "split": "",
+    "semilla_muestreo": -1,
+    "n_puntos_muestreo": -1,
+    "archivo_origen_sha256": "",
+}
 
 
 # ──────────────────────────────────────────────────────────────
@@ -387,6 +406,37 @@ def _serializar_dfs(raiz: NodoOctree) -> tuple:
     )
 
 
+def _validar_arrays_serializados(
+    profundidades: np.ndarray,
+    mascaras: np.ndarray,
+    normales: np.ndarray,
+    coherencias: np.ndarray,
+    profundidad_max: int,
+) -> None:
+    """Valida la forma y las invariantes del formato antes de reconstruir."""
+    n_nodos = len(profundidades)
+    if n_nodos == 0:
+        raise ValueError("El archivo de octree no contiene nodos")
+    if profundidades.ndim != 1 or mascaras.ndim != 1 or coherencias.ndim != 1:
+        raise ValueError("Profundidades, mascaras y coherencias deben ser vectores")
+    if mascaras.shape != (n_nodos,) or coherencias.shape != (n_nodos,):
+        raise ValueError("Los arrays serializados no tienen la misma cantidad de nodos")
+    if normales.shape != (n_nodos, 3):
+        raise ValueError("El array de normales debe tener forma (n_nodos, 3)")
+    if int(profundidades[0]) != 0:
+        raise ValueError("El primer nodo serializado debe ser la raiz (profundidad 0)")
+    if int(profundidades.max()) != profundidad_max:
+        raise ValueError("La profundidad maxima declarada no coincide con los nodos")
+    if np.any(profundidades > profundidad_max):
+        raise ValueError("Se encontraron nodos por debajo de la profundidad maxima")
+    if np.any((mascaras == 0) & (profundidades != profundidad_max)):
+        raise ValueError("Todas las hojas ocupadas deben estar en la profundidad maxima")
+    if not np.isfinite(normales).all() or not np.isfinite(coherencias).all():
+        raise ValueError("El archivo contiene normales o coherencias no finitas")
+    if np.any(coherencias < -1e-6) or np.any(coherencias > 1.0 + 1e-5):
+        raise ValueError("La coherencia normal debe pertenecer al intervalo [0, 1]")
+
+
 def _reconstruir_dfs(profundidades: np.ndarray, mascaras: np.ndarray,
                      normales: np.ndarray, coherencias: np.ndarray) -> NodoOctree:
     """
@@ -400,11 +450,14 @@ def _reconstruir_dfs(profundidades: np.ndarray, mascaras: np.ndarray,
     puntero = [0]   # indice mutable de lectura sobre los arrays planos
 
     def _rec(centro, tamano, profundidad_esperada):
+        if puntero[0] >= len(profundidades):
+            raise ValueError("Estructura serializada truncada")
         i = puntero[0]
         profundidad = int(profundidades[i])
-        assert profundidad == profundidad_esperada, (
-            "Estructura serializada inconsistente: profundidad inesperada"
-        )
+        if profundidad != profundidad_esperada:
+            raise ValueError(
+                "Estructura serializada inconsistente: profundidad inesperada"
+            )
         mascara = int(mascaras[i])
         normal = normales[i]
         coherencia = float(coherencias[i])
@@ -432,14 +485,13 @@ def _reconstruir_dfs(profundidades: np.ndarray, mascaras: np.ndarray,
         return nodo
 
     raiz = _rec(centro=np.zeros(3, dtype=np.float32), tamano=2.0, profundidad_esperada=0)
-    assert puntero[0] == len(profundidades), (
-        "Estructura serializada inconsistente: sobraron o faltaron nodos"
-    )
+    if puntero[0] != len(profundidades):
+        raise ValueError("Estructura serializada inconsistente: sobraron nodos")
     return raiz
 
 
 def guardar_octree_disperso(raiz: NodoOctree, ruta_npz: str, etiqueta: int,
-                            profundidad_max: int) -> None:
+                            profundidad_max: int, metadatos: dict | None = None) -> None:
     """
     Guarda la ESTRUCTURA JERARQUICA COMPLETA del arbol (todos los nodos
     existentes, internos y hojas, con sus relaciones padre-hijo), no
@@ -448,16 +500,94 @@ def guardar_octree_disperso(raiz: NodoOctree, ruta_npz: str, etiqueta: int,
     muy por debajo de una rejilla densa R^3 (ver comparar_memoria()).
     """
     profundidades, mascaras, normales, coherencias = _serializar_dfs(raiz)
+    _validar_arrays_serializados(
+        profundidades, mascaras, normales, coherencias, profundidad_max,
+    )
+
+    metadata = dict(_METADATA_DEFAULTS)
+    if metadatos:
+        desconocidos = set(metadatos) - set(metadata)
+        if desconocidos:
+            raise ValueError(
+                "Metadatos no reconocidos: " + ", ".join(sorted(desconocidos))
+            )
+        metadata.update(metadatos)
+
+    resolucion = 2 ** int(profundidad_max)
 
     np.savez_compressed(
         ruta_npz,
+        format_name=np.asarray(OCTREE_FORMAT_NAME),
+        format_version=np.asarray(OCTREE_FORMAT_VERSION),
         profundidades=profundidades,
         mascaras=mascaras,
         normales=normales,
         coherencias=coherencias,
-        etiqueta=etiqueta,
-        profundidad_max=profundidad_max,
+        etiqueta=np.asarray(etiqueta, dtype=np.int16),
+        profundidad_max=np.asarray(profundidad_max, dtype=np.uint8),
+        resolucion=np.asarray(resolucion, dtype=np.uint16),
+        model_id=np.asarray(str(metadata["model_id"])),
+        categoria=np.asarray(str(metadata["categoria"])),
+        split=np.asarray(str(metadata["split"])),
+        semilla_muestreo=np.asarray(metadata["semilla_muestreo"], dtype=np.int64),
+        n_puntos_muestreo=np.asarray(metadata["n_puntos_muestreo"], dtype=np.int64),
+        archivo_origen_sha256=np.asarray(str(metadata["archivo_origen_sha256"])),
     )
+
+
+def _leer_npz_validado(ruta_npz: str) -> tuple[dict, dict]:
+    """Lee un NPZ v1, valida su esquema y retorna arrays y metadatos."""
+    campos_obligatorios = {
+        "format_name", "format_version", "profundidades", "mascaras",
+        "normales", "coherencias", "etiqueta", "profundidad_max",
+        "resolucion", "model_id", "categoria", "split",
+        "semilla_muestreo", "n_puntos_muestreo", "archivo_origen_sha256",
+    }
+    with np.load(ruta_npz, allow_pickle=False) as data:
+        faltantes = campos_obligatorios - set(data.files)
+        if faltantes:
+            raise ValueError(
+                "Formato de octree antiguo o incompleto; faltan campos: "
+                + ", ".join(sorted(faltantes))
+            )
+
+        format_name = str(data["format_name"].item())
+        format_version = str(data["format_version"].item())
+        if format_name != OCTREE_FORMAT_NAME:
+            raise ValueError(f"Formato de octree no reconocido: {format_name!r}")
+        if format_version != OCTREE_FORMAT_VERSION:
+            raise ValueError(
+                f"Version no compatible: {format_version!r}; "
+                f"se requiere {OCTREE_FORMAT_VERSION!r}"
+            )
+
+        arrays = {
+            "profundidades": np.asarray(data["profundidades"], dtype=np.uint8),
+            "mascaras": np.asarray(data["mascaras"], dtype=np.uint8),
+            "normales": np.asarray(data["normales"], dtype=np.float32),
+            "coherencias": np.asarray(data["coherencias"], dtype=np.float32),
+        }
+        metadatos = {
+            "format_name": format_name,
+            "format_version": format_version,
+            "etiqueta": int(data["etiqueta"].item()),
+            "profundidad_max": int(data["profundidad_max"].item()),
+            "resolucion": int(data["resolucion"].item()),
+            "model_id": str(data["model_id"].item()),
+            "categoria": str(data["categoria"].item()),
+            "split": str(data["split"].item()),
+            "semilla_muestreo": int(data["semilla_muestreo"].item()),
+            "n_puntos_muestreo": int(data["n_puntos_muestreo"].item()),
+            "archivo_origen_sha256": str(data["archivo_origen_sha256"].item()),
+        }
+
+    _validar_arrays_serializados(
+        arrays["profundidades"], arrays["mascaras"], arrays["normales"],
+        arrays["coherencias"], metadatos["profundidad_max"],
+    )
+    if metadatos["resolucion"] != 2 ** metadatos["profundidad_max"]:
+        raise ValueError("Resolucion y profundidad maxima son incompatibles")
+    return arrays, metadatos
 
 
 def reconstruir_octree_desde_npz(ruta_npz: str) -> tuple:
@@ -469,14 +599,49 @@ def reconstruir_octree_desde_npz(ruta_npz: str) -> tuple:
 
     Retorna (raiz: NodoOctree, etiqueta: int, profundidad_max: int).
     """
-    data = np.load(ruta_npz)
+    arrays, metadatos = _leer_npz_validado(ruta_npz)
     raiz = _reconstruir_dfs(
-        data["profundidades"], data["mascaras"], data["normales"],
-        data["coherencias"],
+        arrays["profundidades"], arrays["mascaras"], arrays["normales"],
+        arrays["coherencias"],
     )
-    etiqueta = int(data["etiqueta"])
-    profundidad_max = int(data["profundidad_max"])
+    etiqueta = metadatos["etiqueta"]
+    profundidad_max = metadatos["profundidad_max"]
     return raiz, etiqueta, profundidad_max
+
+
+def leer_metadatos_octree(ruta_npz: str) -> dict:
+    """Retorna los metadatos validados sin exponer arrays internos."""
+    _, metadatos = _leer_npz_validado(ruta_npz)
+    return metadatos
+
+
+def carga_binaria_sin_comprimir(raiz: NodoOctree) -> dict:
+    """Calcula el payload exacto de los cuatro arrays estructurales."""
+    profundidades, mascaras, normales, coherencias = _serializar_dfs(raiz)
+    componentes = {
+        "profundidades_bytes": int(profundidades.nbytes),
+        "mascaras_bytes": int(mascaras.nbytes),
+        "normales_bytes": int(normales.nbytes),
+        "coherencias_bytes": int(coherencias.nbytes),
+    }
+    componentes["total_bytes"] = sum(componentes.values())
+    componentes["bytes_por_nodo"] = 18
+    return componentes
+
+
+def carga_npz_sin_comprimir(ruta_npz: str | Path) -> dict:
+    """Suma los bytes de todos los arrays contenidos en un NPZ validado.
+
+    Esta magnitud incluye estructura y metadatos, pero excluye el overhead
+    del contenedor ZIP. Se reporta separada del tamaño comprimido real.
+    """
+    _leer_npz_validado(str(ruta_npz))
+    with np.load(ruta_npz, allow_pickle=False) as data:
+        por_campo = {campo: int(data[campo].nbytes) for campo in data.files}
+    return {
+        "por_campo_bytes": por_campo,
+        "total_bytes": int(sum(por_campo.values())),
+    }
 
 
 def cargar_octree_disperso(ruta_npz: str) -> dict:
@@ -487,7 +652,13 @@ def cargar_octree_disperso(ruta_npz: str) -> dict:
     devolviendo el mismo diccionario que la version anterior, mas el
     nuevo campo 'coherencias_hoja'.
     """
-    raiz, etiqueta, profundidad_max = reconstruir_octree_desde_npz(ruta_npz)
+    arrays, metadatos = _leer_npz_validado(ruta_npz)
+    raiz = _reconstruir_dfs(
+        arrays["profundidades"], arrays["mascaras"], arrays["normales"],
+        arrays["coherencias"],
+    )
+    etiqueta = metadatos["etiqueta"]
+    profundidad_max = metadatos["profundidad_max"]
     hojas = recolectar_hojas(raiz)
 
     n = len(hojas)
@@ -505,6 +676,7 @@ def cargar_octree_disperso(ruta_npz: str) -> dict:
         "coherencias_hoja": coherencias,
         "etiqueta": etiqueta,
         "profundidad_max": profundidad_max,
+        "metadatos": metadatos,
     }
 
 
@@ -594,9 +766,6 @@ def ocupacion_por_nivel_desde_hojas(centros_hoja: np.ndarray, profundidad_max: i
 # internos y hojas, tal como estan efectivamente representados en
 # memoria durante la ejecucion.
 
-import sys
-
-
 def medir_memoria_real_python(raiz: NodoOctree) -> dict:
     """
     Mide la memoria REAL en RAM ocupada por el arbol de objetos Python,
@@ -618,23 +787,36 @@ def medir_memoria_real_python(raiz: NodoOctree) -> dict:
     """
     n_nodos = [0]
     total_bytes = [0]
+    vistos = set()
+
+    def _sumar_una_vez(objeto):
+        if objeto is None:
+            return
+        identidad = id(objeto)
+        if identidad in vistos:
+            return
+        vistos.add(identidad)
+        total_bytes[0] += sys.getsizeof(objeto)
 
     def _rec(nodo):
         if nodo is None:
             return
         n_nodos[0] += 1
 
-        total_bytes[0] += sys.getsizeof(nodo)          # objeto NodoOctree
-        total_bytes[0] += sys.getsizeof(nodo.hijos)     # lista de 8 punteros
-        # CORRECCION (observacion de Andres Gonzalez): sys.getsizeof()
-        # sobre un array de numpy que posee su propio buffer YA INCLUYE
-        # el tamaño de los datos (equivalente a arr.nbytes + un pequeño
-        # overhead de objeto ~96-160 bytes). Sumar arr.nbytes de nuevo
-        # duplicaba esa memoria. Se usa unicamente sys.getsizeof().
-        total_bytes[0] += sys.getsizeof(nodo.centro)
-
-        if nodo.normal_promedio is not None:
-            total_bytes[0] += sys.getsizeof(nodo.normal_promedio)
+        # Se recorre el grafo de objetos retenido por el arbol y cada
+        # objeto se cuenta una sola vez. Ademas del nodo, la lista y los
+        # arrays, se incluyen los escalares referenciados por __slots__;
+        # la version anterior omitia, entre otros, normal_coherencia.
+        _sumar_una_vez(nodo)
+        _sumar_una_vez(nodo.hijos)
+        _sumar_una_vez(nodo.centro)
+        _sumar_una_vez(nodo.tamano)
+        _sumar_una_vez(nodo.profundidad)
+        _sumar_una_vez(nodo.ocupado)
+        _sumar_una_vez(nodo.es_hoja)
+        _sumar_una_vez(nodo.normal_promedio)
+        _sumar_una_vez(nodo.normal_coherencia)
+        _sumar_una_vez(nodo.n_puntos)
 
         if not nodo.es_hoja:
             for hijo in nodo.hijos:
@@ -666,7 +848,8 @@ def comparar_memoria(raiz: NodoOctree, resolucion: int, profundidad_max: int) ->
     2. memoria_binaria_estimada_kib: estimacion TEORICA (no medida) del
        tamaño minimo si se serializara el arbol en un formato binario
        compacto (1 byte profundidad + 1 byte mascara de hijos + 12
-       bytes de normal por CADA nodo existente, internos y hojas). Esta
+       bytes de normal + 4 bytes de coherencia por CADA nodo existente,
+       interno u hoja). Esta
        cifra NO es memoria de objetos Python; es una cota inferior de
        referencia para comparar contra el archivo .npz real (que ademas
        incluye compresion y overhead del formato .npz).
@@ -685,13 +868,11 @@ def comparar_memoria(raiz: NodoOctree, resolucion: int, profundidad_max: int) ->
 
     medicion_python = medir_memoria_real_python(raiz)
 
-    # Estimacion teorica de una serializacion binaria minima (NO es
-    # memoria de objetos Python): 1 byte profundidad + 1 byte mascara
-    # de hijos + 12 bytes de normal (3 floats), por CADA nodo existente
-    # (internos y hojas), igual al formato usado por
-    # guardar_octree_disperso() antes de la compresion .npz.
-    bytes_por_nodo_binario = 1 + 1 + 12
-    memoria_binaria_estimada_bytes = n_nodos_totales * bytes_por_nodo_binario
+    # Payload exacto del formato v1 sin compresion: 1 byte de profundidad,
+    # 1 byte de mascara, 12 bytes de normal y 4 bytes de coherencia.
+    # La version anterior omitia los 4 bytes de coherencia por nodo.
+    carga_binaria = carga_binaria_sin_comprimir(raiz)
+    memoria_binaria_estimada_bytes = carga_binaria["total_bytes"]
 
     # Memoria de la representacion densa equivalente EN PYTHON (formato
     # anterior, descartado). CORRECCION: antes se sumaba una formula
@@ -707,6 +888,8 @@ def comparar_memoria(raiz: NodoOctree, resolucion: int, profundidad_max: int) ->
         "n_nodos_totales_arbol": n_nodos_totales,
         "memoria_python_kib": medicion_python["memoria_python_kib"],
         "memoria_binaria_estimada_kib": round(memoria_binaria_estimada_bytes / 1024, 3),
+        "carga_binaria_sin_comprimir_bytes": memoria_binaria_estimada_bytes,
+        "bytes_binarios_por_nodo": carga_binaria["bytes_por_nodo"],
         "memoria_densa_kib": round(memoria_densa_bytes / 1024, 3),
         "factor_ahorro_python_vs_densa": round(
             memoria_densa_bytes / max(medicion_python["memoria_python_bytes"], 1), 2
