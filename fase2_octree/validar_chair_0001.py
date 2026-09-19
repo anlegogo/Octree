@@ -47,7 +47,8 @@ def validar(ruta_off: Path, n_puntos: int, semilla: int) -> dict:
     resultado = {
         "prueba": "chair_0001_equivalencia_y_persistencia",
         "octree_format_version": OCTREE_FORMAT_VERSION,
-        "archivo": str(ruta_off.resolve()),
+        # Guarda la ruta relativa al proyecto (ej. Dataset/ModelNet40/...)
+        "archivo": ruta_off.resolve().relative_to(RAIZ_PROYECTO.resolve()).as_posix(),
         "archivo_sha256": sha_origen,
         "semilla": semilla,
         "n_puntos": n_puntos,

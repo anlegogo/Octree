@@ -486,8 +486,9 @@ def main() -> int:
     resumen = {
         "octree_format_version": OCTREE_FORMAT_VERSION,
         "alcance_ejecucion": alcance,
-        "dataset_root": str(dataset_root),
-        "output_root": str(output_root),
+        # Guardan la ruta relativa al proyecto (ej. Dataset/ModelNet40 y data)
+        "dataset_root": dataset_root.resolve().relative_to(RAIZ_PROYECTO.resolve()).as_posix(),
+        "output_root": output_root.resolve().relative_to(RAIZ_PROYECTO.resolve()).as_posix(),
         "resoluciones": args.resoluciones,
         "n_puntos_muestreo": args.n_puntos,
         "semilla_base": args.semilla,
