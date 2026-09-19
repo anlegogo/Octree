@@ -1,0 +1,32 @@
+{
+  "alcance_ejecucion": "muestra_controlada",
+  "archivo_metricas": "metricas_muestra_controlada.csv",
+  "categorias_solicitadas": [
+    "airplane",
+    "car",
+    "chair",
+    "sofa",
+    "table"
+  ],
+  "conteos_encontrados_dataset": {
+    "test": 2468,
+    "train": 9843
+  },
+  "corrida_completa_modelnet40": false,
+  "dataset_root": "C:\\Users\\ricar\\Documents\\Codigos\\Tesis\\Dataset\\ModelNet40",
+  "duracion_total_s": 3.1834978000001684,
+  "errores": [],
+  "limite_global": null,
+  "muestra_por_categoria_split": 1,
+  "n_modelos_exitosos": 10,
+  "n_modelos_fallidos": 0,
+  "n_modelos_solicitados": 10,
+  "n_puntos_muestreo": 20000,
+  "octree_format_version": "1.0.0",
+  "output_root": "C:\\Users\\ricar\\Documents\\Codigos\\Tesis\\data\\objetivo1_muestra",
+  "resoluciones": [
+    32,
+    64
+  ],
+  "semilla_base": 42
+}
