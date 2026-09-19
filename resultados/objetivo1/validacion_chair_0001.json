@@ -1,5 +1,5 @@
 {
-  "archivo": "C:\\Users\\ricar\\Documents\\Codigos\\Tesis\\Dataset\\ModelNet40\\chair\\train\\chair_0001.off",
+  "archivo": "Dataset/ModelNet40/chair/train/chair_0001.off",
   "archivo_sha256": "1a45689801fb37fe8c91ed3ebd35ba5409f34cb5cd4eef8a26bace0432dd289c",
   "n_puntos": 20000,
   "octree_format_version": "1.0.0",

@@ -13,8 +13,8 @@
     "train": 9843
   },
   "corrida_completa_modelnet40": false,
-  "dataset_root": "C:\\Users\\ricar\\Documents\\Codigos\\Tesis\\Dataset\\ModelNet40",
-  "duracion_total_s": 3.312532800000554,
+  "dataset_root": "Dataset/ModelNet40",
+  "duracion_total_s": 3.1543733000000884,
   "errores": [],
   "limite_global": null,
   "muestra_por_categoria_split": 1,
@@ -23,7 +23,7 @@
   "n_modelos_solicitados": 10,
   "n_puntos_muestreo": 20000,
   "octree_format_version": "1.0.0",
-  "output_root": "C:\\Users\\ricar\\Documents\\Codigos\\Tesis\\data\\objetivo1_muestra",
+  "output_root": "data/objetivo1_muestra",
   "resoluciones": [
     32,
     64
