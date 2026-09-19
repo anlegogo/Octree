@@ -2,7 +2,6 @@ name: Objetivo 1 - pruebas
 
 on:
   push:
-    branches: [main, objetivo1-correcciones]
   pull_request:
 
 permissions:

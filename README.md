@@ -16,15 +16,16 @@ etapa.
 ## Estado de aceptación
 
 El código implementa el formato definitivo, las pruebas y la generación de
-métricas. El objetivo solo podrá declararse terminado cuando se ejecute
-ModelNet40 completo —9 843 modelos de entrenamiento y 2 468 de prueba— en
-32³ y 64³, sin errores, y el consolidador indique:
+métricas. La implementación correspondiente al objetivo específico 1 se valida
+con tres niveles de evidencia: pruebas sintéticas autocontenidas, la prueba
+controlada de `chair_0001` y una muestra pequeña de objetos reales de distintas
+categorías y particiones. **No es necesario procesar ModelNet40 completo para
+aceptar esta implementación.**
 
-```text
-ModelNet40 completo: SI
-```
-
-Los resultados antiguos de `resultados/` no sustituyen esa regeneración.
+La regeneración de los 12 311 modelos se realizará posteriormente, antes de la
+extracción de características y del entrenamiento de los clasificadores. Los
+resultados antiguos de `resultados/` no sustituyen las nuevas pruebas
+controladas.
 
 ## Componentes relevantes
 
@@ -34,12 +35,12 @@ Octree/
 │   ├── octree.py                    # lectura, normalización y rejilla densa
 │   ├── octree_real.py               # árbol adaptativo y formato NPZ v1
 │   ├── validacion_objetivo1.py      # equivalencia y manifiestos
-│   ├── preprocesar_octrees.py       # generación completa de ModelNet40
+│   ├── preprocesar_octrees.py       # muestra controlada o generación global
 │   ├── validar_chair_0001.py        # prueba controlada independiente
 │   └── visualizar_arbol_real.py     # visualización opcional con rutas CLI
 ├── Scripts_Analisis/
 │   ├── medir_tiempo_memoria.py      # medición controlada de un modelo
-│   └── medir_metricas_off.py        # verificación y consolidación final
+│   └── medir_metricas_off.py        # verificación de muestra o conjunto global
 ├── tests/                            # pruebas sintéticas autocontenidas
 ├── requirements-objetivo1.txt
 ├── pytest.ini
@@ -136,9 +137,9 @@ resultados/objetivo1/validacion_chair_0001.json
 
 La prueba debe superar tanto 32³ como 64³ antes de procesar el dataset.
 
-## 3. Diagnóstico con un solo modelo
+## 3. Prueba técnica con un solo modelo
 
-Antes de la corrida completa:
+Para comprobar rápidamente la integración del preprocesador:
 
 ```bash
 python fase2_octree/preprocesar_octrees.py \
@@ -148,10 +149,52 @@ python fase2_octree/preprocesar_octrees.py \
   --sobrescribir
 ```
 
-El resumen indicará `Completo: NO`, porque `--limite` crea deliberadamente una
-corrida corta. Esto no es un fallo.
+El resumen indicará `Alcance: PRUEBA PARCIAL`. Esto no es un fallo ni pretende
+ser la evidencia principal de aceptación.
 
-## 4. Generación completa
+## 4. Muestra controlada para aceptar el objetivo 1
+
+Después de validar `chair_0001`, se procesa una muestra determinista pequeña.
+El siguiente ejemplo toma un objeto de `train` y uno de `test` para cinco
+categorías de geometría diferente, siempre en 32³ y 64³:
+
+```bash
+python fase2_octree/preprocesar_octrees.py \
+  --dataset-root Dataset/ModelNet40 \
+  --output-root data/objetivo1_muestra \
+  --resultados-dir resultados/objetivo1/muestra_controlada \
+  --categorias airplane car chair sofa table \
+  --muestra-por-categoria-split 1 \
+  --resoluciones 32 64 \
+  --n-puntos 20000 \
+  --semilla 42 \
+  --procesos 4 \
+  --sobrescribir
+```
+
+La selección es canónica e independiente del sistema operativo. El resumen
+debe indicar `Alcance: MUESTRA CONTROLADA`, cero modelos fallidos y resultados
+de equivalencia verdaderos antes y después de la recarga.
+
+Para verificar y consolidar esta muestra:
+
+```bash
+python Scripts_Analisis/medir_metricas_off.py \
+  --manifests-dir data/objetivo1_muestra/manifests \
+  --output-root data/objetivo1_muestra \
+  --resultados-dir resultados/objetivo1/muestra_controlada \
+  --permitir-incompleto
+```
+
+La opción `--permitir-incompleto` significa aquí que se está verificando una
+muestra declarada, no que se toleren errores de formato, integridad,
+equivalencia o metadatos.
+
+## 5. Generación completa futura
+
+La siguiente ejecución **no forma parte de la aceptación inmediata del
+objetivo específico 1**. Se conserva para generar las entradas definitivas
+antes de comenzar la extracción de características y los clasificadores:
 
 ```bash
 python fase2_octree/preprocesar_octrees.py \
@@ -166,7 +209,8 @@ python fase2_octree/preprocesar_octrees.py \
 ```
 
 El número de procesos debe ajustarse a la memoria y a los núcleos disponibles.
-Omitir `--limite` es obligatorio en la ejecución final.
+En esa ejecución futura deben omitirse `--limite`, `--categorias` y
+`--muestra-por-categoria-split`.
 
 Para cada malla se realiza el siguiente procedimiento:
 
@@ -179,7 +223,8 @@ Para cada malla se realiza el siguiente procedimiento:
 7. repetición de la prueba de equivalencia después de cargar;
 8. escritura atómica del manifiesto y las métricas.
 
-Una salida parcial o con errores nunca se marca como ModelNet40 completo.
+Una muestra controlada nunca se presenta como ModelNet40 completo. De igual
+forma, una salida global parcial o con errores nunca se marca como completa.
 
 ## Formato definitivo del octree
 
@@ -260,9 +305,9 @@ de trabajadores.
 Las magnitudes no se mezclan: memoria pico, estructura residente, payload
 binario y archivo comprimido se conservan como mediciones distintas.
 
-## 5. Consolidación y verificación final
+## 6. Auditoría futura de ModelNet40 completo
 
-Después de generar todos los objetos:
+Después de generar todos los objetos en la etapa futura:
 
 ```bash
 python Scripts_Analisis/medir_metricas_off.py \
@@ -287,21 +332,26 @@ resultados/objetivo1/metricas_modelnet40_verificadas.csv
 resultados/objetivo1/resumen_metricas_modelnet40.json
 ```
 
-`--permitir-incompleto` está reservado para diagnósticos y nunca debe usarse
-para declarar cumplido el objetivo.
+Este modo estricto audita los conteos oficiales y no usa
+`--permitir-incompleto`.
 
 ## Criterio final de aprobación
 
-El objetivo específico 1 puede aprobarse únicamente si:
+La implementación correspondiente al objetivo específico 1 puede aprobarse si:
 
 - `python -m pytest` termina sin fallos;
 - `chair_0001` supera 32³ y 64³;
-- el procesamiento completo no reporta modelos fallidos;
-- existen 12 311 manifiestos y 24 622 NPZ;
-- todas las equivalencias son verdaderas;
-- el consolidador informa `ModelNet40 completo: SI`;
+- la muestra controlada incluye objetos de distintas categorías y las
+  particiones `train` y `test`;
+- no hay modelos fallidos en la muestra;
+- todas las equivalencias son verdaderas antes del guardado y después de la
+  carga;
+- cada archivo conserva la jerarquía completa, la versión y los metadatos;
+- las métricas estructurales y de almacenamiento quedan registradas;
 - el código y los resultados consolidados quedan asociados a un commit
   identificable.
 
-Hasta cumplir toda esta lista no deben iniciarse los experimentos de HCE,
-clasificación o aprendizaje profundo.
+Después de aceptar esta lista se planifica la regeneración completa de
+ModelNet40. La extracción HCE, la clasificación y el aprendizaje profundo solo
+podrán iniciarse cuando esa generación global haya terminado y haya sido
+auditada con el modo estricto.
