@@ -1,4 +1,4 @@
-# Dependencias exclusivas del objetivo especifico 1
+# Dependencias de CI para octree (objetivo 1) y extraccion HCE (objetivo 2)
 numpy>=1.24,<3
 PyYAML>=6.0,<7
 tqdm>=4.65,<5

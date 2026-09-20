@@ -44,7 +44,7 @@ from pathlib import Path
 
 import numpy as np
 
-RAIZ_PROYECTO = Path(__file__).parent.parent
+RAIZ_PROYECTO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ_PROYECTO / "fase2_octree"))
 sys.path.insert(0, str(RAIZ_PROYECTO / "fase3_hce"))
 
@@ -85,10 +85,14 @@ def comparar_arboles_exhaustivo(nodo_a, nodo_b, ruta="raiz") -> list:
         errores.append(f"{ruta}: centro {nodo_a.centro} != {nodo_b.centro}")
 
     if nodo_a.es_hoja and nodo_b.es_hoja:
-        if nodo_a.normal_promedio is not None and nodo_b.normal_promedio is not None:
+        if (nodo_a.normal_promedio is None) != (nodo_b.normal_promedio is None):
+            errores.append(f"{ruta}: presencia de normal_promedio distinta")
+        elif nodo_a.normal_promedio is not None:
             if not np.allclose(nodo_a.normal_promedio, nodo_b.normal_promedio, atol=1e-5):
                 errores.append(f"{ruta}: normal_promedio distinto")
-        if nodo_a.normal_coherencia is not None and nodo_b.normal_coherencia is not None:
+        if (nodo_a.normal_coherencia is None) != (nodo_b.normal_coherencia is None):
+            errores.append(f"{ruta}: presencia de normal_coherencia distinta")
+        elif nodo_a.normal_coherencia is not None:
             if abs(nodo_a.normal_coherencia - nodo_b.normal_coherencia) > 1e-5:
                 errores.append(
                     f"{ruta}: normal_coherencia {nodo_a.normal_coherencia} "
@@ -119,35 +123,38 @@ def verificar_recorrido_produccion(pts: np.ndarray, normales: np.ndarray,
     # 1. Construir en memoria
     raiz_original = construir_octree(pts, normales, profundidad_max=L)
 
-    # 2. Guardar a .npz
-    ruta_tmp = Path(tempfile.gettempdir()) / f"_verif_produccion_R{R}.npz"
-    guardar_octree_disperso(raiz_original, str(ruta_tmp), etiqueta=etiqueta,
-                            profundidad_max=L)
+    # 2-4. Guardar, cargar y comparar usando un directorio temporal unico.
+    # Esto evita colisiones entre validaciones ejecutadas en paralelo.
+    with tempfile.TemporaryDirectory(prefix=f"verif_hce_R{R}_") as dir_tmp:
+        ruta_tmp = Path(dir_tmp) / "octree.npz"
+        guardar_octree_disperso(
+            raiz_original, str(ruta_tmp), etiqueta=etiqueta,
+            profundidad_max=L,
+        )
 
-    # 3. Cargar de nuevo (reconstruccion completa desde disco)
-    raiz_cargada, etiqueta_cargada, profundidad_cargada = \
-        reconstruir_octree_desde_npz(str(ruta_tmp))
+        raiz_cargada, etiqueta_cargada, profundidad_cargada = (
+            reconstruir_octree_desde_npz(str(ruta_tmp))
+        )
+        errores_estructura = comparar_arboles_exhaustivo(
+            raiz_original, raiz_cargada,
+        )
 
-    # 4a. Comparar estructura padre-hijo, nodo por nodo
-    errores_estructura = comparar_arboles_exhaustivo(raiz_original, raiz_cargada)
+        conteo_original = contar_nodos_por_profundidad(raiz_original, L)
+        conteo_cargado = contar_nodos_por_profundidad(raiz_cargada, L)
+        nodos_por_nivel_coinciden = bool(
+            np.array_equal(conteo_original, conteo_cargado)
+        )
 
-    # 4b. Comparar nodos por nivel
-    conteo_original = contar_nodos_por_profundidad(raiz_original, L)
-    conteo_cargado = contar_nodos_por_profundidad(raiz_cargada, L)
-    nodos_por_nivel_coinciden = bool(np.array_equal(conteo_original, conteo_cargado))
+        n_hojas_original = len(recolectar_hojas(raiz_original))
+        n_hojas_cargada = len(recolectar_hojas(raiz_cargada))
+        hojas_coinciden = n_hojas_original == n_hojas_cargada
 
-    # 4c. Comparar numero de hojas
-    n_hojas_original = len(recolectar_hojas(raiz_original))
-    n_hojas_cargada = len(recolectar_hojas(raiz_cargada))
-    hojas_coinciden = n_hojas_original == n_hojas_cargada
-
-    # 4d. Comparar vector de descriptores: en memoria vs. desde npz
-    feats_memoria = extraer_descriptores_hce(raiz_original, L)
-    feats_desde_npz = extraer_descriptores_hce_desde_npz(str(ruta_tmp))
-    vector_coincide = bool(np.array_equal(feats_memoria, feats_desde_npz))
-
-    tam_archivo_kib = round(ruta_tmp.stat().st_size / 1024, 4)
-    ruta_tmp.unlink()
+        feats_memoria = extraer_descriptores_hce(raiz_original, L)
+        feats_desde_npz = extraer_descriptores_hce_desde_npz(str(ruta_tmp))
+        vector_coincide = bool(
+            np.array_equal(feats_memoria, feats_desde_npz)
+        )
+        tam_archivo_kib = round(ruta_tmp.stat().st_size / 1024, 4)
 
     return {
         "sin_errores_estructura_padre_hijo": len(errores_estructura) == 0,
@@ -230,11 +237,18 @@ def validar_resolucion(pts: np.ndarray, normales: np.ndarray, R: int,
     primer_descriptor_es_L1 = nombres[0] == "ocupacion_L1"
     convencion_correcta = raiz_es_100 and primer_descriptor_es_L1
 
+    dimension_esperada = L + 12
+    dimension_correcta = (
+        len(feats_1) == dimension_esperada == len(nombres)
+        and len(set(nombres)) == len(nombres)
+    )
+
     # ── Verificacion 4: recorrido completo de produccion ──
     recorrido = verificar_recorrido_produccion(pts, normales, R, etiqueta=0)
 
     todas_las_verificaciones_ok = (
         sin_indefinidos and es_reproducible and convencion_correcta
+        and dimension_correcta
         and recorrido["RECORRIDO_PRODUCCION_OK"]
     )
 
@@ -259,6 +273,8 @@ def validar_resolucion(pts: np.ndarray, normales: np.ndarray, R: int,
                 "tiene_inf": tiene_inf,
             },
             "reproducible_entre_corridas": es_reproducible,
+            "dimension_y_orden_correctos": dimension_correcta,
+            "dimension_esperada": dimension_esperada,
             "convencion_raiz_L0_correcta": convencion_correcta,
             "detalle_convencion": {
                 "ocupacion_raiz_L0": datos_arbol["ocupacion_L0_raiz_verificacion"],
@@ -278,21 +294,28 @@ def validar_resolucion(pts: np.ndarray, normales: np.ndarray, R: int,
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--off", type=str, required=True)
-    parser.add_argument("--n_puntos", type=int, default=20000)
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--salida", type=str, default=".")
+    parser.add_argument("--off", type=Path, required=True)
+    parser.add_argument("--n-puntos", "--n_puntos", dest="n_puntos",
+                        type=int, default=20000)
+    parser.add_argument("--semilla", "--seed", dest="seed",
+                        type=int, default=42)
+    parser.add_argument("--salida", type=Path, default=Path("."))
     args = parser.parse_args()
 
-    dir_salida = Path(args.salida)
+    if args.n_puntos <= 0:
+        raise ValueError("--n-puntos debe ser positivo")
+    if not args.off.is_file():
+        raise FileNotFoundError(f"No se encontro la malla: {args.off}")
+
+    dir_salida = args.salida
     dir_salida.mkdir(parents=True, exist_ok=True)
-    nombre_objeto = Path(args.off).stem
+    nombre_objeto = args.off.stem
 
     print("=" * 70)
     print(f"  VALIDACION DE EXTRACCION HCE — {nombre_objeto}")
     print("=" * 70)
 
-    verts, caras = leer_off(args.off)
+    verts, caras = leer_off(str(args.off))
     verts = normalizar_malla(verts)
     rng = np.random.default_rng(args.seed)
     pts, normales = muestrear_superficie_con_normales(verts, caras, args.n_puntos, rng)

@@ -1,30 +1,61 @@
 {
-  "modelos": [
-    "airplane/test/airplane_0627",
-    "airplane/train/airplane_0001",
-    "car/test/car_0198",
-    "car/train/car_0001",
-    "chair/test/chair_0890",
-    "chair/train/chair_0001",
-    "sofa/test/sofa_0681",
-    "sofa/train/sofa_0001",
-    "table/test/table_0393",
-    "table/train/table_0001"
+  "auditoria_train_npz": {
+    "estado": "no_ejecutada",
+    "instruccion": "Ejecute de nuevo con --auditoria-train-npz-root para decidir sobre ocupacion_L1 usando todos los NPZ de train."
+  },
+  "categorias": [
+    "airplane",
+    "car",
+    "chair",
+    "sofa",
+    "table"
   ],
-  "seed": 42,
+  "dataset_root": "Dataset/ModelNet40",
+  "esquema_validacion": "hce-muestra-controlada-v1",
+  "modelos": [
+    "airplane/test/airplane_0627.off",
+    "airplane/train/airplane_0001.off",
+    "car/test/car_0198.off",
+    "car/train/car_0001.off",
+    "chair/test/chair_0890.off",
+    "chair/train/chair_0001.off",
+    "sofa/test/sofa_0681.off",
+    "sofa/train/sofa_0001.off",
+    "table/test/table_0393.off",
+    "table/train/table_0001.off"
+  ],
+  "muestra_por_categoria_split": 1,
   "n_puntos": 20000,
+  "nota_seleccion_features": "Las estadisticas de test son solo descriptivas. La decision de conservar o excluir caracteristicas debe basarse exclusivamente en la auditoria del split train.",
+  "resoluciones": [
+    32,
+    64
+  ],
   "resultados_detallados": {
     "R32": [
       {
-        "objeto": "airplane_test_airplane_0627",
-        "resolucion": 32,
-        "profundidad_max": 5,
+        "categoria": "airplane",
         "configuracion_reproduccion": {
-          "seed": 42,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
           "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+          "seed": 1758682406,
+          "semilla_base": 42
         },
-        "dimension_vector": 17,
+        "datos_arbol": {
+          "n_hojas_ocupadas": 491,
+          "n_nodos_totales": 675,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 20,
+            "L3": 43,
+            "L4": 112,
+            "L5": 491
+          },
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 1.4984,
+          "profundidad_max": 5
+        },
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -36,124 +67,129 @@
           },
           {
             "nombre": "ocupacion_L3",
-            "valor": 8.7890625
+            "valor": 8.3984375
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 2.8076171875
+            "valor": 2.734375
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 1.519775390625
+            "valor": 1.4984130859375
           },
           {
             "nombre": "centroide_x",
-            "valor": -0.005020080134272575
+            "valor": 6.364562432281673e-05
           },
           {
             "nombre": "centroide_y",
-            "valor": 0.12889055907726288
+            "valor": 0.12379073351621628
           },
           {
             "nombre": "centroide_z",
-            "valor": 0.01380522083491087
+            "valor": 0.013556517660617828
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.04763830080628395
+            "valor": 0.045257993042469025
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.18226471543312073
+            "valor": 0.18228556215763092
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.009084809571504593
+            "valor": 0.009114457294344902
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.4384787678718567
+            "valor": 0.4361289143562317
           },
           {
             "nombre": "skew_x",
-            "valor": -0.13005183637142181
+            "valor": 0.01971440017223358
           },
           {
             "nombre": "skew_y",
-            "valor": -0.1367831528186798
+            "valor": -0.11983752995729446
           },
           {
             "nombre": "skew_z",
-            "valor": 0.7346733212471008
+            "valor": 0.7332150936126709
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.20870769023895264
+            "valor": 0.20277130603790283
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.055512961000204086
+            "valor": 0.04536113888025284
           }
         ],
+        "dimension_vector": 17,
+        "objeto": "airplane/test/airplane_0627",
+        "profundidad_max": 5,
+        "resolucion": 32,
+        "ruta_origen_relativa": "airplane/test/airplane_0627.off",
+        "split": "test",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 17,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 491,
+            "n_hojas_original": 491,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 11.0352,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "airplane",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 1648206280,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 5,
-          "n_nodos_totales": 687,
-          "n_hojas_ocupadas": 498,
+          "n_hojas_ocupadas": 750,
+          "n_nodos_totales": 1017,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 20,
-            "L3": 45,
-            "L4": 115,
-            "L5": 498
+            "L2": 18,
+            "L3": 48,
+            "L4": 192,
+            "L5": 750
           },
-          "pct_ocupacion_hoja": 1.5198,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 2.2888,
+          "profundidad_max": 5
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 498,
-            "n_hojas_desde_disco": 498,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 11.0947,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "airplane",
-        "split": "test"
-      },
-      {
-        "objeto": "airplane_train_airplane_0001",
-        "resolucion": 32,
-        "profundidad_max": 5,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 17,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -169,120 +205,125 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 4.638671875
+            "valor": 4.6875
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 2.2552490234375
+            "valor": 2.288818359375
           },
           {
             "nombre": "centroide_x",
-            "valor": -0.00520128570497036
+            "valor": -0.010499999858438969
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.11041102558374405
+            "valor": -0.10750000178813934
           },
           {
             "nombre": "centroide_z",
-            "valor": -0.05619925633072853
+            "valor": -0.056166667491197586
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.13947075605392456
+            "valor": 0.14059533178806305
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.09778016805648804
+            "valor": 0.09704525768756866
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.020568521693348885
+            "valor": 0.020436525344848633
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.45791879296302795
+            "valor": 0.4577520489692688
           },
           {
             "nombre": "skew_x",
-            "valor": 0.0011013373732566833
+            "valor": -0.0007455610320903361
           },
           {
             "nombre": "skew_y",
-            "valor": -1.21858549118042
+            "valor": -1.2289077043533325
           },
           {
             "nombre": "skew_z",
-            "valor": -0.025977997109293938
+            "valor": -0.024581097066402435
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.23695960640907288
+            "valor": 0.24345307052135468
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.059928782284259796
+            "valor": 0.06083807349205017
           }
         ],
+        "dimension_vector": 17,
+        "objeto": "airplane/train/airplane_0001",
+        "profundidad_max": 5,
+        "resolucion": 32,
+        "ruta_origen_relativa": "airplane/train/airplane_0001.off",
+        "split": "train",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 17,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 750,
+            "n_hojas_original": 750,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 14.3545,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "car",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 3272540262,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 5,
-          "n_nodos_totales": 1004,
-          "n_hojas_ocupadas": 739,
+          "n_hojas_ocupadas": 2404,
+          "n_nodos_totales": 2993,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 18,
-            "L3": 48,
-            "L4": 190,
-            "L5": 739
+            "L2": 16,
+            "L3": 94,
+            "L4": 470,
+            "L5": 2404
           },
-          "pct_ocupacion_hoja": 2.2552,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 7.3364,
+          "profundidad_max": 5
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 739,
-            "n_hojas_desde_disco": 739,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 14.2803,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "airplane",
-        "split": "train"
-      },
-      {
-        "objeto": "car_test_car_0198",
-        "resolucion": 32,
-        "profundidad_max": 5,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 17,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -302,116 +343,121 @@
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 7.366943359375
+            "valor": 7.33642578125
           },
           {
             "nombre": "centroide_x",
-            "valor": -0.08740679174661636
+            "valor": -0.09060420095920563
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.025579949840903282
+            "valor": -0.02625831961631775
           },
           {
             "nombre": "centroide_z",
-            "valor": 0.004479080438613892
+            "valor": 0.003977745305746794
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.2795551121234894
+            "valor": 0.27946698665618896
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.06154712662100792
+            "valor": 0.06194816902279854
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.033183753490448
+            "valor": 0.03348134830594063
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.572307288646698
+            "valor": 0.5727412700653076
           },
           {
             "nombre": "skew_x",
-            "valor": 0.0747530609369278
+            "valor": 0.08795148134231567
           },
           {
             "nombre": "skew_y",
-            "valor": -0.006321396678686142
+            "valor": -0.004372647497802973
           },
           {
             "nombre": "skew_z",
-            "valor": 0.398546040058136
+            "valor": 0.40003880858421326
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.50005704164505
+            "valor": 0.5031552910804749
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.1221284419298172
+            "valor": 0.11982318013906479
           }
         ],
+        "dimension_vector": 17,
+        "objeto": "car/test/car_0198",
+        "profundidad_max": 5,
+        "resolucion": 32,
+        "ruta_origen_relativa": "car/test/car_0198.off",
+        "split": "test",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 17,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 2404,
+            "n_hojas_original": 2404,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 31.9141,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "car",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 620838927,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 5,
-          "n_nodos_totales": 3003,
-          "n_hojas_ocupadas": 2414,
+          "n_hojas_ocupadas": 1205,
+          "n_nodos_totales": 1569,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
             "L2": 16,
-            "L3": 94,
-            "L4": 470,
-            "L5": 2414
+            "L3": 70,
+            "L4": 269,
+            "L5": 1205
           },
-          "pct_ocupacion_hoja": 7.3669,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 3.6774,
+          "profundidad_max": 5
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 2414,
-            "n_hojas_desde_disco": 2414,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 32.0859,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "car",
-        "split": "test"
-      },
-      {
-        "objeto": "car_train_car_0001",
-        "resolucion": 32,
-        "profundidad_max": 5,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 17,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -427,120 +473,125 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 6.689453125
+            "valor": 6.5673828125
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 3.7017822265625
+            "valor": 3.6773681640625
           },
           {
             "nombre": "centroide_x",
-            "valor": 0.0014169415226206183
+            "valor": -0.0013226141454651952
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.16078421473503113
+            "valor": -0.16086618602275848
           },
           {
             "nombre": "centroide_z",
-            "valor": -0.07994125783443451
+            "valor": -0.08088693022727966
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.03559939190745354
+            "valor": 0.03557666763663292
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.20436044037342072
+            "valor": 0.2048705518245697
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.019008819013834
+            "valor": 0.01895417831838131
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.4722857177257538
+            "valor": 0.4728683829307556
           },
           {
             "nombre": "skew_x",
-            "valor": -0.024480482563376427
+            "valor": -0.012941273860633373
           },
           {
             "nombre": "skew_y",
-            "valor": -0.06036102771759033
+            "valor": -0.06266088038682938
           },
           {
             "nombre": "skew_z",
-            "valor": 0.304305762052536
+            "valor": 0.30834823846817017
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.28820765018463135
+            "valor": 0.2822263836860657
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.062402017414569855
+            "valor": 0.05874313414096832
           }
         ],
+        "dimension_vector": 17,
+        "objeto": "car/train/car_0001",
+        "profundidad_max": 5,
+        "resolucion": 32,
+        "ruta_origen_relativa": "car/train/car_0001.off",
+        "split": "train",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 17,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 1205,
+            "n_hojas_original": 1205,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 19.6787,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "chair",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 4252151102,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 5,
-          "n_nodos_totales": 1582,
-          "n_hojas_ocupadas": 1213,
+          "n_hojas_ocupadas": 786,
+          "n_nodos_totales": 1131,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 16,
-            "L3": 70,
-            "L4": 274,
-            "L5": 1213
+            "L2": 32,
+            "L3": 73,
+            "L4": 231,
+            "L5": 786
           },
-          "pct_ocupacion_hoja": 3.7018,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 2.3987,
+          "profundidad_max": 5
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 1213,
-            "n_hojas_desde_disco": 1213,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 19.7012,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "car",
-        "split": "train"
-      },
-      {
-        "objeto": "chair_test_chair_0890",
-        "resolucion": 32,
-        "profundidad_max": 5,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 17,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -556,120 +607,125 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 5.6640625
+            "valor": 5.6396484375
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 2.4169921875
+            "valor": 2.398681640625
           },
           {
             "nombre": "centroide_x",
-            "valor": 0.020991161465644836
+            "valor": 0.019640585407614708
           },
           {
             "nombre": "centroide_y",
-            "valor": 0.03787878900766373
+            "valor": 0.03458969295024872
           },
           {
             "nombre": "centroide_z",
-            "valor": -0.05681818351149559
+            "valor": -0.055741094052791595
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.13264775276184082
+            "valor": 0.13190239667892456
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.1396935135126114
+            "valor": 0.13966985046863556
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.1146201342344284
+            "valor": 0.1115879938006401
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.5784777402877808
+            "valor": 0.5756296515464783
           },
           {
             "nombre": "skew_x",
-            "valor": -0.028437642380595207
+            "valor": -0.02196061983704567
           },
           {
             "nombre": "skew_y",
-            "valor": -0.4037717580795288
+            "valor": -0.39309677481651306
           },
           {
             "nombre": "skew_z",
-            "valor": -0.5622888803482056
+            "valor": -0.5498698949813843
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.23040366172790527
+            "valor": 0.21940380334854126
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.053390588611364365
+            "valor": 0.04527480900287628
           }
         ],
+        "dimension_vector": 17,
+        "objeto": "chair/test/chair_0890",
+        "profundidad_max": 5,
+        "resolucion": 32,
+        "ruta_origen_relativa": "chair/test/chair_0890.off",
+        "split": "test",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 17,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 786,
+            "n_hojas_original": 786,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 15.7939,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "chair",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 3315880350,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 5,
-          "n_nodos_totales": 1138,
-          "n_hojas_ocupadas": 792,
+          "n_hojas_ocupadas": 757,
+          "n_nodos_totales": 1114,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 32,
-            "L3": 73,
-            "L4": 232,
-            "L5": 792
+            "L2": 31,
+            "L3": 80,
+            "L4": 237,
+            "L5": 757
           },
-          "pct_ocupacion_hoja": 2.417,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 2.3102,
+          "profundidad_max": 5
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 792,
-            "n_hojas_desde_disco": 792,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 15.7949,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "chair",
-        "split": "test"
-      },
-      {
-        "objeto": "chair_train_chair_0001",
-        "resolucion": 32,
-        "profundidad_max": 5,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 17,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -685,120 +741,125 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 5.8349609375
+            "valor": 5.7861328125
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 2.325439453125
+            "valor": 2.3101806640625
           },
           {
             "nombre": "centroide_x",
-            "valor": 0.0574146993458271
+            "valor": 0.057422392070293427
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.021817585453391075
+            "valor": -0.018370211124420166
           },
           {
             "nombre": "centroide_z",
-            "valor": 0.05282152071595192
+            "valor": 0.054037317633628845
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.132266104221344
+            "valor": 0.13224603235721588
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.12696649134159088
+            "valor": 0.12608322501182556
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.26001882553100586
+            "valor": 0.26049283146858215
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.6729628443717957
+            "valor": 0.6726999878883362
           },
           {
             "nombre": "skew_x",
-            "valor": -0.13962680101394653
+            "valor": -0.14092706143856049
           },
           {
             "nombre": "skew_y",
-            "valor": -0.32489997148513794
+            "valor": -0.3369501829147339
           },
           {
             "nombre": "skew_z",
-            "valor": 0.07889386266469955
+            "valor": 0.07087812572717667
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.5109662413597107
+            "valor": 0.5080626606941223
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.1603858917951584
+            "valor": 0.16137951612472534
           }
         ],
+        "dimension_vector": 17,
+        "objeto": "chair/train/chair_0001",
+        "profundidad_max": 5,
+        "resolucion": 32,
+        "ruta_origen_relativa": "chair/train/chair_0001.off",
+        "split": "train",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 17,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 757,
+            "n_hojas_original": 757,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 11.8301,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "sofa",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 1570600840,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 5,
-          "n_nodos_totales": 1121,
-          "n_hojas_ocupadas": 762,
+          "n_hojas_ocupadas": 2794,
+          "n_nodos_totales": 3763,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 31,
-            "L3": 80,
-            "L4": 239,
-            "L5": 762
+            "L2": 54,
+            "L3": 168,
+            "L4": 738,
+            "L5": 2794
           },
-          "pct_ocupacion_hoja": 2.3254,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 8.5266,
+          "profundidad_max": 5
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 762,
-            "n_hojas_desde_disco": 762,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 11.9121,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "chair",
-        "split": "train"
-      },
-      {
-        "objeto": "sofa_test_sofa_0681",
-        "resolucion": 32,
-        "profundidad_max": 5,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 17,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -818,190 +879,109 @@
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 8.563232421875
+            "valor": 8.526611328125
           },
           {
             "nombre": "centroide_x",
-            "valor": 0.0756860300898552
+            "valor": 0.07397548109292984
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.019734498113393784
+            "valor": -0.020423227921128273
           },
           {
             "nombre": "centroide_z",
-            "valor": 0.2867961525917053
+            "valor": 0.2861712574958801
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.1722760796546936
+            "valor": 0.17202745378017426
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.23623444139957428
+            "valor": 0.23584222793579102
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.1662517637014389
+            "valor": 0.16585500538349152
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.7356708645820618
+            "valor": 0.735023558139801
           },
           {
             "nombre": "skew_x",
-            "valor": -0.08968622237443924
+            "valor": -0.08500436693429947
           },
           {
             "nombre": "skew_y",
-            "valor": -0.022059008479118347
+            "valor": -0.01828005351126194
           },
           {
             "nombre": "skew_z",
-            "valor": 0.07758183777332306
+            "valor": 0.07697895914316177
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.3353556990623474
+            "valor": 0.3404562771320343
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.07221890985965729
+            "valor": 0.0707240179181099
           }
         ],
-        "datos_arbol": {
-          "profundidad_max": 5,
-          "n_nodos_totales": 3775,
-          "n_hojas_ocupadas": 2806,
-          "nodos_por_nivel": {
-            "L0": 1,
-            "L1": 8,
-            "L2": 54,
-            "L3": 168,
-            "L4": 738,
-            "L5": 2806
-          },
-          "pct_ocupacion_hoja": 8.5632,
-          "ocupacion_L0_raiz_verificacion": 100.0
-        },
+        "dimension_vector": 17,
+        "objeto": "sofa/test/sofa_0681",
+        "profundidad_max": 5,
+        "resolucion": 32,
+        "ruta_origen_relativa": "sofa/test/sofa_0681.off",
+        "split": "test",
         "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
+          "TODAS_LAS_VERIFICACIONES_OK": true,
           "convencion_raiz_L0_correcta": true,
           "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
             "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
           },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 17,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
           "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 2806,
-            "n_hojas_desde_disco": 2806,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
+            "RECORRIDO_PRODUCCION_OK": true,
             "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 2794,
+            "n_hojas_original": 2794,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
             "profundidad_max_preservada": true,
-            "tam_archivo_kib": 10.5547,
-            "RECORRIDO_PRODUCCION_OK": true
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 10.5947,
+            "vector_descriptores_coincide": true
           },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "sofa",
-        "split": "test"
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
       },
       {
-        "objeto": "sofa_train_sofa_0001",
-        "resolucion": 32,
-        "profundidad_max": 5,
+        "categoria": "sofa",
         "configuracion_reproduccion": {
-          "seed": 42,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
           "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+          "seed": 1868629855,
+          "semilla_base": 42
         },
-        "dimension_vector": 17,
-        "descriptores": [
-          {
-            "nombre": "ocupacion_L1",
-            "valor": 100.0
-          },
-          {
-            "nombre": "ocupacion_L2",
-            "valor": 37.5
-          },
-          {
-            "nombre": "ocupacion_L3",
-            "valor": 20.703125
-          },
-          {
-            "nombre": "ocupacion_L4",
-            "valor": 12.060546875
-          },
-          {
-            "nombre": "ocupacion_L5",
-            "valor": 6.5521240234375
-          },
-          {
-            "nombre": "centroide_x",
-            "valor": -0.10632568597793579
-          },
-          {
-            "nombre": "centroide_y",
-            "valor": -0.0015865160385146737
-          },
-          {
-            "nombre": "centroide_z",
-            "valor": -0.07063635438680649
-          },
-          {
-            "nombre": "varianza_x",
-            "valor": 0.09314005076885223
-          },
-          {
-            "nombre": "varianza_y",
-            "valor": 0.30027976632118225
-          },
-          {
-            "nombre": "varianza_z",
-            "valor": 0.040001798421144485
-          },
-          {
-            "nombre": "dispersion_radial",
-            "valor": 0.6170703768730164
-          },
-          {
-            "nombre": "skew_x",
-            "valor": -0.44995927810668945
-          },
-          {
-            "nombre": "skew_y",
-            "valor": 0.0023099700920283794
-          },
-          {
-            "nombre": "skew_z",
-            "valor": 0.7235713005065918
-          },
-          {
-            "nombre": "normal_coherencia_media",
-            "valor": 0.8052565455436707
-          },
-          {
-            "nombre": "normal_coherencia_varianza",
-            "valor": 0.10023998469114304
-          }
-        ],
         "datos_arbol": {
-          "profundidad_max": 5,
-          "n_nodos_totales": 2780,
           "n_hojas_ocupadas": 2147,
+          "n_nodos_totales": 2780,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
@@ -1010,53 +990,144 @@
             "L4": 494,
             "L5": 2147
           },
+          "ocupacion_L0_raiz_verificacion": 100.0,
           "pct_ocupacion_hoja": 6.5521,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "profundidad_max": 5
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
+        "descriptores": [
+          {
+            "nombre": "ocupacion_L1",
+            "valor": 100.0
           },
-          "reproducible_entre_corridas": true,
+          {
+            "nombre": "ocupacion_L2",
+            "valor": 37.5
+          },
+          {
+            "nombre": "ocupacion_L3",
+            "valor": 20.703125
+          },
+          {
+            "nombre": "ocupacion_L4",
+            "valor": 12.060546875
+          },
+          {
+            "nombre": "ocupacion_L5",
+            "valor": 6.5521240234375
+          },
+          {
+            "nombre": "centroide_x",
+            "valor": -0.10527770966291428
+          },
+          {
+            "nombre": "centroide_y",
+            "valor": 0.0003929902159143239
+          },
+          {
+            "nombre": "centroide_z",
+            "valor": -0.06976304203271866
+          },
+          {
+            "nombre": "varianza_x",
+            "valor": 0.09281604737043381
+          },
+          {
+            "nombre": "varianza_y",
+            "valor": 0.3004601299762726
+          },
+          {
+            "nombre": "varianza_z",
+            "valor": 0.040142837911844254
+          },
+          {
+            "nombre": "dispersion_radial",
+            "valor": 0.6169319748878479
+          },
+          {
+            "nombre": "skew_x",
+            "valor": -0.4576486349105835
+          },
+          {
+            "nombre": "skew_y",
+            "valor": 0.003126551629975438
+          },
+          {
+            "nombre": "skew_z",
+            "valor": 0.7109751105308533
+          },
+          {
+            "nombre": "normal_coherencia_media",
+            "valor": 0.8088721632957458
+          },
+          {
+            "nombre": "normal_coherencia_varianza",
+            "valor": 0.09794875979423523
+          }
+        ],
+        "dimension_vector": 17,
+        "objeto": "sofa/train/sofa_0001",
+        "profundidad_max": 5,
+        "resolucion": 32,
+        "ruta_origen_relativa": "sofa/train/sofa_0001.off",
+        "split": "train",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
           "convencion_raiz_L0_correcta": true,
           "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
             "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
           },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 17,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
           "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 2147,
-            "n_hojas_desde_disco": 2147,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
+            "RECORRIDO_PRODUCCION_OK": true,
             "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 2147,
+            "n_hojas_original": 2147,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
             "profundidad_max_preservada": true,
-            "tam_archivo_kib": 23.6904,
-            "RECORRIDO_PRODUCCION_OK": true
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 23.6943,
+            "vector_descriptores_coincide": true
           },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "sofa",
-        "split": "train"
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
       },
       {
-        "objeto": "table_test_table_0393",
-        "resolucion": 32,
-        "profundidad_max": 5,
+        "categoria": "table",
         "configuracion_reproduccion": {
-          "seed": 42,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
           "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+          "seed": 2810257531,
+          "semilla_base": 42
         },
-        "dimension_vector": 17,
+        "datos_arbol": {
+          "n_hojas_ocupadas": 1704,
+          "n_nodos_totales": 2146,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 24,
+            "L3": 88,
+            "L4": 321,
+            "L5": 1704
+          },
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 5.2002,
+          "profundidad_max": 5
+        },
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -1072,120 +1143,125 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 7.8125
+            "valor": 7.8369140625
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 5.1910400390625
+            "valor": 5.2001953125
           },
           {
             "nombre": "centroide_x",
-            "valor": 0.0001653439103392884
+            "valor": 0.000366784050129354
           },
           {
             "nombre": "centroide_y",
-            "valor": 0.0032517637591809034
+            "valor": -7.335680857067928e-05
           },
           {
             "nombre": "centroide_z",
-            "valor": 0.09999632835388184
+            "valor": 0.10075557231903076
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.08323986083269119
+            "valor": 0.0831766277551651
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.4026288390159607
+            "valor": 0.4016476273536682
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.08758461475372314
+            "valor": 0.08716118335723877
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.7233164310455322
+            "valor": 0.7223365902900696
           },
           {
             "nombre": "skew_x",
-            "valor": 0.014118487946689129
+            "valor": 0.010158943012356758
           },
           {
             "nombre": "skew_y",
-            "valor": -0.0045244754292070866
+            "valor": 0.00048527054605074227
           },
           {
             "nombre": "skew_z",
-            "valor": -0.9720892310142517
+            "valor": -0.9787643551826477
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.29140767455101013
+            "valor": 0.2928708493709564
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.05867195874452591
+            "valor": 0.05597276613116264
           }
         ],
+        "dimension_vector": 17,
+        "objeto": "table/test/table_0393",
+        "profundidad_max": 5,
+        "resolucion": 32,
+        "ruta_origen_relativa": "table/test/table_0393.off",
+        "split": "test",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 17,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 1704,
+            "n_hojas_original": 1704,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 13.8379,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "table",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 3105868323,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 5,
-          "n_nodos_totales": 2142,
-          "n_hojas_ocupadas": 1701,
+          "n_hojas_ocupadas": 2193,
+          "n_nodos_totales": 2963,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 24,
-            "L3": 88,
-            "L4": 320,
-            "L5": 1701
+            "L2": 36,
+            "L3": 136,
+            "L4": 589,
+            "L5": 2193
           },
-          "pct_ocupacion_hoja": 5.191,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 6.6925,
+          "profundidad_max": 5
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 1701,
-            "n_hojas_desde_disco": 1701,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 13.9268,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "table",
-        "split": "test"
-      },
-      {
-        "objeto": "table_train_table_0001",
-        "resolucion": 32,
-        "profundidad_max": 5,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 17,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -1201,122 +1277,128 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 14.404296875
+            "valor": 14.3798828125
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 6.6741943359375
+            "valor": 6.6925048828125
           },
           {
             "nombre": "centroide_x",
-            "valor": -0.007501714862883091
+            "valor": -0.009419174864888191
           },
           {
             "nombre": "centroide_y",
-            "valor": 0.0011288294335827231
+            "valor": 0.0005557455588132143
           },
           {
             "nombre": "centroide_z",
-            "valor": -0.04653920978307724
+            "valor": -0.04535738751292229
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.3863624334335327
+            "valor": 0.3853992521762848
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.3888140022754669
+            "valor": 0.3884977102279663
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.020993877202272415
+            "valor": 0.020182663574814796
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.8300241827964783
+            "valor": 0.8293932676315308
           },
           {
             "nombre": "skew_x",
-            "valor": 0.0011888255830854177
+            "valor": 0.002932966686785221
           },
           {
             "nombre": "skew_y",
-            "valor": 0.0013386857463046908
+            "valor": 0.0008348912233486772
           },
           {
             "nombre": "skew_z",
-            "valor": -2.747964382171631
+            "valor": -2.774387836456299
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.35707300901412964
+            "valor": 0.34710046648979187
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.0752660483121872
+            "valor": 0.07279395312070847
           }
         ],
-        "datos_arbol": {
-          "profundidad_max": 5,
-          "n_nodos_totales": 2958,
-          "n_hojas_ocupadas": 2187,
-          "nodos_por_nivel": {
-            "L0": 1,
-            "L1": 8,
-            "L2": 36,
-            "L3": 136,
-            "L4": 590,
-            "L5": 2187
-          },
-          "pct_ocupacion_hoja": 6.6742,
-          "ocupacion_L0_raiz_verificacion": 100.0
-        },
+        "dimension_vector": 17,
+        "objeto": "table/train/table_0001",
+        "profundidad_max": 5,
+        "resolucion": 32,
+        "ruta_origen_relativa": "table/train/table_0001.off",
+        "split": "train",
         "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
+          "TODAS_LAS_VERIFICACIONES_OK": true,
           "convencion_raiz_L0_correcta": true,
           "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
             "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
           },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 17,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
           "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 2187,
-            "n_hojas_desde_disco": 2187,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
+            "RECORRIDO_PRODUCCION_OK": true,
             "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 2193,
+            "n_hojas_original": 2193,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
             "profundidad_max_preservada": true,
-            "tam_archivo_kib": 15.9082,
-            "RECORRIDO_PRODUCCION_OK": true
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 15.8779,
+            "vector_descriptores_coincide": true
           },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "table",
-        "split": "train"
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
       }
     ],
     "R64": [
       {
-        "objeto": "airplane_test_airplane_0627",
-        "resolucion": 64,
-        "profundidad_max": 6,
+        "categoria": "airplane",
         "configuracion_reproduccion": {
-          "seed": 42,
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
           "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
+          "seed": 1758682406,
+          "semilla_base": 42
         },
-        "dimension_vector": 18,
+        "datos_arbol": {
+          "n_hojas_ocupadas": 2073,
+          "n_nodos_totales": 2748,
+          "nodos_por_nivel": {
+            "L0": 1,
+            "L1": 8,
+            "L2": 20,
+            "L3": 43,
+            "L4": 112,
+            "L5": 491,
+            "L6": 2073
+          },
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 0.7908,
+          "profundidad_max": 6
+        },
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -1328,129 +1410,134 @@
           },
           {
             "nombre": "ocupacion_L3",
-            "valor": 8.7890625
+            "valor": 8.3984375
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 2.8076171875
+            "valor": 2.734375
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 1.519775390625
+            "valor": 1.4984130859375
           },
           {
             "nombre": "ocupacion_L6",
-            "valor": 0.795745849609375
+            "valor": 0.7907867431640625
           },
           {
             "nombre": "centroide_x",
-            "valor": 0.0008539070258848369
+            "valor": -0.00020350940758362412
           },
           {
             "nombre": "centroide_y",
-            "valor": 0.12995865941047668
+            "valor": 0.12692202627658844
           },
           {
             "nombre": "centroide_z",
-            "valor": 0.013392857275903225
+            "valor": 0.013876326382160187
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.047241512686014175
+            "valor": 0.04547160491347313
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.1687520295381546
+            "valor": 0.1714610606431961
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.007778906729072332
+            "valor": 0.00779247609898448
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.42146700620651245
+            "valor": 0.42240527272224426
           },
           {
             "nombre": "skew_x",
-            "valor": 0.03857245668768883
+            "valor": 0.0417616032063961
           },
           {
             "nombre": "skew_y",
-            "valor": -0.1577790081501007
+            "valor": -0.16003164649009705
           },
           {
             "nombre": "skew_z",
-            "valor": 0.7702934741973877
+            "valor": 0.7705113887786865
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.36418652534484863
+            "valor": 0.36903825402259827
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.09492213279008865
+            "valor": 0.09573249518871307
           }
         ],
+        "dimension_vector": 18,
+        "objeto": "airplane/test/airplane_0627",
+        "profundidad_max": 6,
+        "resolucion": 64,
+        "ruta_origen_relativa": "airplane/test/airplane_0627.off",
+        "split": "test",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 18,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 2073,
+            "n_hojas_original": 2073,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 34.1377,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "airplane",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 1648206280,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 6,
-          "n_nodos_totales": 2773,
-          "n_hojas_ocupadas": 2086,
+          "n_hojas_ocupadas": 2861,
+          "n_nodos_totales": 3878,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 20,
-            "L3": 45,
-            "L4": 115,
-            "L5": 498,
-            "L6": 2086
+            "L2": 18,
+            "L3": 48,
+            "L4": 192,
+            "L5": 750,
+            "L6": 2861
           },
-          "pct_ocupacion_hoja": 0.7957,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 1.0914,
+          "profundidad_max": 6
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 2086,
-            "n_hojas_desde_disco": 2086,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 34.1914,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "airplane",
-        "split": "test"
-      },
-      {
-        "objeto": "airplane_train_airplane_0001",
-        "resolucion": 64,
-        "profundidad_max": 6,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 18,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -1466,125 +1553,130 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 4.638671875
+            "valor": 4.6875
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 2.2552490234375
+            "valor": 2.288818359375
           },
           {
             "nombre": "ocupacion_L6",
-            "valor": 1.0860443115234375
+            "valor": 1.0913848876953125
           },
           {
             "nombre": "centroide_x",
-            "valor": -0.0028264401480555534
+            "valor": -0.0040905713103711605
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.10647721588611603
+            "valor": -0.10762736201286316
           },
           {
             "nombre": "centroide_z",
-            "valor": -0.054295092821121216
+            "valor": -0.055077988654375076
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.13516907393932343
+            "valor": 0.13405300676822662
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.09436454623937607
+            "valor": 0.09538973867893219
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.01939726062119007
+            "valor": 0.01942010410130024
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.44933223724365234
+            "valor": 0.44976893067359924
           },
           {
             "nombre": "skew_x",
-            "valor": -0.006663297303020954
+            "valor": -0.00028592898161150515
           },
           {
             "nombre": "skew_y",
-            "valor": -1.2474946975708008
+            "valor": -1.2289923429489136
           },
           {
             "nombre": "skew_z",
-            "valor": -0.0858803540468216
+            "valor": -0.07788955420255661
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.38229501247406006
+            "valor": 0.3981771767139435
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.09850995242595673
+            "valor": 0.09939979761838913
           }
         ],
+        "dimension_vector": 18,
+        "objeto": "airplane/train/airplane_0001",
+        "profundidad_max": 6,
+        "resolucion": 64,
+        "ruta_origen_relativa": "airplane/train/airplane_0001.off",
+        "split": "train",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 18,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 2861,
+            "n_hojas_original": 2861,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 42.2031,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "car",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 3272540262,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 6,
-          "n_nodos_totales": 3851,
-          "n_hojas_ocupadas": 2847,
+          "n_hojas_ocupadas": 8684,
+          "n_nodos_totales": 11677,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 18,
-            "L3": 48,
-            "L4": 190,
-            "L5": 739,
-            "L6": 2847
+            "L2": 16,
+            "L3": 94,
+            "L4": 470,
+            "L5": 2404,
+            "L6": 8684
           },
-          "pct_ocupacion_hoja": 1.086,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 3.3127,
+          "profundidad_max": 6
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 2847,
-            "n_hojas_desde_disco": 2847,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 42.2559,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "airplane",
-        "split": "train"
-      },
-      {
-        "objeto": "car_test_car_0198",
-        "resolucion": 64,
-        "profundidad_max": 6,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 18,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -1604,121 +1696,126 @@
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 7.366943359375
+            "valor": 7.33642578125
           },
           {
             "nombre": "ocupacion_L6",
-            "valor": 3.284454345703125
+            "valor": 3.31268310546875
           },
           {
             "nombre": "centroide_x",
-            "valor": -0.09799288958311081
+            "valor": -0.1007276326417923
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.016898954287171364
+            "valor": -0.01771577075123787
           },
           {
             "nombre": "centroide_z",
-            "valor": -0.017719222232699394
+            "valor": -0.017463870346546173
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.2759500741958618
+            "valor": 0.2710780203342438
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.06333333998918533
+            "valor": 0.06360458582639694
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.030161557719111443
+            "valor": 0.030746055766940117
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.5685596466064453
+            "valor": 0.5657265186309814
           },
           {
             "nombre": "skew_x",
-            "valor": 0.13160482048988342
+            "valor": 0.14448034763336182
           },
           {
             "nombre": "skew_y",
-            "valor": -0.005032040644437075
+            "valor": -0.005426542833447456
           },
           {
             "nombre": "skew_z",
-            "valor": 0.5304552316665649
+            "valor": 0.5245308876037598
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.7231619954109192
+            "valor": 0.7235917448997498
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.13659535348415375
+            "valor": 0.13713937997817993
           }
         ],
+        "dimension_vector": 18,
+        "objeto": "car/test/car_0198",
+        "profundidad_max": 6,
+        "resolucion": 64,
+        "ruta_origen_relativa": "car/test/car_0198.off",
+        "split": "test",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 18,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 8684,
+            "n_hojas_original": 8684,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 73.5596,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "car",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 620838927,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 6,
-          "n_nodos_totales": 11613,
-          "n_hojas_ocupadas": 8610,
+          "n_hojas_ocupadas": 5462,
+          "n_nodos_totales": 7031,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
             "L2": 16,
-            "L3": 94,
-            "L4": 470,
-            "L5": 2414,
-            "L6": 8610
+            "L3": 70,
+            "L4": 269,
+            "L5": 1205,
+            "L6": 5462
           },
-          "pct_ocupacion_hoja": 3.2845,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 2.0836,
+          "profundidad_max": 6
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 8610,
-            "n_hojas_desde_disco": 8610,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 73.7588,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "car",
-        "split": "test"
-      },
-      {
-        "objeto": "car_train_car_0001",
-        "resolucion": 64,
-        "profundidad_max": 6,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 18,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -1734,125 +1831,130 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 6.689453125
+            "valor": 6.5673828125
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 3.7017822265625
+            "valor": 3.6773681640625
           },
           {
             "nombre": "ocupacion_L6",
-            "valor": 2.0843505859375
+            "valor": 2.083587646484375
           },
           {
             "nombre": "centroide_x",
-            "valor": -0.004609717987477779
+            "valor": -0.005320853088051081
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.15106835961341858
+            "valor": -0.1456655114889145
           },
           {
             "nombre": "centroide_z",
-            "valor": -0.09677548706531525
+            "valor": -0.09698828309774399
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.03408511355519295
+            "valor": 0.03421718627214432
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.19062070548534393
+            "valor": 0.1906835436820984
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.018242768943309784
+            "valor": 0.018331291154026985
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.45746269822120667
+            "valor": 0.4578150808811188
           },
           {
             "nombre": "skew_x",
-            "valor": -0.015140875242650509
+            "valor": -0.01347995363175869
           },
           {
             "nombre": "skew_y",
-            "valor": -0.10567295551300049
+            "valor": -0.11923394352197647
           },
           {
             "nombre": "skew_z",
-            "valor": 0.5520347952842712
+            "valor": 0.5462321639060974
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.5430866479873657
+            "valor": 0.5392867922782898
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.13770641386508942
+            "valor": 0.13823866844177246
           }
         ],
+        "dimension_vector": 18,
+        "objeto": "car/train/car_0001",
+        "profundidad_max": 6,
+        "resolucion": 64,
+        "ruta_origen_relativa": "car/train/car_0001.off",
+        "split": "train",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 18,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 5462,
+            "n_hojas_original": 5462,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 53.5049,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "chair",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 4252151102,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 6,
-          "n_nodos_totales": 7046,
-          "n_hojas_ocupadas": 5464,
+          "n_hojas_ocupadas": 2874,
+          "n_nodos_totales": 4005,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 16,
-            "L3": 70,
-            "L4": 274,
-            "L5": 1213,
-            "L6": 5464
+            "L2": 32,
+            "L3": 73,
+            "L4": 231,
+            "L5": 786,
+            "L6": 2874
           },
-          "pct_ocupacion_hoja": 2.0844,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 1.0963,
+          "profundidad_max": 6
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 5464,
-            "n_hojas_desde_disco": 5464,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 53.2012,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "car",
-        "split": "train"
-      },
-      {
-        "objeto": "chair_test_chair_0890",
-        "resolucion": 64,
-        "profundidad_max": 6,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 18,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -1868,125 +1970,130 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 5.6640625
+            "valor": 5.6396484375
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 2.4169921875
+            "valor": 2.398681640625
           },
           {
             "nombre": "ocupacion_L6",
-            "valor": 1.0913848876953125
+            "valor": 1.096343994140625
           },
           {
             "nombre": "centroide_x",
-            "valor": 0.004472868051379919
+            "valor": 0.0073177628219127655
           },
           {
             "nombre": "centroide_y",
-            "valor": 0.044843368232250214
+            "valor": 0.04512438923120499
           },
           {
             "nombre": "centroide_z",
-            "valor": -0.05082903802394867
+            "valor": -0.04801670089364052
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.13193978369235992
+            "valor": 0.1315423846244812
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.13255897164344788
+            "valor": 0.13224780559539795
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.10155889391899109
+            "valor": 0.09938935935497284
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.5638600587844849
+            "valor": 0.5620366334915161
           },
           {
             "nombre": "skew_x",
-            "valor": 0.008243348449468613
+            "valor": 0.0015238175401464105
           },
           {
             "nombre": "skew_y",
-            "valor": -0.4296269416809082
+            "valor": -0.43143603205680847
           },
           {
             "nombre": "skew_z",
-            "valor": -0.5601935982704163
+            "valor": -0.5380362868309021
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.3872557580471039
+            "valor": 0.38706308603286743
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.09385601431131363
+            "valor": 0.09551182389259338
           }
         ],
+        "dimension_vector": 18,
+        "objeto": "chair/test/chair_0890",
+        "profundidad_max": 6,
+        "resolucion": 64,
+        "ruta_origen_relativa": "chair/test/chair_0890.off",
+        "split": "test",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 18,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 2874,
+            "n_hojas_original": 2874,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 43.6045,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "chair",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 3315880350,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 6,
-          "n_nodos_totales": 3999,
-          "n_hojas_ocupadas": 2861,
+          "n_hojas_ocupadas": 2586,
+          "n_nodos_totales": 3700,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 32,
-            "L3": 73,
-            "L4": 232,
-            "L5": 792,
-            "L6": 2861
+            "L2": 31,
+            "L3": 80,
+            "L4": 237,
+            "L5": 757,
+            "L6": 2586
           },
-          "pct_ocupacion_hoja": 1.0914,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 0.9865,
+          "profundidad_max": 6
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 2861,
-            "n_hojas_desde_disco": 2861,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 43.3711,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "chair",
-        "split": "test"
-      },
-      {
-        "objeto": "chair_train_chair_0001",
-        "resolucion": 64,
-        "profundidad_max": 6,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 18,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -2002,125 +2109,130 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 5.8349609375
+            "valor": 5.7861328125
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 2.325439453125
+            "valor": 2.3101806640625
           },
           {
             "nombre": "ocupacion_L6",
-            "valor": 0.9815216064453125
+            "valor": 0.986480712890625
           },
           {
             "nombre": "centroide_x",
-            "valor": 0.016851680353283882
+            "valor": 0.016047950834035873
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.018430577591061592
+            "valor": -0.01293020136654377
           },
           {
             "nombre": "centroide_z",
-            "valor": 0.10415250062942505
+            "valor": 0.11307279765605927
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.13046300411224365
+            "valor": 0.13007031381130219
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.1252654790878296
+            "valor": 0.12465686351060867
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.24699284136295319
+            "valor": 0.24661365151405334
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.6597951054573059
+            "valor": 0.6590921878814697
           },
           {
             "nombre": "skew_x",
-            "valor": -0.004238243214786053
+            "valor": -0.00012272322783246636
           },
           {
             "nombre": "skew_y",
-            "valor": -0.3007753789424896
+            "valor": -0.32051703333854675
           },
           {
             "nombre": "skew_z",
-            "valor": 0.053029343485832214
+            "valor": 0.045147113502025604
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.6131775379180908
+            "valor": 0.6204519867897034
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.14387854933738708
+            "valor": 0.14391988515853882
           }
         ],
+        "dimension_vector": 18,
+        "objeto": "chair/train/chair_0001",
+        "profundidad_max": 6,
+        "resolucion": 64,
+        "ruta_origen_relativa": "chair/train/chair_0001.off",
+        "split": "train",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 18,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 2586,
+            "n_hojas_original": 2586,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 25.1963,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "sofa",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 1570600840,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 6,
-          "n_nodos_totales": 3694,
-          "n_hojas_ocupadas": 2573,
+          "n_hojas_ocupadas": 9139,
+          "n_nodos_totales": 12902,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 31,
-            "L3": 80,
-            "L4": 239,
-            "L5": 762,
-            "L6": 2573
+            "L2": 54,
+            "L3": 168,
+            "L4": 738,
+            "L5": 2794,
+            "L6": 9139
           },
-          "pct_ocupacion_hoja": 0.9815,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 3.4863,
+          "profundidad_max": 6
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 2573,
-            "n_hojas_desde_disco": 2573,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 25.0908,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "chair",
-        "split": "train"
-      },
-      {
-        "objeto": "sofa_test_sofa_0681",
-        "resolucion": 64,
-        "profundidad_max": 6,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 18,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -2140,121 +2252,126 @@
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 8.563232421875
+            "valor": 8.526611328125
           },
           {
             "nombre": "ocupacion_L6",
-            "valor": 3.4778594970703125
+            "valor": 3.4862518310546875
           },
           {
             "nombre": "centroide_x",
-            "valor": 0.07824839651584625
+            "valor": 0.07678116858005524
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.0008414911571890116
+            "valor": -0.006375492550432682
           },
           {
             "nombre": "centroide_z",
-            "valor": 0.28886112570762634
+            "valor": 0.29473787546157837
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.16618308424949646
+            "valor": 0.16447825729846954
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.23500703275203705
+            "valor": 0.23379731178283691
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.16123174130916595
+            "valor": 0.16215939819812775
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.7275878190994263
+            "valor": 0.7260934114456177
           },
           {
             "nombre": "skew_x",
-            "valor": -0.10798699408769608
+            "valor": -0.10118705779314041
           },
           {
             "nombre": "skew_y",
-            "valor": -0.03671367093920708
+            "valor": -0.018245870247483253
           },
           {
             "nombre": "skew_z",
-            "valor": 0.08489491045475006
+            "valor": 0.06587573885917664
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.6605130434036255
+            "valor": 0.6657806634902954
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.16998697817325592
+            "valor": 0.16753090918064117
           }
         ],
+        "dimension_vector": 18,
+        "objeto": "sofa/test/sofa_0681",
+        "profundidad_max": 6,
+        "resolucion": 64,
+        "ruta_origen_relativa": "sofa/test/sofa_0681.off",
+        "split": "test",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 18,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 9139,
+            "n_hojas_original": 9139,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 20.9414,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "sofa",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 1868629855,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 6,
-          "n_nodos_totales": 12892,
-          "n_hojas_ocupadas": 9117,
+          "n_hojas_ocupadas": 7889,
+          "n_nodos_totales": 10669,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 54,
-            "L3": 168,
-            "L4": 738,
-            "L5": 2806,
-            "L6": 9117
+            "L2": 24,
+            "L3": 106,
+            "L4": 494,
+            "L5": 2147,
+            "L6": 7889
           },
-          "pct_ocupacion_hoja": 3.4779,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 3.0094,
+          "profundidad_max": 6
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 9117,
-            "n_hojas_desde_disco": 9117,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 20.7891,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "sofa",
-        "split": "test"
-      },
-      {
-        "objeto": "sofa_train_sofa_0001",
-        "resolucion": 64,
-        "profundidad_max": 6,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 18,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -2278,117 +2395,122 @@
           },
           {
             "nombre": "ocupacion_L6",
-            "valor": 3.00140380859375
+            "valor": 3.0094146728515625
           },
           {
             "nombre": "centroide_x",
-            "valor": -0.10390584915876389
+            "valor": -0.10491863638162613
           },
           {
             "nombre": "centroide_y",
-            "valor": 0.0011994788656011224
+            "valor": 4.5553937525255606e-05
           },
           {
             "nombre": "centroide_z",
-            "valor": -0.06409268826246262
+            "valor": -0.06615421921014786
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.09491109848022461
+            "valor": 0.09453794360160828
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.30309799313545227
+            "valor": 0.30477598309516907
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.03775295615196228
+            "valor": 0.03735899180173874
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.6171887516975403
+            "valor": 0.6173093318939209
           },
           {
             "nombre": "skew_x",
-            "valor": -0.49291712045669556
+            "valor": -0.4950070083141327
           },
           {
             "nombre": "skew_y",
-            "valor": -0.0019536365289241076
+            "valor": 0.008657753467559814
           },
           {
             "nombre": "skew_z",
-            "valor": 0.7965638637542725
+            "valor": 0.8107416033744812
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.9110143780708313
+            "valor": 0.9117094278335571
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.05563018471002579
+            "valor": 0.05560789257287979
           }
         ],
+        "dimension_vector": 18,
+        "objeto": "sofa/train/sofa_0001",
+        "profundidad_max": 6,
+        "resolucion": 64,
+        "ruta_origen_relativa": "sofa/train/sofa_0001.off",
+        "split": "train",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 18,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 7889,
+            "n_hojas_original": 7889,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 51.2588,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "table",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 2810257531,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 6,
-          "n_nodos_totales": 10648,
-          "n_hojas_ocupadas": 7868,
+          "n_hojas_ocupadas": 6156,
+          "n_nodos_totales": 8302,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
             "L2": 24,
-            "L3": 106,
-            "L4": 494,
-            "L5": 2147,
-            "L6": 7868
+            "L3": 88,
+            "L4": 321,
+            "L5": 1704,
+            "L6": 6156
           },
-          "pct_ocupacion_hoja": 3.0014,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 2.3483,
+          "profundidad_max": 6
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 7868,
-            "n_hojas_desde_disco": 7868,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 51.3691,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "sofa",
-        "split": "train"
-      },
-      {
-        "objeto": "table_test_table_0393",
-        "resolucion": 64,
-        "profundidad_max": 6,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 18,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -2404,125 +2526,130 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 7.8125
+            "valor": 7.8369140625
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 5.1910400390625
+            "valor": 5.2001953125
           },
           {
             "nombre": "ocupacion_L6",
-            "valor": 2.3456573486328125
+            "valor": 2.34832763671875
           },
           {
             "nombre": "centroide_x",
-            "valor": 2.286957169417292e-05
+            "valor": 0.0006294671911746264
           },
           {
             "nombre": "centroide_y",
-            "valor": -0.0007597780204378068
+            "valor": 0.0038072611205279827
           },
           {
             "nombre": "centroide_z",
-            "valor": 0.09845350682735443
+            "valor": 0.09980608522891998
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.07952968031167984
+            "valor": 0.07967659831047058
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.40131261944770813
+            "valor": 0.4024064540863037
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.08114313334226608
+            "valor": 0.08078356832265854
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.7151405215263367
+            "valor": 0.7156804203987122
           },
           {
             "nombre": "skew_x",
-            "valor": 0.024716950953006744
+            "valor": 0.01785556972026825
           },
           {
             "nombre": "skew_y",
-            "valor": 0.005420188419520855
+            "valor": -0.006769435480237007
           },
           {
             "nombre": "skew_z",
-            "valor": -1.0476925373077393
+            "valor": -1.0573859214782715
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.5547568798065186
+            "valor": 0.5616431832313538
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.14928901195526123
+            "valor": 0.1474686861038208
           }
         ],
+        "dimension_vector": 18,
+        "objeto": "table/test/table_0393",
+        "profundidad_max": 6,
+        "resolucion": 64,
+        "ruta_origen_relativa": "table/test/table_0393.off",
+        "split": "test",
+        "verificaciones": {
+          "TODAS_LAS_VERIFICACIONES_OK": true,
+          "convencion_raiz_L0_correcta": true,
+          "detalle_convencion": {
+            "esperado_primer_descriptor": "ocupacion_L1",
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
+          },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 18,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
+          "recorrido_produccion": {
+            "RECORRIDO_PRODUCCION_OK": true,
+            "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 6156,
+            "n_hojas_original": 6156,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
+            "profundidad_max_preservada": true,
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 25.457,
+            "vector_descriptores_coincide": true
+          },
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
+      },
+      {
+        "categoria": "table",
+        "configuracion_reproduccion": {
+          "metodo_muestreo": "area-weighted sobre triangulos de la malla",
+          "n_puntos_muestreados": 20000,
+          "seed": 3105868323,
+          "semilla_base": 42
+        },
         "datos_arbol": {
-          "profundidad_max": 6,
-          "n_nodos_totales": 8291,
-          "n_hojas_ocupadas": 6149,
+          "n_hojas_ocupadas": 8176,
+          "n_nodos_totales": 11139,
           "nodos_por_nivel": {
             "L0": 1,
             "L1": 8,
-            "L2": 24,
-            "L3": 88,
-            "L4": 320,
-            "L5": 1701,
-            "L6": 6149
+            "L2": 36,
+            "L3": 136,
+            "L4": 589,
+            "L5": 2193,
+            "L6": 8176
           },
-          "pct_ocupacion_hoja": 2.3457,
-          "ocupacion_L0_raiz_verificacion": 100.0
+          "ocupacion_L0_raiz_verificacion": 100.0,
+          "pct_ocupacion_hoja": 3.1189,
+          "profundidad_max": 6
         },
-        "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
-          "convencion_raiz_L0_correcta": true,
-          "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
-            "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
-          },
-          "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 6149,
-            "n_hojas_desde_disco": 6149,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
-            "etiqueta_preservada": true,
-            "profundidad_max_preservada": true,
-            "tam_archivo_kib": 25.3467,
-            "RECORRIDO_PRODUCCION_OK": true
-          },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "table",
-        "split": "test"
-      },
-      {
-        "objeto": "table_train_table_0001",
-        "resolucion": 64,
-        "profundidad_max": 6,
-        "configuracion_reproduccion": {
-          "seed": 42,
-          "n_puntos_muestreados": 20000,
-          "metodo_muestreo": "area-weighted sobre triangulos de la malla"
-        },
-        "dimension_vector": 18,
         "descriptores": [
           {
             "nombre": "ocupacion_L1",
@@ -2538,121 +2665,528 @@
           },
           {
             "nombre": "ocupacion_L4",
-            "valor": 14.404296875
+            "valor": 14.3798828125
           },
           {
             "nombre": "ocupacion_L5",
-            "valor": 6.6741943359375
+            "valor": 6.6925048828125
           },
           {
             "nombre": "ocupacion_L6",
-            "valor": 3.118133544921875
+            "valor": 3.118896484375
           },
           {
             "nombre": "centroide_x",
-            "valor": -0.002672345144674182
+            "valor": -0.007464683149009943
           },
           {
             "nombre": "centroide_y",
-            "valor": 0.012872369959950447
+            "valor": 0.008886527270078659
           },
           {
             "nombre": "centroide_z",
-            "valor": -0.031012967228889465
+            "valor": -0.030481744557619095
           },
           {
             "nombre": "varianza_x",
-            "valor": 0.39205607771873474
+            "valor": 0.3914748728275299
           },
           {
             "nombre": "varianza_y",
-            "valor": 0.3951297998428345
+            "valor": 0.3955520987510681
           },
           {
             "nombre": "varianza_z",
-            "valor": 0.020021261647343636
+            "valor": 0.019712932407855988
           },
           {
             "nombre": "dispersion_radial",
-            "valor": 0.8376570343971252
+            "valor": 0.8379078507423401
           },
           {
             "nombre": "skew_x",
-            "valor": -0.013294007629156113
+            "valor": 0.0033255130983889103
           },
           {
             "nombre": "skew_y",
-            "valor": -0.030968911945819855
+            "valor": -0.02177879400551319
           },
           {
             "nombre": "skew_z",
-            "valor": -2.786679983139038
+            "valor": -2.813697338104248
           },
           {
             "nombre": "normal_coherencia_media",
-            "valor": 0.6519718170166016
+            "valor": 0.655613362789154
           },
           {
             "nombre": "normal_coherencia_varianza",
-            "valor": 0.15026557445526123
+            "valor": 0.14861735701560974
           }
         ],
-        "datos_arbol": {
-          "profundidad_max": 6,
-          "n_nodos_totales": 11132,
-          "n_hojas_ocupadas": 8174,
-          "nodos_por_nivel": {
-            "L0": 1,
-            "L1": 8,
-            "L2": 36,
-            "L3": 136,
-            "L4": 590,
-            "L5": 2187,
-            "L6": 8174
-          },
-          "pct_ocupacion_hoja": 3.1181,
-          "ocupacion_L0_raiz_verificacion": 100.0
-        },
+        "dimension_vector": 18,
+        "objeto": "table/train/table_0001",
+        "profundidad_max": 6,
+        "resolucion": 64,
+        "ruta_origen_relativa": "table/train/table_0001.off",
+        "split": "train",
         "verificaciones": {
-          "sin_valores_indefinidos": true,
-          "detalle_indefinidos": {
-            "tiene_nan": false,
-            "tiene_inf": false
-          },
-          "reproducible_entre_corridas": true,
+          "TODAS_LAS_VERIFICACIONES_OK": true,
           "convencion_raiz_L0_correcta": true,
           "detalle_convencion": {
-            "ocupacion_raiz_L0": 100.0,
-            "esperado_raiz": 100.0,
-            "primer_descriptor_del_vector": "ocupacion_L1",
             "esperado_primer_descriptor": "ocupacion_L1",
-            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante."
+            "esperado_raiz": 100.0,
+            "nota": "L0 (raiz) se verifica pero NO forma parte del vector de entrada al clasificador, por ser constante.",
+            "ocupacion_raiz_L0": 100.0,
+            "primer_descriptor_del_vector": "ocupacion_L1"
           },
+          "detalle_indefinidos": {
+            "tiene_inf": false,
+            "tiene_nan": false
+          },
+          "dimension_esperada": 18,
+          "dimension_y_orden_correctos": true,
+          "muestreo_reproducible_misma_semilla": true,
           "recorrido_produccion": {
-            "sin_errores_estructura_padre_hijo": true,
-            "n_discrepancias_estructura": 0,
-            "primeras_discrepancias": [],
-            "nodos_por_nivel_coinciden": true,
-            "n_hojas_original": 8174,
-            "n_hojas_desde_disco": 8174,
-            "n_hojas_coinciden": true,
-            "vector_descriptores_coincide": true,
+            "RECORRIDO_PRODUCCION_OK": true,
             "etiqueta_preservada": true,
+            "n_discrepancias_estructura": 0,
+            "n_hojas_coinciden": true,
+            "n_hojas_desde_disco": 8176,
+            "n_hojas_original": 8176,
+            "nodos_por_nivel_coinciden": true,
+            "primeras_discrepancias": [],
             "profundidad_max_preservada": true,
-            "tam_archivo_kib": 30.2363,
-            "RECORRIDO_PRODUCCION_OK": true
+            "sin_errores_estructura_padre_hijo": true,
+            "tam_archivo_kib": 30.1865,
+            "vector_descriptores_coincide": true
           },
-          "TODAS_LAS_VERIFICACIONES_OK": true
-        },
-        "categoria": "table",
-        "split": "train"
+          "reproducible_entre_corridas": true,
+          "sin_valores_indefinidos": true
+        }
       }
     ]
   },
-  "estadisticas_agregadas": {
+  "resumen_por_resolucion": {
     "R32": {
-      "n_modelos": 10,
+      "caracteristicas_constantes_solo_train": [
+        "ocupacion_L1"
+      ],
       "dimension_vector": 17,
+      "estadisticas_muestra_completa": [
+        {
+          "desviacion_estandar": 0.0,
+          "es_constante_finita": true,
+          "max": 100.0,
+          "media": 100.0,
+          "mediana": 100.0,
+          "min": 100.0,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 1,
+          "nombre": "ocupacion_L1"
+        },
+        {
+          "desviacion_estandar": 17.405576737428152,
+          "es_constante_finita": false,
+          "max": 84.375,
+          "media": 42.34375,
+          "mediana": 37.5,
+          "min": 25.0,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 8,
+          "nombre": "ocupacion_L2"
+        },
+        {
+          "desviacion_estandar": 7.105295876470416,
+          "es_constante_finita": false,
+          "max": 32.8125,
+          "media": 17.6953125,
+          "mediana": 16.40625,
+          "min": 8.3984375,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "ocupacion_L3"
+        },
+        {
+          "desviacion_estandar": 4.609023905168392,
+          "es_constante_finita": false,
+          "max": 18.017578125,
+          "media": 8.91845703125,
+          "mediana": 7.2021484375,
+          "min": 2.734375,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "ocupacion_L4"
+        },
+        {
+          "desviacion_estandar": 2.3944615521952133,
+          "es_constante_finita": false,
+          "max": 8.526611328125,
+          "media": 4.64813232421875,
+          "mediana": 4.43878173828125,
+          "min": 1.4984130859375,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "ocupacion_L5"
+        },
+        {
+          "desviacion_estandar": 0.05312040682276366,
+          "es_constante_finita": false,
+          "max": 0.07397548109292984,
+          "media": -0.006565481124562211,
+          "mediana": -0.0006294842605711892,
+          "min": -0.10527770966291428,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "centroide_x"
+        },
+        {
+          "desviacion_estandar": 0.07236440322138334,
+          "es_constante_finita": false,
+          "max": 0.12379073351621628,
+          "media": -0.017416214104014217,
+          "mediana": -0.009221783966495423,
+          "min": -0.16086618602275848,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "centroide_y"
+        },
+        {
+          "desviacion_estandar": 0.10612559013777377,
+          "es_constante_finita": false,
+          "max": 0.2861712574958801,
+          "media": 0.015058328909799457,
+          "mediana": -0.020689821103587747,
+          "min": -0.08088693022727966,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "centroide_z"
+        },
+        {
+          "desviacion_estandar": 0.1025619863868501,
+          "es_constante_finita": false,
+          "max": 0.3853992521762848,
+          "media": 0.14984647892415523,
+          "mediana": 0.13207421451807022,
+          "min": 0.03557666763663292,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "varianza_x"
+        },
+        {
+          "desviacion_estandar": 0.11169373378754335,
+          "es_constante_finita": false,
+          "max": 0.4016476273536682,
+          "media": 0.2138350311666727,
+          "mediana": 0.1935780569911003,
+          "min": 0.06194816902279854,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "varianza_y"
+        },
+        {
+          "desviacion_estandar": 0.07779554163207211,
+          "es_constante_finita": false,
+          "max": 0.26049283146858215,
+          "media": 0.0767409024760127,
+          "mediana": 0.03681209310889244,
+          "min": 0.009114457294344902,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "varianza_z"
+        },
+        {
+          "desviacion_estandar": 0.12455566549475669,
+          "es_constante_finita": false,
+          "max": 0.8293932676315308,
+          "media": 0.6091505646705627,
+          "mediana": 0.5962808132171631,
+          "min": 0.4361289143562317,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "dispersion_radial"
+        },
+        {
+          "desviacion_estandar": 0.14477502512683896,
+          "es_constante_finita": false,
+          "max": 0.08795148134231567,
+          "media": -0.05984697267995216,
+          "mediana": -0.006843417446361855,
+          "min": -0.4576486349105835,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "skew_x"
+        },
+        {
+          "desviacion_estandar": 0.3647620221694397,
+          "es_constante_finita": false,
+          "max": 0.003126551629975438,
+          "media": -0.21596590600383933,
+          "mediana": -0.04047046694904566,
+          "min": -1.2289077043533325,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "skew_y"
+        },
+        {
+          "desviacion_estandar": 0.9927928506395156,
+          "es_constante_finita": false,
+          "max": 0.7332150936126709,
+          "media": -0.20271688476204872,
+          "mediana": 0.07392854243516922,
+          "min": -2.774387836456299,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "skew_z"
+        },
+        {
+          "desviacion_estandar": 0.1763166264293084,
+          "es_constante_finita": false,
+          "max": 0.8088721632957458,
+          "media": 0.374837227165699,
+          "mediana": 0.31666356325149536,
+          "min": 0.20277130603790283,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "normal_coherencia_media"
+        },
+        {
+          "desviacion_estandar": 0.03529626067148791,
+          "es_constante_finita": false,
+          "max": 0.16137951612472534,
+          "media": 0.07888593487441539,
+          "mediana": 0.06578104570508003,
+          "min": 0.04527480900287628,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "normal_coherencia_varianza"
+        }
+      ],
+      "estadisticas_solo_train": [
+        {
+          "desviacion_estandar": 0.0,
+          "es_constante_finita": true,
+          "max": 100.0,
+          "media": 100.0,
+          "mediana": 100.0,
+          "min": 100.0,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 1,
+          "nombre": "ocupacion_L1"
+        },
+        {
+          "desviacion_estandar": 11.858541225631422,
+          "es_constante_finita": false,
+          "max": 56.25,
+          "media": 39.0625,
+          "mediana": 37.5,
+          "min": 25.0,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "ocupacion_L2"
+        },
+        {
+          "desviacion_estandar": 5.9344153171352945,
+          "es_constante_finita": false,
+          "max": 26.5625,
+          "media": 17.1875,
+          "mediana": 15.625,
+          "min": 9.375,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "ocupacion_L3"
+        },
+        {
+          "desviacion_estandar": 3.8129544847094388,
+          "es_constante_finita": false,
+          "max": 14.3798828125,
+          "media": 8.6962890625,
+          "mediana": 6.5673828125,
+          "min": 4.6875,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "ocupacion_L4"
+        },
+        {
+          "desviacion_estandar": 1.9589771335273998,
+          "es_constante_finita": false,
+          "max": 6.6925048828125,
+          "media": 4.30419921875,
+          "mediana": 3.6773681640625,
+          "min": 2.288818359375,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "ocupacion_L5"
+        },
+        {
+          "desviacion_estandar": 0.052204531219072814,
+          "es_constante_finita": false,
+          "max": 0.057422392070293427,
+          "media": -0.013819421292282641,
+          "mediana": -0.009419174864888191,
+          "min": -0.10527770966291428,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "centroide_x"
+        },
+        {
+          "desviacion_estandar": 0.06547853153239189,
+          "es_constante_finita": false,
+          "max": 0.0005557455588132143,
+          "media": -0.05715753263211809,
+          "mediana": -0.018370211124420166,
+          "min": -0.16086618602275848,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "centroide_y"
+        },
+        {
+          "desviacion_estandar": 0.04835279766614162,
+          "es_constante_finita": false,
+          "max": 0.054037317633628845,
+          "media": -0.03962734192609787,
+          "mediana": -0.056166667491197586,
+          "min": -0.08088693022727966,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "centroide_z"
+        },
+        {
+          "desviacion_estandar": 0.11992561220275105,
+          "es_constante_finita": false,
+          "max": 0.3853992521762848,
+          "media": 0.15732666626572608,
+          "mediana": 0.13224603235721588,
+          "min": 0.03557666763663292,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "varianza_x"
+        },
+        {
+          "desviacion_estandar": 0.10860472662931904,
+          "es_constante_finita": false,
+          "max": 0.3884977102279663,
+          "media": 0.22339137494564057,
+          "mediana": 0.2048705518245697,
+          "min": 0.09704525768756866,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "varianza_y"
+        },
+        {
+          "desviacion_estandar": 0.09455379952459247,
+          "es_constante_finita": false,
+          "max": 0.26049283146858215,
+          "media": 0.07204180732369422,
+          "mediana": 0.020436525344848633,
+          "min": 0.01895417831838131,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "varianza_z"
+        },
+        {
+          "desviacion_estandar": 0.13718399361523598,
+          "es_constante_finita": false,
+          "max": 0.8293932676315308,
+          "media": 0.6099291324615479,
+          "mediana": 0.6169319748878479,
+          "min": 0.4577520489692688,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "dispersion_radial"
+        },
+        {
+          "desviacion_estandar": 0.17619468820428458,
+          "es_constante_finita": false,
+          "max": 0.002932966686785221,
+          "media": -0.12186591291101649,
+          "mediana": -0.012941273860633373,
+          "min": -0.4576486349105835,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "skew_x"
+        },
+        {
+          "desviacion_estandar": 0.46900940919586354,
+          "es_constante_finita": false,
+          "max": 0.003126551629975438,
+          "media": -0.3249114649603143,
+          "mediana": -0.06266088038682938,
+          "min": -1.2289077043533325,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "skew_y"
+        },
+        {
+          "desviacion_estandar": 1.242533122651357,
+          "es_constante_finita": false,
+          "max": 0.7109751105308533,
+          "media": -0.34175349175930025,
+          "mediana": 0.07087812572717667,
+          "min": -2.774387836456299,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "skew_z"
+        },
+        {
+          "desviacion_estandar": 0.20631605568086583,
+          "es_constante_finita": false,
+          "max": 0.8088721632957458,
+          "media": 0.4379429489374161,
+          "mediana": 0.34710046648979187,
+          "min": 0.24345307052135468,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "normal_coherencia_media"
+        },
+        {
+          "desviacion_estandar": 0.03816043876939506,
+          "es_constante_finita": false,
+          "max": 0.16137951612472534,
+          "media": 0.09034068733453751,
+          "mediana": 0.07279395312070847,
+          "min": 0.05874313414096832,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "normal_coherencia_varianza"
+        }
+      ],
+      "n_modelos": 10,
+      "n_modelos_train": 5,
       "orden_descriptores": [
         "ocupacion_L1",
         "ocupacion_L2",
@@ -2672,183 +3206,451 @@
         "normal_coherencia_media",
         "normal_coherencia_varianza"
       ],
-      "todas_verificaciones_ok_todos_modelos": true,
-      "estadisticas_por_descriptor": {
-        "ocupacion_L1": {
-          "min": 100.0,
-          "max": 100.0,
-          "media": 100.0,
-          "desviacion_estandar": 0.0,
-          "mediana": 100.0,
-          "n_valores_unicos": 1,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "ocupacion_L2": {
-          "min": 25.0,
-          "max": 84.375,
-          "media": 42.34375,
-          "desviacion_estandar": 17.405576737428152,
-          "mediana": 37.5,
-          "n_valores_unicos": 8,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "ocupacion_L3": {
-          "min": 8.7890625,
-          "max": 32.8125,
-          "media": 17.734375,
-          "desviacion_estandar": 7.054973000867456,
-          "mediana": 16.40625,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "ocupacion_L4": {
-          "min": 2.8076171875,
-          "max": 18.017578125,
-          "media": 8.9404296875,
-          "desviacion_estandar": 4.596083275554315,
-          "mediana": 7.2509765625,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "ocupacion_L5": {
-          "min": 1.519775390625,
-          "max": 8.563232421875,
-          "media": 4.65667724609375,
-          "desviacion_estandar": 2.398437972954073,
-          "mediana": 4.4464111328125,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "centroide_x": {
-          "min": -0.10632568597793579,
-          "max": 0.0756860300898552,
-          "media": -0.005578138209239114,
-          "desviacion_estandar": 0.05311304882985222,
-          "mediana": -0.0024273681119666435,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "centroide_y": {
-          "min": -0.16078421473503113,
-          "max": 0.12889055907726288,
-          "media": -0.016876384848728776,
-          "desviacion_estandar": 0.07401065466537238,
-          "mediana": -0.010660507075954229,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "centroide_z": {
-          "min": -0.07994125783443451,
-          "max": 0.2867961525917053,
-          "media": 0.014776404108852148,
-          "desviacion_estandar": 0.10630206803186815,
-          "mediana": -0.021030064672231674,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "varianza_x": {
-          "min": 0.03559939190745354,
-          "max": 0.3863624334335327,
-          "media": 0.1502195842564106,
-          "desviacion_estandar": 0.10253258588957535,
-          "mediana": 0.1324569284915924,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "varianza_y": {
-          "min": 0.06154712662100792,
-          "max": 0.4026288390159607,
-          "media": 0.2140569504350424,
-          "desviacion_estandar": 0.11181438781555025,
-          "mediana": 0.19331257790327072,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "varianza_z": {
-          "min": 0.009084809571504593,
-          "max": 0.26001882553100586,
-          "media": 0.07713169176131487,
-          "desviacion_estandar": 0.07782948094439542,
-          "mediana": 0.03659277595579624,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "dispersion_radial": {
-          "min": 0.4384787678718567,
-          "max": 0.8300241827964783,
-          "media": 0.6098513007164001,
-          "desviacion_estandar": 0.12449351515003476,
-          "mediana": 0.5977740585803986,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "skew_x": {
-          "min": -0.44995927810668945,
-          "max": 0.0747530609369278,
-          "media": -0.07710805509705096,
-          "desviacion_estandar": 0.13951972768640256,
-          "mediana": -0.026459062471985817,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "skew_y": {
-          "min": -1.21858549118042,
-          "max": 0.0023099700920283794,
-          "media": -0.21736576260300353,
-          "desviacion_estandar": 0.36110534741010214,
-          "mediana": -0.04121001809835434,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "skew_z": {
-          "min": -2.747964382171631,
-          "max": 0.7346733212471008,
-          "media": -0.19907483663409947,
-          "desviacion_estandar": 0.9871061693697286,
-          "mediana": 0.0782378502190113,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "normal_coherencia_media": {
-          "min": 0.20870769023895264,
-          "max": 0.8052565455436707,
-          "media": 0.37643948197364807,
-          "desviacion_estandar": 0.17414249234673687,
-          "mediana": 0.31338168680667877,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "normal_coherencia_varianza": {
-          "min": 0.053390588611364365,
-          "max": 0.1603858917951584,
-          "media": 0.0820145584642887,
-          "desviacion_estandar": 0.033412317148951286,
-          "mediana": 0.06731046363711357,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        }
-      }
+      "todas_las_verificaciones_ok": true
     },
     "R64": {
-      "n_modelos": 10,
+      "caracteristicas_constantes_solo_train": [
+        "ocupacion_L1"
+      ],
       "dimension_vector": 18,
+      "estadisticas_muestra_completa": [
+        {
+          "desviacion_estandar": 0.0,
+          "es_constante_finita": true,
+          "max": 100.0,
+          "media": 100.0,
+          "mediana": 100.0,
+          "min": 100.0,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 1,
+          "nombre": "ocupacion_L1"
+        },
+        {
+          "desviacion_estandar": 17.405576737428152,
+          "es_constante_finita": false,
+          "max": 84.375,
+          "media": 42.34375,
+          "mediana": 37.5,
+          "min": 25.0,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 8,
+          "nombre": "ocupacion_L2"
+        },
+        {
+          "desviacion_estandar": 7.105295876470416,
+          "es_constante_finita": false,
+          "max": 32.8125,
+          "media": 17.6953125,
+          "mediana": 16.40625,
+          "min": 8.3984375,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "ocupacion_L3"
+        },
+        {
+          "desviacion_estandar": 4.609023905168392,
+          "es_constante_finita": false,
+          "max": 18.017578125,
+          "media": 8.91845703125,
+          "mediana": 7.2021484375,
+          "min": 2.734375,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "ocupacion_L4"
+        },
+        {
+          "desviacion_estandar": 2.3944615521952133,
+          "es_constante_finita": false,
+          "max": 8.526611328125,
+          "media": 4.64813232421875,
+          "mediana": 4.43878173828125,
+          "min": 1.4984130859375,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "ocupacion_L5"
+        },
+        {
+          "desviacion_estandar": 1.0142732413933016,
+          "es_constante_finita": false,
+          "max": 3.4862518310546875,
+          "media": 2.132415771484375,
+          "mediana": 2.2159576416015625,
+          "min": 0.7907867431640625,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "ocupacion_L6"
+        },
+        {
+          "desviacion_estandar": 0.05096513014725863,
+          "es_constante_finita": false,
+          "max": 0.07678116858005524,
+          "media": -0.012194953655125573,
+          "mediana": -0.0021470403589773923,
+          "min": -0.10491863638162613,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "centroide_x"
+        },
+        {
+          "desviacion_estandar": 0.07102747823720076,
+          "es_constante_finita": false,
+          "max": 0.12692202627658844,
+          "media": -0.010552858033406665,
+          "mediana": -0.003164969306453713,
+          "min": -0.1456655114889145,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "centroide_y"
+        },
+        {
+          "desviacion_estandar": 0.11219106223048524,
+          "es_constante_finita": false,
+          "max": 0.29473787546157837,
+          "media": 0.02073102779686451,
+          "mediana": -0.023972807452082634,
+          "min": -0.09698828309774399,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "centroide_z"
+        },
+        {
+          "desviacion_estandar": 0.10318445350062615,
+          "es_constante_finita": false,
+          "max": 0.3914748728275299,
+          "media": 0.14766001887619495,
+          "mediana": 0.1308063492178917,
+          "min": 0.03421718627214432,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "varianza_x"
+        },
+        {
+          "desviacion_estandar": 0.11433798095396465,
+          "es_constante_finita": false,
+          "max": 0.4024064540863037,
+          "media": 0.2114575445652008,
+          "mediana": 0.18107230216264725,
+          "min": 0.06360458582639694,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "varianza_y"
+        },
+        {
+          "desviacion_estandar": 0.07406000711457389,
+          "es_constante_finita": false,
+          "max": 0.24661365151405334,
+          "media": 0.0722307828720659,
+          "mediana": 0.03405252378433943,
+          "min": 0.00779247609898448,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "varianza_z"
+        },
+        {
+          "desviacion_estandar": 0.12907196130924875,
+          "es_constante_finita": false,
+          "max": 0.8379078507423401,
+          "media": 0.601383563876152,
+          "mediana": 0.5915179252624512,
+          "min": 0.42240527272224426,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "dispersion_radial"
+        },
+        {
+          "desviacion_estandar": 0.1619606047853246,
+          "es_constante_finita": false,
+          "max": 0.14448034763336182,
+          "media": -0.040113582074991425,
+          "mediana": 0.000700547156156972,
+          "min": -0.4950070083141327,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "skew_x"
+        },
+        {
+          "desviacion_estandar": 0.3618476617482094,
+          "es_constante_finita": false,
+          "max": 0.008657753467559814,
+          "media": -0.23037738874554634,
+          "mediana": -0.07050636876374483,
+          "min": -1.2289923429489136,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "skew_y"
+        },
+        {
+          "desviacion_estandar": 1.04231329507052,
+          "es_constante_finita": false,
+          "max": 0.8107416033744812,
+          "media": -0.1723970204591751,
+          "mediana": 0.05551142618060112,
+          "min": -2.813697338104248,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "skew_z"
+        },
+        {
+          "desviacion_estandar": 0.16187671201644135,
+          "es_constante_finita": false,
+          "max": 0.9117094278335571,
+          "media": 0.5832355678081512,
+          "mediana": 0.5910475850105286,
+          "min": 0.36903825402259827,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "normal_coherencia_media"
+        },
+        {
+          "desviacion_estandar": 0.032719200881985266,
+          "es_constante_finita": false,
+          "max": 0.16753090918064117,
+          "media": 0.12291668951511384,
+          "mediana": 0.1376890242099762,
+          "min": 0.05560789257287979,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 10,
+          "nombre": "normal_coherencia_varianza"
+        }
+      ],
+      "estadisticas_solo_train": [
+        {
+          "desviacion_estandar": 0.0,
+          "es_constante_finita": true,
+          "max": 100.0,
+          "media": 100.0,
+          "mediana": 100.0,
+          "min": 100.0,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 1,
+          "nombre": "ocupacion_L1"
+        },
+        {
+          "desviacion_estandar": 11.858541225631422,
+          "es_constante_finita": false,
+          "max": 56.25,
+          "media": 39.0625,
+          "mediana": 37.5,
+          "min": 25.0,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "ocupacion_L2"
+        },
+        {
+          "desviacion_estandar": 5.9344153171352945,
+          "es_constante_finita": false,
+          "max": 26.5625,
+          "media": 17.1875,
+          "mediana": 15.625,
+          "min": 9.375,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "ocupacion_L3"
+        },
+        {
+          "desviacion_estandar": 3.8129544847094388,
+          "es_constante_finita": false,
+          "max": 14.3798828125,
+          "media": 8.6962890625,
+          "mediana": 6.5673828125,
+          "min": 4.6875,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "ocupacion_L4"
+        },
+        {
+          "desviacion_estandar": 1.9589771335273998,
+          "es_constante_finita": false,
+          "max": 6.6925048828125,
+          "media": 4.30419921875,
+          "mediana": 3.6773681640625,
+          "min": 2.288818359375,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "ocupacion_L5"
+        },
+        {
+          "desviacion_estandar": 0.9070660730962447,
+          "es_constante_finita": false,
+          "max": 3.118896484375,
+          "media": 2.057952880859375,
+          "mediana": 2.083587646484375,
+          "min": 0.986480712890625,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "ocupacion_L6"
+        },
+        {
+          "desviacion_estandar": 0.042731126551777646,
+          "es_constante_finita": false,
+          "max": 0.016047950834035873,
+          "media": -0.021149358619004487,
+          "mediana": -0.005320853088051081,
+          "min": -0.10491863638162613,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "centroide_x"
+        },
+        {
+          "desviacion_estandar": 0.06294207139402636,
+          "es_constante_finita": false,
+          "max": 0.008886527270078659,
+          "media": -0.0514581987321435,
+          "mediana": -0.01293020136654377,
+          "min": -0.1456655114889145,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "centroide_y"
+        },
+        {
+          "desviacion_estandar": 0.07328331058263735,
+          "es_constante_finita": false,
+          "max": 0.11307279765605927,
+          "media": -0.02712588757276535,
+          "mediana": -0.055077988654375076,
+          "min": -0.09698828309774399,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "centroide_z"
+        },
+        {
+          "desviacion_estandar": 0.12264361596298151,
+          "es_constante_finita": false,
+          "max": 0.3914748728275299,
+          "media": 0.15687066465616226,
+          "mediana": 0.13007031381130219,
+          "min": 0.03421718627214432,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "varianza_x"
+        },
+        {
+          "desviacion_estandar": 0.1126574767326022,
+          "es_constante_finita": false,
+          "max": 0.3955520987510681,
+          "media": 0.22221164554357528,
+          "mediana": 0.1906835436820984,
+          "min": 0.09538973867893219,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "varianza_y"
+        },
+        {
+          "desviacion_estandar": 0.08944263271401794,
+          "es_constante_finita": false,
+          "max": 0.24661365151405334,
+          "media": 0.06828739419579506,
+          "mediana": 0.019712932407855988,
+          "min": 0.018331291154026985,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "varianza_z"
+        },
+        {
+          "desviacion_estandar": 0.14358391724991695,
+          "es_constante_finita": false,
+          "max": 0.8379078507423401,
+          "media": 0.6043786764144897,
+          "mediana": 0.6173093318939209,
+          "min": 0.44976893067359924,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "dispersion_radial"
+        },
+        {
+          "desviacion_estandar": 0.1970302402511943,
+          "es_constante_finita": false,
+          "max": 0.0033255130983889103,
+          "media": -0.1011140202113893,
+          "mediana": -0.00028592898161150515,
+          "min": -0.4950070083141327,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "skew_x"
+        },
+        {
+          "desviacion_estandar": 0.4609090600578594,
+          "es_constante_finita": false,
+          "max": 0.008657753467559814,
+          "media": -0.336372872069478,
+          "mediana": -0.11923394352197647,
+          "min": -1.2289923429489136,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "skew_y"
+        },
+        {
+          "desviacion_estandar": 1.2989971115746923,
+          "es_constante_finita": false,
+          "max": 0.8107416033744812,
+          "media": -0.29789320230484007,
+          "mediana": 0.045147113502025604,
+          "min": -2.813697338104248,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "skew_z"
+        },
+        {
+          "desviacion_estandar": 0.1684965840339208,
+          "es_constante_finita": false,
+          "max": 0.9117094278335571,
+          "media": 0.6250477492809295,
+          "mediana": 0.6204519867897034,
+          "min": 0.3981771767139435,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "normal_coherencia_media"
+        },
+        {
+          "desviacion_estandar": 0.03536680277026101,
+          "es_constante_finita": false,
+          "max": 0.14861735701560974,
+          "media": 0.117156720161438,
+          "mediana": 0.13823866844177246,
+          "min": 0.05560789257287979,
+          "n_inf": 0,
+          "n_nan": 0,
+          "n_valores_unicos": 5,
+          "nombre": "normal_coherencia_varianza"
+        }
+      ],
+      "n_modelos": 10,
+      "n_modelos_train": 5,
       "orden_descriptores": [
         "ocupacion_L1",
         "ocupacion_L2",
@@ -2869,189 +3671,12 @@
         "normal_coherencia_media",
         "normal_coherencia_varianza"
       ],
-      "todas_verificaciones_ok_todos_modelos": true,
-      "estadisticas_por_descriptor": {
-        "ocupacion_L1": {
-          "min": 100.0,
-          "max": 100.0,
-          "media": 100.0,
-          "desviacion_estandar": 0.0,
-          "mediana": 100.0,
-          "n_valores_unicos": 1,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "ocupacion_L2": {
-          "min": 25.0,
-          "max": 84.375,
-          "media": 42.34375,
-          "desviacion_estandar": 17.405576737428152,
-          "mediana": 37.5,
-          "n_valores_unicos": 8,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "ocupacion_L3": {
-          "min": 8.7890625,
-          "max": 32.8125,
-          "media": 17.734375,
-          "desviacion_estandar": 7.054973000867456,
-          "mediana": 16.40625,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "ocupacion_L4": {
-          "min": 2.8076171875,
-          "max": 18.017578125,
-          "media": 8.9404296875,
-          "desviacion_estandar": 4.596083275554315,
-          "mediana": 7.2509765625,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "ocupacion_L5": {
-          "min": 1.519775390625,
-          "max": 8.563232421875,
-          "media": 4.65667724609375,
-          "desviacion_estandar": 2.398437972954073,
-          "mediana": 4.4464111328125,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "ocupacion_L6": {
-          "min": 0.795745849609375,
-          "max": 3.4778594970703125,
-          "media": 2.1266555786132812,
-          "desviacion_estandar": 1.0100259530909743,
-          "mediana": 2.2150039672851562,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "centroide_x": {
-          "min": -0.10390584915876389,
-          "max": 0.07824839651584625,
-          "media": -0.011155752050399315,
-          "desviacion_estandar": 0.050614652492554084,
-          "mediana": -0.0013247377864900045,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "centroide_y": {
-          "min": -0.15106835961341858,
-          "max": 0.12995865941047668,
-          "media": -0.01056025000871159,
-          "desviacion_estandar": 0.07262074199644833,
-          "mediana": -0.0008006345888134092,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "centroide_z": {
-          "min": -0.09677548706531525,
-          "max": 0.28886112570762634,
-          "media": 0.019013549480587245,
-          "desviacion_estandar": 0.10992110584221444,
-          "mediana": -0.02436609473079443,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "varianza_x": {
-          "min": 0.03408511355519295,
-          "max": 0.39205607771873474,
-          "media": 0.14875285029411317,
-          "desviacion_estandar": 0.10374254044213178,
-          "mediana": 0.1312013939023018,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "varianza_y": {
-          "min": 0.06333333998918533,
-          "max": 0.40131261944770813,
-          "media": 0.21094425171613693,
-          "desviacion_estandar": 0.11414635535358242,
-          "mediana": 0.17968636751174927,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "varianza_z": {
-          "min": 0.007778906729072332,
-          "max": 0.24699284136295319,
-          "media": 0.07242813217453659,
-          "desviacion_estandar": 0.07412599525017566,
-          "mediana": 0.03395725693553686,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "dispersion_radial": {
-          "min": 0.42146700620651245,
-          "max": 0.8376570343971252,
-          "media": 0.6018050879240036,
-          "desviacion_estandar": 0.12924452013667626,
-          "mediana": 0.5928741991519928,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "skew_x": {
-          "min": -0.49291712045669556,
-          "max": 0.13160482048988342,
-          "media": -0.04371029613539577,
-          "desviacion_estandar": 0.15983662323654146,
-          "mediana": -0.005450770258903503,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "skew_y": {
-          "min": -1.2474946975708008,
-          "max": 0.005420188419520855,
-          "media": -0.2310597053496167,
-          "desviacion_estandar": 0.3654899118105308,
-          "mediana": -0.07119331322610378,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "skew_z": {
-          "min": -2.786679983139038,
-          "max": 0.7965638637542725,
-          "media": -0.16931748539209365,
-          "desviacion_estandar": 1.035459493454298,
-          "mediana": 0.06896212697029114,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "normal_coherencia_media": {
-          "min": 0.36418652534484863,
-          "max": 0.9110143780708313,
-          "media": 0.5791419595479965,
-          "desviacion_estandar": 0.16359536244216816,
-          "mediana": 0.5839672088623047,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        },
-        "normal_coherencia_varianza": {
-          "min": 0.05563018471002579,
-          "max": 0.16998697817325592,
-          "media": 0.12306401655077934,
-          "desviacion_estandar": 0.03354918460328591,
-          "mediana": 0.13715088367462158,
-          "n_valores_unicos": 10,
-          "n_nan": 0,
-          "n_inf": 0
-        }
-      }
+      "todas_las_verificaciones_ok": true
     }
-  }
+  },
+  "semilla_base": 42,
+  "splits": [
+    "train",
+    "test"
+  ]
 }
