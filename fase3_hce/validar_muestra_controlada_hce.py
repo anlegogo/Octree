@@ -42,6 +42,10 @@ from hce_extraccion import (  # noqa: E402
     extraer_descriptores_hce_desde_npz,
     nombres_features,
 )
+from contrato_hce import (  # noqa: E402
+    diagnostico_ocupacion_l1,
+    estadisticas_features,
+)
 from validar_extraccion_hce import (  # noqa: E402
     PROFUNDIDAD_POR_RESOLUCION,
     validar_resolucion,
@@ -58,48 +62,6 @@ def ruta_portable(ruta: Path) -> str:
         return ruta.relative_to(RAIZ_PROYECTO.resolve()).as_posix()
     except ValueError:
         return ruta.name
-
-
-def estadisticas_features(matriz: np.ndarray, nombres: list[str]) -> list[dict]:
-    """Calcula estadisticas descriptivas y conteos de integridad por columna."""
-    valores = np.asarray(matriz, dtype=np.float64)
-    if valores.ndim != 2 or valores.shape[1] != len(nombres):
-        raise ValueError(
-            "La matriz debe ser bidimensional y coincidir con los nombres"
-        )
-
-    salida = []
-    for indice, nombre in enumerate(nombres):
-        columna = valores[:, indice]
-        n_nan = int(np.isnan(columna).sum())
-        n_inf = int(np.isinf(columna).sum())
-        finitos = columna[np.isfinite(columna)]
-        unicos = np.unique(finitos)
-
-        if finitos.size:
-            minimo = float(np.min(finitos))
-            maximo = float(np.max(finitos))
-            media = float(np.mean(finitos))
-            mediana = float(np.median(finitos))
-            desviacion = float(np.std(finitos, ddof=0))
-        else:
-            minimo = maximo = media = mediana = desviacion = None
-
-        salida.append({
-            "nombre": nombre,
-            "min": minimo,
-            "max": maximo,
-            "media": media,
-            "mediana": mediana,
-            "desviacion_estandar": desviacion,
-            "n_valores_unicos": int(unicos.size),
-            "n_nan": n_nan,
-            "n_inf": n_inf,
-            "es_constante_finita": bool(
-                finitos.size > 0 and unicos.size == 1 and n_nan == 0 and n_inf == 0
-            ),
-        })
-    return salida
 
 
 def resumir_resultados(resultados: list[dict], profundidad: int) -> dict:
@@ -133,39 +95,6 @@ def resumir_resultados(resultados: list[dict], profundidad: int) -> dict:
             item["nombre"] for item in estadisticas_train
             if item["es_constante_finita"]
         ],
-    }
-
-
-def diagnostico_ocupacion_l1(
-    estadisticas: list[dict], n_modelos: int, auditoria_completa: bool,
-) -> dict:
-    """Emite una recomendacion sin utilizar observaciones de test."""
-    l1 = next(item for item in estadisticas if item["nombre"] == "ocupacion_L1")
-    if not auditoria_completa:
-        estado = "evidencia_insuficiente"
-        recomendacion = (
-            "Ejecutar la auditoria sobre todos los NPZ de train antes de "
-            "conservar o excluir ocupacion_L1."
-        )
-    elif l1["es_constante_finita"]:
-        estado = "constante_en_train_completo"
-        recomendacion = (
-            "Excluir ocupacion_L1 del vector final y actualizar dimensiones, "
-            "documentacion y pruebas antes del entrenamiento."
-        )
-    else:
-        estado = "variable_en_train_completo"
-        recomendacion = "Conservar ocupacion_L1 y documentar esta evidencia."
-
-    return {
-        "estado": estado,
-        "n_modelos_train_evaluados": int(n_modelos),
-        "estadisticas_ocupacion_L1": l1,
-        "recomendacion": recomendacion,
-        "nota_metodologica": (
-            "La decision se toma exclusivamente con train; test no participa "
-            "en la seleccion de caracteristicas."
-        ),
     }
 
 

@@ -34,7 +34,7 @@ numéricamente idénticas, ver `hce_extraccion.py::__main__` y
 | Ruta | Función | Fuente de los nodos/hojas |
 |---|---|---|
 | Árbol en memoria | `extraer_descriptores_hce(raiz, L)` | Recorre el objeto `NodoOctree` recién construido, vía `ocupacion_por_nivel_arbol()` y `recolectar_hojas()` |
-| Disco (producción) | `extraer_descriptores_hce_desde_npz(ruta)` | Carga `centros_hoja`/`coherencias_hoja` del `.npz` disperso (`cargar_octree_disperso`); el conteo de nodos por nivel se deriva matemáticamente de esos mismos centros (`ocupacion_por_nivel_desde_hojas`), sin reconstruir el árbol completo ni una rejilla |
+| Disco (producción) | `extraer_descriptores_hce_desde_npz(ruta)` | Valida y reconstruye la jerarquía serializada del `.npz` mediante `cargar_octree_disperso`, deriva `centros_hoja`/`coherencias_hoja` y calcula el conteo por nivel con `ocupacion_por_nivel_desde_hojas`; no materializa una rejilla densa |
 
 En ambos casos, la fuente son los **nodos y hojas del octree**, nunca
 una rejilla densa materializada.
@@ -235,3 +235,10 @@ dimensiones finales pasarán a 16 (32³) y 17 (64³); si presenta
 variabilidad, se conservará con la evidencia correspondiente. Hasta
 resolver esta auditoría, las dimensiones 17/18 son provisionales y no
 deben iniciarse SVM ni Bosque Aleatorio.
+
+La decisión final se automatiza con `auditar_train_hce.py`. El script recorre
+los 9 843 NPZ de `train`, genera `contrato_hce_R32.json` y
+`contrato_hce_R64.json`, y registra las columnas excluidas sin consultar el
+split `test`. El entrenamiento rechaza cualquier contrato incompleto o creado
+con una versión distinta del esquema HCE. Véase
+`fase3_hce/README_OBJETIVO2.md` para la secuencia completa.

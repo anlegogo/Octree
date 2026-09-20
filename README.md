@@ -355,3 +355,9 @@ Después de aceptar esta lista se planifica la regeneración completa de
 ModelNet40. La extracción HCE, la clasificación y el aprendizaje profundo solo
 podrán iniciarse cuando esa generación global haya terminado y haya sido
 auditada con el modo estricto.
+
+El procedimiento reproducible para iniciar el objetivo específico 2 está en
+[`fase3_hce/README_OBJETIVO2.md`](fase3_hce/README_OBJETIVO2.md). Incluye la
+auditoría exclusiva de `train`, la generación del contrato versionado de
+características y el bloqueo automático del entrenamiento mientras la evidencia
+sea incompleta.
