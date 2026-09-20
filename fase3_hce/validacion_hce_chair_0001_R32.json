@@ -100,6 +100,8 @@
       "tiene_inf": false
     },
     "reproducible_entre_corridas": true,
+    "dimension_y_orden_correctos": true,
+    "dimension_esperada": 17,
     "convencion_raiz_L0_correcta": true,
     "detalle_convencion": {
       "ocupacion_raiz_L0": 100.0,
@@ -119,7 +121,7 @@
       "vector_descriptores_coincide": true,
       "etiqueta_preservada": true,
       "profundidad_max_preservada": true,
-      "tam_archivo_kib": 10.0869,
+      "tam_archivo_kib": 11.9121,
       "RECORRIDO_PRODUCCION_OK": true
     },
     "TODAS_LAS_VERIFICACIONES_OK": true
