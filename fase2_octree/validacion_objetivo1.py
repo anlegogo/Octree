@@ -16,6 +16,7 @@ from pathlib import Path
 import numpy as np
 
 try:  # Ejecucion como paquete
+    from .cuantizacion import cuantizar_indices_octree
     from .octree import construir_grid_octree
     from .octree_real import (
         OCTREE_FORMAT_VERSION,
@@ -25,6 +26,7 @@ try:  # Ejecucion como paquete
         recolectar_hojas,
     )
 except ImportError:  # Ejecucion directa desde fase2_octree/
+    from cuantizacion import cuantizar_indices_octree
     from octree import construir_grid_octree
     from octree_real import (
         OCTREE_FORMAT_VERSION,
@@ -57,8 +59,7 @@ def semilla_estable_modelo(semilla_base: int, ruta_relativa: str) -> int:
 
 def celdas_ocupadas_desde_puntos(puntos: np.ndarray, resolucion: int) -> np.ndarray:
     """Cuantiza directamente los puntos y retorna indices unicos ordenados."""
-    indices = ((np.asarray(puntos) + 1.0) * 0.5 * resolucion).astype(np.int64)
-    indices = np.clip(indices, 0, resolucion - 1)
+    indices = cuantizar_indices_octree(puntos, resolucion)
     return np.unique(indices, axis=0)
 
 
@@ -68,8 +69,7 @@ def celdas_ocupadas_desde_octree(raiz, resolucion: int) -> np.ndarray:
     if not hojas:
         return np.empty((0, 3), dtype=np.int64)
     centros = np.asarray([hoja.centro for hoja in hojas], dtype=np.float32)
-    indices = ((centros + 1.0) * 0.5 * resolucion).astype(np.int64)
-    indices = np.clip(indices, 0, resolucion - 1)
+    indices = cuantizar_indices_octree(centros, resolucion)
     return np.unique(indices, axis=0)
 
 
