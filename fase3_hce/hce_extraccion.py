@@ -10,11 +10,10 @@ Dos formas de uso:
      el arbol NodoOctree recien construido (ej. pruebas, visualizacion).
   2. extraer_descriptores_hce_desde_npz(ruta_npz) -- cuando se carga
      el archivo disperso ya persistido por preprocesar_octrees.py
-     (uso normal en el entrenamiento de SVM/Random Forest). Esta
-     variante NO reconstruye el arbol completo: calcula la ocupacion
-     por nivel directamente desde los centros de las hojas guardadas
-     (ver octree_real.py::ocupacion_por_nivel_desde_hojas, verificada
-     numericamente equivalente a recorrer el arbol).
+     (uso normal en el entrenamiento de SVM/Random Forest). El cargador
+     valida y reconstruye la jerarquia serializada para derivar las hojas;
+     el extractor calcula la ocupacion desde sus centros sin materializar
+     una rejilla densa (ver ocupacion_por_nivel_desde_hojas).
 
 Convencion de profundidad (raiz = L=0, un solo nodo, R=2^L en cada
 nivel, consistente con octree_real.py):
@@ -81,6 +80,9 @@ from octree_real import (
     NodoOctree, recolectar_hojas, ocupacion_por_nivel_arbol,
     ocupacion_por_nivel_desde_hojas, cargar_octree_disperso,
 )
+
+
+HCE_RAW_SCHEMA_VERSION = "1.0.0"
 
 
 # ──────────────────────────────────────────────────────────────
@@ -176,15 +178,49 @@ def extraer_descriptores_hce(raiz: NodoOctree, profundidad_max: int) -> np.ndarr
 
 
 # ──────────────────────────────────────────────────────────────
-# EXTRACTOR 2: directamente desde el .npz disperso persistido
-# (uso normal en fase3_hce_entrenamiento.py -- NO reconstruye el arbol)
+# EXTRACTOR 2: desde el .npz disperso persistido y validado
+# (uso normal en fase3_hce_entrenamiento.py; nunca crea una rejilla densa)
 # ──────────────────────────────────────────────────────────────
+
+def extraer_descriptores_hce_desde_datos(datos: dict) -> np.ndarray:
+    """Extrae el vector HCE base desde un octree disperso ya cargado.
+
+    Esta variante evita leer y reconstruir dos veces el mismo NPZ durante las
+    auditorias masivas. ``datos`` debe provenir de
+    :func:`octree_real.cargar_octree_disperso`, que valida previamente el
+    formato, la version, la topologia y los metadatos del archivo.
+    """
+    centros = np.asarray(datos["centros_hoja"], dtype=np.float32)
+    coherencias = np.asarray(datos["coherencias_hoja"], dtype=np.float32)
+    profundidad_max = int(datos["profundidad_max"])
+
+    feats_nivel_completo = ocupacion_por_nivel_desde_hojas(
+        centros, profundidad_max,
+    )
+    feats_nivel = feats_nivel_completo[1:]  # excluye L=0 (raiz)
+    feats_mom = momentos_geometricos(centros)
+    feats_coherencia = estadisticas_coherencia_normales(coherencias)
+
+    features = np.concatenate([
+        feats_nivel, feats_mom, feats_coherencia,
+    ]).astype(np.float32)
+    dimension_esperada = len(nombres_features(profundidad_max))
+    if features.shape != (dimension_esperada,):
+        raise ValueError(
+            "Dimension HCE base inconsistente: "
+            f"{features.shape} != ({dimension_esperada},)"
+        )
+    if not np.isfinite(features).all():
+        raise ValueError("El vector HCE base contiene NaN o Inf")
+    return features
+
 
 def extraer_descriptores_hce_desde_npz(ruta_npz: str) -> np.ndarray:
     """
-    Extraccion HCE directamente desde el archivo disperso guardado por
-    preprocesar_octrees.py, SIN reconstruir el arbol completo. La
-    ocupacion por nivel se calcula desde los centros de hoja (ver
+    Extraccion HCE desde el archivo disperso guardado por
+    preprocesar_octrees.py. El cargador valida y reconstruye la jerarquia
+    para derivar sus hojas; la ocupacion por nivel se calcula desde los
+    centros de hoja (ver
     octree_real.py::ocupacion_por_nivel_desde_hojas, verificada
     numericamente equivalente a recorrer el arbol real).
 
@@ -192,18 +228,8 @@ def extraer_descriptores_hce_desde_npz(ruta_npz: str) -> np.ndarray:
 
     Este es el metodo usado en produccion por fase3_hce_entrenamiento.py.
     """
-    d = cargar_octree_disperso(ruta_npz)
-    centros = d["centros_hoja"]
-    coherencias = d["coherencias_hoja"]
-    profundidad_max = d["profundidad_max"]
-
-    feats_nivel_completo = ocupacion_por_nivel_desde_hojas(centros, profundidad_max)
-    feats_nivel = feats_nivel_completo[1:]   # excluye L=0 (raiz)
-
-    feats_mom = momentos_geometricos(centros)
-    feats_coherencia = estadisticas_coherencia_normales(coherencias)
-
-    return np.concatenate([feats_nivel, feats_mom, feats_coherencia]).astype(np.float32)
+    datos = cargar_octree_disperso(ruta_npz)
+    return extraer_descriptores_hce_desde_datos(datos)
 
 
 def nombres_features(profundidad_max: int) -> list:
