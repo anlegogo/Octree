@@ -33,6 +33,11 @@ from pathlib import Path
 
 import numpy as np
 
+try:  # Ejecucion como paquete
+    from .cuantizacion import cuantizar_indices_octree
+except ImportError:  # Ejecucion directa desde fase2_octree/
+    from cuantizacion import cuantizar_indices_octree
+
 
 # Formato unico aprobado para los artefactos del objetivo especifico 1.
 # Cualquier cambio incompatible debe incrementar esta version y disponer
@@ -302,8 +307,7 @@ def octree_a_grid_denso(raiz: NodoOctree, resolucion: int) -> np.ndarray:
     centros = np.array([h.centro for h in hojas], dtype=np.float32)
     normales = np.array([h.normal_promedio for h in hojas], dtype=np.float32)
 
-    idx = np.clip(((centros + 1.0) * 0.5 * resolucion).astype(np.int64),
-                 0, resolucion - 1)
+    idx = cuantizar_indices_octree(centros, resolucion)
 
     grid[0, idx[:, 0], idx[:, 1], idx[:, 2]] = 1.0
     grid[1, idx[:, 0], idx[:, 1], idx[:, 2]] = normales[:, 0]
@@ -696,8 +700,7 @@ def cargar_y_materializar(ruta_npz: str, resolucion: int) -> tuple:
 
     grid = np.zeros((4, resolucion, resolucion, resolucion), dtype=np.float32)
     if len(centros) > 0:
-        idx = np.clip(((centros + 1.0) * 0.5 * resolucion).astype(np.int64),
-                     0, resolucion - 1)
+        idx = cuantizar_indices_octree(centros, resolucion)
         grid[0, idx[:, 0], idx[:, 1], idx[:, 2]] = 1.0
         grid[1, idx[:, 0], idx[:, 1], idx[:, 2]] = normales[:, 0]
         grid[2, idx[:, 0], idx[:, 1], idx[:, 2]] = normales[:, 1]
@@ -739,8 +742,7 @@ def ocupacion_por_nivel_desde_hojas(centros_hoja: np.ndarray, profundidad_max: i
 
     for d in range(profundidad_max + 1):
         R_d = 2 ** d
-        idx = np.clip(((centros_hoja + 1.0) * 0.5 * R_d).astype(np.int64),
-                     0, R_d - 1)
+        idx = cuantizar_indices_octree(centros_hoja, R_d)
         celdas_unicas = np.unique(idx, axis=0)
         porcentajes[d] = 100.0 * len(celdas_unicas) / (8 ** d)
 
