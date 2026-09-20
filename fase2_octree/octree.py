@@ -22,6 +22,11 @@ Canales por celda: [ocupacion, nx, ny, nz]  -> grid shape (4, R, R, R)
 import numpy as np
 from pathlib import Path
 
+try:  # Ejecucion como paquete
+    from .cuantizacion import cuantizar_indices_octree
+except ImportError:  # Ejecucion directa desde fase2_octree/
+    from cuantizacion import cuantizar_indices_octree
+
 
 # ──────────────────────────────────────────────────────────────
 # 1. LECTURA DE MALLA .OFF (vertices + caras)
@@ -197,9 +202,7 @@ def construir_grid_octree(
     """
     R = resolucion
 
-    # Mapear [-1, 1] -> [0, R) y truncar a indices validos
-    idx = ((puntos + 1.0) * 0.5 * R).astype(np.int64)
-    idx = np.clip(idx, 0, R - 1)
+    idx = cuantizar_indices_octree(puntos, R)
 
     grid_ocupacion = np.zeros((R, R, R), dtype=np.float32)
     grid_normal_sum = np.zeros((R, R, R, 3), dtype=np.float32)
