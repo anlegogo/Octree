@@ -53,6 +53,9 @@ from preprocesar_octrees import (  # noqa: E402
 )
 
 SEED = 42
+RESULTADOS_SCHEMA_NAME = "hce-training-results"
+RESULTADOS_SCHEMA_VERSION = "1.0.0"
+CONTEO_TEST_ESPERADO = 2468
 
 PROFUNDIDAD_POR_RESOLUCION = {32: 5, 64: 6}
 
@@ -361,6 +364,15 @@ def main():
         raiz_resolucion, "train", L, contrato,
     )
 
+    conteo_train_esperado = int(contrato["conteo_train_esperado"])
+    if len(X_train_full) != conteo_train_esperado:
+        raise RuntimeError(
+            f"Train incompleto: {len(X_train_full)} muestras; "
+            f"se esperaban {conteo_train_esperado}."
+        )
+    if not np.isfinite(X_train_full).all():
+        raise RuntimeError("Train contiene características NaN o Inf")
+
     # Salvaguarda metodologica: no iniciar clasificadores mientras el vector
     # contenga caracteristicas constantes en train (por ejemplo, ocupacion_L1).
     constantes = [
@@ -377,6 +389,13 @@ def main():
     X_test, y_test = extraer_features_split(
         raiz_resolucion, "test", L, contrato,
     )
+    if len(X_test) != CONTEO_TEST_ESPERADO:
+        raise RuntimeError(
+            f"Test incompleto: {len(X_test)} muestras; "
+            f"se esperaban {CONTEO_TEST_ESPERADO}."
+        )
+    if not np.isfinite(X_test).all():
+        raise RuntimeError("Test contiene características NaN o Inf")
     print(f"\n  X_train_full : {X_train_full.shape}")
     print(f"  X_test       : {X_test.shape}")
 
@@ -433,6 +452,8 @@ def main():
 
     # Guardar resumen completo
     resumen = {
+        "schema_name": RESULTADOS_SCHEMA_NAME,
+        "schema_version": RESULTADOS_SCHEMA_VERSION,
         "resolucion": R,
         "profundidad_octree": L,
         "contrato_features": ruta_portable(ruta_contrato),
@@ -440,6 +461,7 @@ def main():
         "features_excluidas": contrato["caracteristicas_excluidas"],
         "orden_features_modelo": nombres,
         "n_features": X_train.shape[1],
+        "n_train_total": int(X_train_full.shape[0]),
         "n_train": int(X_train.shape[0]),
         "n_val":   int(X_val.shape[0]),
         "n_test":  int(X_test.shape[0]),
@@ -465,8 +487,9 @@ def main():
     }
 
     ruta_resumen = dir_resultados / f"resumen_hce_R{R}.json"
-    with open(ruta_resumen, "w") as f:
-        json.dump(resumen, f, indent=2)
+    with open(ruta_resumen, "w", encoding="utf-8") as f:
+        json.dump(resumen, f, indent=2, ensure_ascii=False, allow_nan=False)
+        f.write("\n")
 
     print("\n" + "=" * 60)
     print(f"  RESUMEN FINAL — HCE Resolucion {R}^3")
