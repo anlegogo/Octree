@@ -81,3 +81,31 @@ La reserva interna de validación es estratificada, reproducible y usa la
 semilla 42. El SVM aplica `StandardScaler` dentro del `Pipeline` de validación
 cruzada. El conjunto oficial `test` se carga únicamente después de aprobar el
 contrato de características generado con `train`.
+
+Cada ejecución debe terminar con uno de estos archivos:
+
+```text
+resultados/objetivo2/resumen_hce_R32.json
+resultados/objetivo2/resumen_hce_R64.json
+```
+
+## 4. Validación final de los resultados
+
+Cuando existan los dos resúmenes, ejecute una única validación consolidada:
+
+```bash
+python fase3_hce/validar_resultados_hce.py \
+  --resultados-dir resultados/objetivo2 \
+  --resoluciones 32 64
+```
+
+La validación comprueba, para SVM y Bosque Aleatorio, los conteos completos de
+9 843 muestras de `train` y 2 468 de `test`, el contrato y orden de las
+características, valores numéricos finitos, métricas en rango, reportes para
+las 40 clases, matrices de confusión de 40 × 40 e importancias del Bosque
+Aleatorio. Solo se considera completo el entrenamiento cuando el comando
+termina con código 0 y genera:
+
+```text
+resultados/objetivo2/validacion_entrenamientos_hce.json
+```
