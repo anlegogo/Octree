@@ -52,7 +52,10 @@ es exclusivamente diagnóstica y no cierra el Objetivo 3.
 - `tests/test_grid_octree.py`: equivalencia geométrica ya verificable sin
   PyTorch.
 - `tests/test_octnet_backend.py`: forward, backward, checkpoint, capacidad
-  fija y guardas, pendiente de ejecutarse donde esté instalado PyTorch.
+  fija, guardas y perfilado interno, pendiente de ejecutarse donde esté
+  instalado PyTorch.
+- `trazabilidad_git.py`: captura el commit, la rama y el estado inicial antes
+  de que la corrida genere archivos; permite exigir un repositorio limpio.
 
 La expansión de la salida final 8³ para las capas totalmente conectadas está
 permitida: no reconstruye el volumen de entrada R=32/R=64 y es parte explícita

@@ -12,6 +12,7 @@ la reduccion se ejecutan en el dispositivo de los atributos (CPU o CUDA).
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from typing import Iterable
 
@@ -30,6 +31,7 @@ class LoteGridOctree:
     geometrias: tuple[GeometriaGridOctree, ...]
     offsets: np.ndarray
     _cache: dict = field(default_factory=dict, repr=False)
+    _perfil: dict | None = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
         if self.atributos.ndim != 2:
@@ -86,6 +88,7 @@ class LoteGridOctree:
             geometrias=self.geometrias,
             offsets=self.offsets,
             _cache=self._cache,
+            _perfil=self._perfil,
         )
 
     def pin_memory(self) -> "LoteGridOctree":
@@ -94,6 +97,7 @@ class LoteGridOctree:
             geometrias=self.geometrias,
             offsets=self.offsets,
             _cache=self._cache,
+            _perfil=self._perfil,
         )
 
     def con_atributos(self, atributos: torch.Tensor) -> "LoteGridOctree":
@@ -102,11 +106,38 @@ class LoteGridOctree:
             geometrias=self.geometrias,
             offsets=self.offsets,
             _cache=self._cache,
+            _perfil=self._perfil,
         )
+
+    def activar_perfil(self) -> "LoteGridOctree":
+        """Activa contadores compartidos por todas las capas del lote."""
+
+        self._perfil = {
+            "plan_convolucion_cpu_s": 0.0,
+            "transferencia_plan_convolucion_s": 0.0,
+            "plan_pooling_cpu_s": 0.0,
+            "transferencia_plan_pooling_s": 0.0,
+            "mapa_final_cpu_s": 0.0,
+            "transferencia_mapa_final_s": 0.0,
+            "n_planes_convolucion": 0,
+            "n_planes_pooling": 0,
+            "n_mapas_finales": 0,
+        }
+        return self
+
+    def resumen_perfil(self) -> dict:
+        """Devuelve una copia de los contadores internos del backend."""
+
+        return dict(self._perfil or {})
+
+    def _registrar_perfil(self, clave: str, valor: float) -> None:
+        if self._perfil is not None:
+            self._perfil[clave] += valor
 
     def _plan_convolucion_numpy(self) -> tuple[np.ndarray, ...]:
         clave = "conv_numpy"
         if clave not in self._cache:
+            t0 = time.perf_counter() if self._perfil is not None else None
             salidas_por_kernel = [[] for _ in range(27)]
             entradas_por_kernel = [[] for _ in range(27)]
             coeficientes_por_kernel = [[] for _ in range(27)]
@@ -144,6 +175,11 @@ class LoteGridOctree:
                 np.concatenate(coeficientes),
                 np.asarray(offsets_kernel, dtype=np.int64),
             )
+            if t0 is not None:
+                self._registrar_perfil(
+                    "plan_convolucion_cpu_s", time.perf_counter() - t0,
+                )
+                self._perfil["n_planes_convolucion"] += 1
         return self._cache[clave]
 
     def plan_convolucion_torch(self) -> tuple:
@@ -153,6 +189,7 @@ class LoteGridOctree:
             salida, entrada, coeficiente, offsets = (
                 self._plan_convolucion_numpy()
             )
+            t0 = time.perf_counter() if self._perfil is not None else None
             self._cache[clave] = (
                 torch.as_tensor(salida, dtype=torch.long, device=dispositivo),
                 torch.as_tensor(entrada, dtype=torch.long, device=dispositivo),
@@ -163,9 +200,17 @@ class LoteGridOctree:
                 ),
                 offsets,
             )
+            if t0 is not None and dispositivo.type == "cuda":
+                torch.cuda.synchronize(dispositivo)
+            if t0 is not None:
+                self._registrar_perfil(
+                    "transferencia_plan_convolucion_s",
+                    time.perf_counter() - t0,
+                )
         return self._cache[clave]
 
     def max_pool2(self) -> "LoteGridOctree":
+        t0 = time.perf_counter() if self._perfil is not None else None
         geometrias_salida = tuple(
             geometria.plan_pooling.geometria_salida
             for geometria in self.geometrias
@@ -183,9 +228,21 @@ class LoteGridOctree:
                 geometria.plan_pooling.entrada_a_salida + int(offset_salida)
             )
         mapa_np = np.concatenate(mapeos)
+        if t0 is not None:
+            self._registrar_perfil(
+                "plan_pooling_cpu_s", time.perf_counter() - t0,
+            )
+            self._perfil["n_planes_pooling"] += 1
+        t0 = time.perf_counter() if self._perfil is not None else None
         mapa = torch.as_tensor(
             mapa_np, dtype=torch.long, device=self.atributos.device,
         )
+        if t0 is not None and self.atributos.device.type == "cuda":
+            torch.cuda.synchronize(self.atributos.device)
+        if t0 is not None:
+            self._registrar_perfil(
+                "transferencia_plan_pooling_s", time.perf_counter() - t0,
+            )
         indice = mapa[:, None].expand(-1, self.atributos.shape[1])
         salida = torch.full(
             (int(offsets_salida[-1]), self.atributos.shape[1]),
@@ -200,6 +257,7 @@ class LoteGridOctree:
             atributos=salida,
             geometrias=geometrias_salida,
             offsets=offsets_salida,
+            _perfil=self._perfil,
         )
 
     def tensor_final_8(self) -> torch.Tensor:
@@ -207,14 +265,28 @@ class LoteGridOctree:
 
         if self.resolucion != 8:
             raise ValueError("La capa FC requiere una salida de resolucion 8^3")
+        t0 = time.perf_counter() if self._perfil is not None else None
         mapas = []
         for offset, geometria in zip(self.offsets[:-1], self.geometrias):
             mapas.append(geometria.indices_voxel_a_hoja() + int(offset))
+        mapa_np = np.concatenate(mapas)
+        if t0 is not None:
+            self._registrar_perfil(
+                "mapa_final_cpu_s", time.perf_counter() - t0,
+            )
+            self._perfil["n_mapas_finales"] += 1
+        t0 = time.perf_counter() if self._perfil is not None else None
         indices = torch.as_tensor(
-            np.concatenate(mapas),
+            mapa_np,
             dtype=torch.long,
             device=self.atributos.device,
         )
+        if t0 is not None and self.atributos.device.type == "cuda":
+            torch.cuda.synchronize(self.atributos.device)
+        if t0 is not None:
+            self._registrar_perfil(
+                "transferencia_mapa_final_s", time.perf_counter() - t0,
+            )
         # El mapa se genero en orden (x,y,z). Se devuelve (B,C,X,Y,Z).
         denso = self.atributos.index_select(0, indices)
         denso = denso.reshape(self.batch_size, 8, 8, 8, -1)

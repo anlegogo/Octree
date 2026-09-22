@@ -131,7 +131,8 @@ equipo con PyTorch y los NPZ:
 python fase3_net5/fase3_net5_entrenamiento.py \
   --resolucion 32 --backend octree_native --tag _smoke_native \
   --limite_train 40 --limite_val 40 --limite_test 40 \
-  --epochs 1 --batch_size 1 --num-workers 0
+  --epochs 1 --batch_size 1 --num-workers 0 \
+  --exigir-git-limpio --lotes-perfil 3
 ```
 
 Una corrida limitada queda marcada como `PARCIAL_SMOKE`. Solo una corrida
@@ -139,6 +140,13 @@ nativa sin límites puede marcarse como resultado completo del Objetivo 3.
 El backend usa `batch_size=1` de forma predeterminada porque los planes
 dispersos dependen de la topología de cada objeto. Antes de aumentarlo se debe
 comprobar la VRAM con R=64.
+
+La opcion `--exigir-git-limpio` captura la rama, el commit y el estado del
+repositorio antes de crear resultados; la corrida se detiene si existen
+cambios locales. El resumen incluye ademas un `perfil_rendimiento` que separa
+carga del lote, transferencia de atributos, construccion y transferencia de
+planes, y el resto del `forward`. Para R=64 se repite el mismo comando
+cambiando `--resolucion 32` por `--resolucion 64`.
 
 La construcción vectorizada de planes ya evita escanear volúmenes R³, pero
 sigue ejecutándose en CPU al cargar cada lote. Por ello esta versión debe

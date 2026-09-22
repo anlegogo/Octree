@@ -24,7 +24,6 @@ import csv
 import json
 import time
 import argparse
-import subprocess
 import numpy as np
 import torch
 import torch.nn as nn
@@ -44,6 +43,7 @@ from particion_objetivo2 import (
     listar_muestras_octree,
     seleccionar_subconjunto_balanceado,
 )
+from trazabilidad_git import capturar_estado_git, exigir_estado_git_limpio
 
 RAIZ_PROYECTO = Path(__file__).resolve().parent.parent
 SEED = 42
@@ -60,29 +60,6 @@ def _ruta_portable(ruta: Path) -> str:
         return ruta.relative_to(RAIZ_PROYECTO.resolve()).as_posix()
     except ValueError:
         return ruta.name
-
-
-def _estado_git() -> dict:
-    """Identifica exactamente el codigo usado por una corrida."""
-
-    try:
-        commit = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            cwd=RAIZ_PROYECTO,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-        dirty = bool(subprocess.run(
-            ["git", "status", "--porcelain"],
-            cwd=RAIZ_PROYECTO,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip())
-    except (OSError, subprocess.CalledProcessError):
-        return {"git_commit": None, "git_dirty": None}
-    return {"git_commit": commit, "git_dirty": dirty}
 
 
 # ──────────────────────────────────────────────────────────────
@@ -176,6 +153,86 @@ def medir_tiempo_inferencia(modelo, loader, device, n_repeticiones: int = 3) -> 
     }
 
 
+def medir_perfil_rendimiento(modelo, loader, device, n_lotes: int = 3) -> dict:
+    """Separa carga, transferencia, planes del backend y resto del forward."""
+
+    modelo.eval()
+    tiempos = {
+        "carga_lote_s": 0.0,
+        "transferencia_atributos_s": 0.0,
+        "forward_total_s": 0.0,
+    }
+    perfil_backend = {}
+    total_muestras = 0
+    lotes_medidos = 0
+    iterador = iter(loader)
+
+    with torch.no_grad():
+        while lotes_medidos < n_lotes:
+            t0 = time.perf_counter()
+            try:
+                grids, _ = next(iterador)
+            except StopIteration:
+                break
+            tiempos["carga_lote_s"] += time.perf_counter() - t0
+
+            _sincronizar_cuda(device)
+            t0 = time.perf_counter()
+            grids = grids.to(device, non_blocking=True)
+            _sincronizar_cuda(device)
+            tiempos["transferencia_atributos_s"] += time.perf_counter() - t0
+
+            if hasattr(grids, "activar_perfil"):
+                grids.activar_perfil()
+            _sincronizar_cuda(device)
+            t0 = time.perf_counter()
+            modelo(grids)
+            _sincronizar_cuda(device)
+            tiempos["forward_total_s"] += time.perf_counter() - t0
+
+            if hasattr(grids, "resumen_perfil"):
+                for clave, valor in grids.resumen_perfil().items():
+                    perfil_backend[clave] = perfil_backend.get(clave, 0) + valor
+            total_muestras += grids.size(0)
+            lotes_medidos += 1
+
+    tiempos_plan_s = sum(
+        float(valor)
+        for clave, valor in perfil_backend.items()
+        if clave.endswith("_s")
+    )
+    resto_forward_s = max(0.0, tiempos["forward_total_s"] - tiempos_plan_s)
+    divisor = max(total_muestras, 1)
+    return {
+        "lotes_medidos": lotes_medidos,
+        "muestras_medidas": total_muestras,
+        "carga_lote_ms_por_muestra": round(
+            tiempos["carga_lote_s"] * 1000 / divisor, 4,
+        ),
+        "transferencia_atributos_ms_por_muestra": round(
+            tiempos["transferencia_atributos_s"] * 1000 / divisor, 4,
+        ),
+        "forward_total_ms_por_muestra": round(
+            tiempos["forward_total_s"] * 1000 / divisor, 4,
+        ),
+        "planes_backend_ms_por_muestra": round(
+            tiempos_plan_s * 1000 / divisor, 4,
+        ),
+        "resto_forward_ms_por_muestra": round(
+            resto_forward_s * 1000 / divisor, 4,
+        ),
+        "detalle_backend": {
+            clave.replace("_s", "_ms"): round(float(valor) * 1000 / divisor, 4)
+            if clave.endswith("_s") else int(valor)
+            for clave, valor in perfil_backend.items()
+        },
+        "nota": (
+            "Perfil diagnostico sobre un subconjunto de lotes; los tiempos "
+            "de planes incluyen su construccion en CPU y copia al dispositivo."
+        ),
+    }
+
+
 # ──────────────────────────────────────────────────────────────
 # MAIN
 # ──────────────────────────────────────────────────────────────
@@ -219,7 +276,21 @@ def main():
         default=RAIZ_PROYECTO / "resultados" / "objetivo3",
     )
     parser.add_argument("--num-workers", type=int, default=4)
+    parser.add_argument(
+        "--lotes-perfil", type=int, default=3,
+        help="Numero de lotes de test usados para perfilar el backend",
+    )
+    parser.add_argument(
+        "--exigir-git-limpio", action="store_true",
+        help="Abortar si la corrida no parte de un commit sin cambios locales",
+    )
     args = parser.parse_args()
+    if args.lotes_perfil < 1:
+        raise ValueError("--lotes-perfil debe ser al menos 1")
+
+    estado_git_inicial = capturar_estado_git(RAIZ_PROYECTO)
+    if args.exigir_git_limpio:
+        exigir_estado_git_limpio(estado_git_inicial)
 
     R = args.resolucion
     if args.batch_size is None:
@@ -232,6 +303,12 @@ def main():
         )
 
     print("=" * 60)
+    print(
+        "  Git            : "
+        f"{estado_git_inicial.get('git_branch') or 'desconocida'} @ "
+        f"{(estado_git_inicial.get('git_commit') or 'desconocido')[:12]} | "
+        f"limpio={estado_git_inicial.get('git_dirty') is False}"
+    )
     nombre_backend = (
         "NET5-OCTREE NATIVO"
         if args.backend == "octree_native"
@@ -412,6 +489,10 @@ def main():
     # Medir tiempo de inferencia (Fase 4)
     print("[Fase 4] Midiendo tiempo de inferencia...")
     metricas_inf = medir_tiempo_inferencia(modelo, loader_test, device)
+    print("[Diagnostico] Perfilando carga, planes y ejecucion...")
+    perfil_rendimiento = medir_perfil_rendimiento(
+        modelo, loader_test, device, n_lotes=args.lotes_perfil,
+    )
 
     # Tamano del modelo en MB
     tamano_mb = ckpt_path.stat().st_size / 1e6
@@ -429,6 +510,18 @@ def main():
     print(f"  Inf/muestra     : {metricas_inf['tiempo_inferencia_promedio_ms']:.3f} ms")
     print(f"  VRAM pico       : {vram_pico_mb:.1f} MB")
     print(f"  Tamano modelo   : {tamano_mb:.2f} MB")
+    print(
+        "  Perfil forward  : "
+        f"{perfil_rendimiento['forward_total_ms_por_muestra']:.1f} ms/muestra "
+        f"(planes {perfil_rendimiento['planes_backend_ms_por_muestra']:.1f}; "
+        f"resto {perfil_rendimiento['resto_forward_ms_por_muestra']:.1f})"
+    )
+    print(
+        "  Carga/transfer. : "
+        f"{perfil_rendimiento['carga_lote_ms_por_muestra']:.1f} / "
+        f"{perfil_rendimiento['transferencia_atributos_ms_por_muestra']:.1f} "
+        "ms/muestra"
+    )
     print("=" * 60)
 
     limites_activos = any(
@@ -460,8 +553,8 @@ def main():
         "schema_name": (
             "net5-octree-native" if es_nativo else "dense-table5-diagnostic"
         ),
-        "schema_version": "1.0.0",
-        "backend_version": "1.0.0",
+        "schema_version": "1.1.0",
+        "backend_version": "1.0.1",
         "alcance": (
             "PARCIAL_SMOKE"
             if limites_activos
@@ -474,7 +567,7 @@ def main():
         "valido_como_resultado_objetivo3": resultado_oficial,
         "motivo_no_valido": motivo_no_valido,
         "backend": args.backend,
-        **_estado_git(),
+        **estado_git_inicial,
         "resolucion": R,
         "profundidad_octree": 5 if R == 32 else 6,
         "parametros_entrenables": sum(
@@ -497,6 +590,8 @@ def main():
             "lr": args.lr,
             "weight_decay": 1e-4,
             "scheduler": "StepLR(step_size=20, gamma=0.7)",
+            "lotes_perfil": args.lotes_perfil,
+            "exigir_git_limpio": args.exigir_git_limpio,
         },
         "mejor_val_acc":  round(float(mejor_val_acc), 6),
         "mejor_epoca":    int(ckpt["epoca"]),
@@ -505,6 +600,7 @@ def main():
         "tiempo_total_min": round(t_total, 2),
         "tamano_modelo_mb": round(tamano_mb, 2),
         "vram_pico_mb":     round(vram_pico_mb, 1),
+        "perfil_rendimiento": perfil_rendimiento,
         "matriz_confusion":          matriz_conf,
         "reporte_clasificacion":     reporte_cls,
         **metricas_inf,
