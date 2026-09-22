@@ -86,3 +86,19 @@ def test_capacidad_fija_y_guardas_sin_expansion_r3():
 
     fuente = inspect.getsource(type(modelo_32))
     assert "Conv3d" not in fuente
+
+
+def test_perfil_backend_registra_planes_sin_alterar_salida():
+    torch.manual_seed(42)
+    lote = _lote_sintetico(32).activar_perfil()
+    modelo = Net5Octree(resolucion=32, dropout=0.0).eval()
+
+    with torch.no_grad():
+        logits = modelo(lote)
+
+    perfil = lote.resumen_perfil()
+    assert logits.shape == (1, 40)
+    assert perfil["n_planes_convolucion"] > 0
+    assert perfil["n_planes_pooling"] > 0
+    assert perfil["n_mapas_finales"] == 1
+    assert perfil["plan_convolucion_cpu_s"] >= 0.0
