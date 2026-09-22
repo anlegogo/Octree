@@ -41,3 +41,19 @@ Este contrato separa una implementación OctNet válida de una CNN 3D densa.
 
 Hasta satisfacer estos puntos, cualquier ejecución de `DenseTabla5Reference`
 es exclusivamente diagnóstica y no cierra el Objetivo 3.
+
+## Implementación asociada
+
+- `grid_octree.py`: conversión del árbol global, hojas vacías implícitas y
+  planes directos de convolución/pooling.
+- `octnet_backend.py`: operaciones diferenciables PyTorch sin `Conv3d`.
+- `net5_dataset_octree.py`: carga y agrupación de muestras sin volumen R³.
+- `Net5Octree` en `net5_modelo.py`: topología completa de la Tabla 5.
+- `tests/test_grid_octree.py`: equivalencia geométrica ya verificable sin
+  PyTorch.
+- `tests/test_octnet_backend.py`: forward, backward, checkpoint, capacidad
+  fija y guardas, pendiente de ejecutarse donde esté instalado PyTorch.
+
+La expansión de la salida final 8³ para las capas totalmente conectadas está
+permitida: no reconstruye el volumen de entrada R=32/R=64 y es parte explícita
+de la arquitectura de clasificación de la Tabla 5.

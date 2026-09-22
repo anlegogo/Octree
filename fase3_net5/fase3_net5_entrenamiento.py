@@ -1,8 +1,8 @@
-"""Entrenamiento diagnostico de la referencia densa de la Tabla 5.
+"""Entrenamiento de Net5-Octree y de su referencia densa diagnostica.
 
-Este script NO produce resultados oficiales del objetivo 3 mientras el
-backend sea ``dense_reference``. Se mantiene para validar el flujo de datos,
-entrenamiento y reporte antes de conectar el backend OctNet nativo.
+El backend predeterminado ``octree_native`` opera directamente sobre el
+grid-octree. ``dense_reference`` se conserva solo como diagnostico y sus
+resultados nunca son oficiales.
 
 Caracteristicas:
   - CPU o GPU via PyTorch
@@ -24,6 +24,7 @@ import csv
 import json
 import time
 import argparse
+import subprocess
 import numpy as np
 import torch
 import torch.nn as nn
@@ -36,7 +37,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from fase1_setup import set_global_seed
 from net5_dataset import CLASES, crear_dataloaders_densos_referencia
-from net5_modelo import crear_modelo_denso_referencia, get_device
+from net5_dataset_octree import crear_dataloaders_octree
+from net5_modelo import crear_modelo, crear_modelo_denso_referencia, get_device
 from particion_objetivo2 import (
     cargar_o_crear_particion,
     listar_muestras_octree,
@@ -58,6 +60,29 @@ def _ruta_portable(ruta: Path) -> str:
         return ruta.relative_to(RAIZ_PROYECTO.resolve()).as_posix()
     except ValueError:
         return ruta.name
+
+
+def _estado_git() -> dict:
+    """Identifica exactamente el codigo usado por una corrida."""
+
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=RAIZ_PROYECTO,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        dirty = bool(subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=RAIZ_PROYECTO,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip())
+    except (OSError, subprocess.CalledProcessError):
+        return {"git_commit": None, "git_dirty": None}
+    return {"git_commit": commit, "git_dirty": dirty}
 
 
 # ──────────────────────────────────────────────────────────────
@@ -165,7 +190,10 @@ def main():
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--patience", type=int, default=20,
                         help="Early stopping: epocas sin mejora antes de parar")
-    parser.add_argument("--batch_size", type=int, default=16)
+    parser.add_argument(
+        "--batch_size", type=int, default=None,
+        help="Por defecto: 1 para octree_native y 16 para dense_reference",
+    )
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--limite_train", type=int, default=None,
                         help="Usar N muestras balanceadas de train "
@@ -194,20 +222,22 @@ def main():
     args = parser.parse_args()
 
     R = args.resolucion
+    if args.batch_size is None:
+        args.batch_size = 1 if args.backend == "octree_native" else 16
 
-    if args.backend == "octree_native":
-        raise NotImplementedError(
-            "El backend OctNet nativo esta pendiente. La implementacion con "
-            "nn.Conv3d no puede usarse como resultado oficial del objetivo 3."
-        )
-    if not args.tag:
+    if args.backend == "dense_reference" and not args.tag:
         raise ValueError(
             "La referencia densa es solo diagnostica y requiere --tag "
             "(por ejemplo, --tag _smoke_dense)."
         )
 
     print("=" * 60)
-    print(f"  DIAGNOSTICO DENSO TABLA 5 — Resolucion {R}^3")
+    nombre_backend = (
+        "NET5-OCTREE NATIVO"
+        if args.backend == "octree_native"
+        else "DIAGNOSTICO DENSO TABLA 5"
+    )
+    print(f"  {nombre_backend} — Resolucion {R}^3")
     print("=" * 60)
 
     set_global_seed(SEED)
@@ -237,18 +267,28 @@ def main():
         idx_test, etiquetas_test, args.limite_test, SEED,
     )
 
-    loader_train, loader_val, loader_test = crear_dataloaders_densos_referencia(
-        raiz_resolucion=str(raiz_resolucion),
-        resolucion=R,
-        idx_train=idx_train,
-        idx_val=idx_val,
-        idx_test=idx_test,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
-        seed=SEED,
-    )
-
-    modelo, device = crear_modelo_denso_referencia(resolucion=R, device=device)
+    argumentos_loader = {
+        "raiz_resolucion": str(raiz_resolucion),
+        "resolucion": R,
+        "idx_train": idx_train,
+        "idx_val": idx_val,
+        "idx_test": idx_test,
+        "batch_size": args.batch_size,
+        "num_workers": args.num_workers,
+        "seed": SEED,
+    }
+    if args.backend == "octree_native":
+        loader_train, loader_val, loader_test = crear_dataloaders_octree(
+            **argumentos_loader,
+        )
+        modelo, device = crear_modelo(resolucion=R, device=device)
+    else:
+        loader_train, loader_val, loader_test = (
+            crear_dataloaders_densos_referencia(**argumentos_loader)
+        )
+        modelo, device = crear_modelo_denso_referencia(
+            resolucion=R, device=device,
+        )
     criterio    = nn.CrossEntropyLoss()
     optimizador = optim.Adam(modelo.parameters(), lr=args.lr, weight_decay=1e-4)
     scheduler   = optim.lr_scheduler.StepLR(optimizador, step_size=20, gamma=0.7)
@@ -256,9 +296,10 @@ def main():
         torch.cuda.reset_peak_memory_stats(device)
 
     # Archivos de log
-    csv_path = args.logs_dir / f"dense_tabla5_historial_R{R}{args.tag}.csv"
-    json_path = args.logs_dir / f"dense_tabla5_historial_R{R}{args.tag}.json"
-    ckpt_path = args.checkpoints_dir / f"dense_tabla5_mejor_R{R}{args.tag}.pth"
+    prefijo = "net5_octree" if args.backend == "octree_native" else "dense_tabla5"
+    csv_path = args.logs_dir / f"{prefijo}_historial_R{R}{args.tag}.csv"
+    json_path = args.logs_dir / f"{prefijo}_historial_R{R}{args.tag}.json"
+    ckpt_path = args.checkpoints_dir / f"{prefijo}_mejor_R{R}{args.tag}.pth"
 
     historial = []
     mejor_val_acc = float("-inf")
@@ -380,7 +421,7 @@ def main():
                    if device.type == "cuda" else 0.0
 
     print("\n" + "=" * 60)
-    print(f"  DIAGNOSTICO DENSO COMPLETADO — R={R}^3")
+    print(f"  {nombre_backend} COMPLETADO — R={R}^3")
     print("=" * 60)
     print(f"  Tiempo total    : {t_total:.1f} min")
     print(f"  Mejor Val Acc   : {mejor_val_acc*100:.2f}%  (ep {ckpt['epoca']})")
@@ -394,21 +435,55 @@ def main():
         limite is not None
         for limite in (args.limite_train, args.limite_val, args.limite_test)
     )
-    resumen = {
-        "schema_name": "dense-table5-diagnostic",
-        "schema_version": "1.0.0",
-        "alcance": "PARCIAL_DIAGNOSTICO" if limites_activos else "COMPLETO_DIAGNOSTICO",
-        "valido_como_resultado_objetivo3": False,
-        "motivo_no_valido": (
+    es_nativo = args.backend == "octree_native"
+    test_oficial_completo = len(loader_test.dataset) == 2468
+    resultado_oficial = bool(
+        es_nativo and not limites_activos and test_oficial_completo
+    )
+    if resultado_oficial:
+        motivo_no_valido = None
+    elif not es_nativo:
+        motivo_no_valido = (
             "Usa nn.Conv3d sobre una rejilla densa; no implementa las "
             "operaciones OctNet sobre el grid-octree."
+        )
+    elif limites_activos:
+        motivo_no_valido = (
+            "Corrida nativa limitada; sirve como smoke test, no como "
+            "evaluacion completa."
+        )
+    else:
+        motivo_no_valido = (
+            "El test no contiene las 2.468 muestras oficiales completas."
+        )
+    resumen = {
+        "schema_name": (
+            "net5-octree-native" if es_nativo else "dense-table5-diagnostic"
         ),
-        "backend": "dense_reference",
+        "schema_version": "1.0.0",
+        "backend_version": "1.0.0",
+        "alcance": (
+            "PARCIAL_SMOKE"
+            if limites_activos
+            else (
+                "COMPLETO"
+                if resultado_oficial
+                else ("INCOMPLETO" if es_nativo else "COMPLETO_DIAGNOSTICO")
+            )
+        ),
+        "valido_como_resultado_objetivo3": resultado_oficial,
+        "motivo_no_valido": motivo_no_valido,
+        "backend": args.backend,
+        **_estado_git(),
         "resolucion": R,
         "profundidad_octree": 5 if R == 32 else 6,
+        "parametros_entrenables": sum(
+            p.numel() for p in modelo.parameters() if p.requires_grad
+        ),
         "seed": SEED,
         "particion": {
             "manifest": _ruta_portable(args.particion_manifest),
+            "raiz_datos": _ruta_portable(raiz_resolucion),
             "metodo": particion["metodo"],
             "n_train_total": particion["n_train_total"],
             "n_train_usado": len(loader_train.dataset),
@@ -435,7 +510,7 @@ def main():
         **metricas_inf,
     }
 
-    salida = args.resultados_dir / f"resumen_dense_tabla5_R{R}{args.tag}.json"
+    salida = args.resultados_dir / f"resumen_{prefijo}_R{R}{args.tag}.json"
     with salida.open("w", encoding="utf-8", newline="\n") as f:
         json.dump(resumen, f, indent=2)
         f.write("\n")

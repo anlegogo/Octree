@@ -2,17 +2,21 @@
 
 ## Estado actual
 
-El backend **OctNet nativo todavía no está implementado**. El código incluido
-en esta carpeta permite probar la topología de capacidad fija de la Tabla 5
-del material suplementario de Riegler, Ulusoy y Geiger (CVPR 2017), pero lo
-hace con `torch.nn.Conv3d` sobre una rejilla densa `(4, R, R, R)`.
+Ya existe un **backend OctNet nativo de referencia** que opera directamente
+sobre hojas jerárquicas y no usa `torch.nn.Conv3d` ni materializa el volumen
+de entrada `(4, R, R, R)`. La implementación está conectada a la topología de
+capacidad fija de la Tabla 5 y al script de entrenamiento.
 
-Por tanto:
+El núcleo geométrico y su equivalencia matemática con convolución y pooling
+densos están cubiertos por pruebas independientes de PyTorch. Todavía faltan
+dos validaciones operativas para cerrar el objetivo:
 
-- la referencia densa no debe denominarse Net5/OctNet en los resultados;
-- sus métricas no son evidencia válida del Objetivo 3;
-- los entrenamientos oficiales deben esperar al backend que opere
-  directamente sobre la jerarquía `grid-octree`.
+- ejecutar en el equipo con PyTorch las pruebas de forward, backward y
+  checkpoint del backend completo;
+- medir su rendimiento y entrenar R=32/R=64 sobre ModelNet40 completo.
+
+La antigua referencia densa se conserva únicamente para diagnóstico y nunca
+debe denominarse Net5/OctNet en los resultados.
 
 El contrato que debe cumplir ese backend está en
 [`CONTRATO_BACKEND_OCTNET.md`](CONTRATO_BACKEND_OCTNET.md).
@@ -24,9 +28,28 @@ La variante de capacidad fija está descrita en la **Tabla 5**, no en la Tabla
 High Resolutions*. La adaptación diagnóstica usa cuatro canales de entrada
 (ocupación y normal promedio) y 40 logits para ModelNet40.
 
-`net5_modelo.py` conserva esa topología únicamente como referencia densa. La
-función genérica `crear_modelo()` falla de forma explícita para impedir que
-esa CNN se presente accidentalmente como OctNet.
+`net5_modelo.py` expone dos rutas separadas:
+
+- `crear_modelo()` construye `Net5Octree` sobre el backend disperso;
+- `crear_modelo_denso_referencia()` construye la referencia diagnóstica con
+  `Conv3d`.
+
+## Conversión al grid-octree
+
+`grid_octree.py` convierte el octree global del Objetivo 1 a la estructura
+híbrida del artículo:
+
+1. R=32 se divide en una rejilla de `4 x 4 x 4` octrees; R=64, en una de
+   `8 x 8 x 8`.
+2. Cada octree de la rejilla tiene profundidad máxima 3 y cubre `8^3`
+   posiciones de la resolución efectiva.
+3. Las ramas podadas del NPZ se recuperan como hojas vacías implícitas; las
+   hojas ocupadas conservan `[ocupación, nx, ny, nz]`.
+4. La convolución 3x3x3 usa intersecciones entre hojas para implementar el
+   promedio de la ecuación 8 sin `oc2ten` materializado.
+5. El max-pooling transforma la jerarquía según la ecuación 10. Solo al llegar
+   a la salida final 8^3 se expande ese pequeño tensor para la capa FC de la
+   Tabla 5.
 
 ## Partición experimental
 
@@ -56,7 +79,14 @@ ejecutan con:
 python -m pytest
 ```
 
-La integración densa con los octrees reales es una prueba local y
+Las pruebas del backend PyTorch se omiten automáticamente si PyTorch no está
+instalado:
+
+```bash
+python -m pytest tests/test_octnet_backend.py -v
+```
+
+La integración densa histórica con los octrees reales sigue siendo local y
 diagnóstica. Si PyTorch o `data/octrees_{32,64}` no están disponibles, pytest
 la omite:
 
@@ -92,12 +122,39 @@ toman simplemente los primeros objetos del test. El informe resultante usa
 el esquema `dense-table5-diagnostic` y nunca debe incorporarse a las tablas
 comparativas del Objetivo 3.
 
+## Smoke test del backend nativo
+
+Antes del entrenamiento completo debe ejecutarse una muestra corta en el
+equipo con PyTorch y los NPZ:
+
+```bash
+python fase3_net5/fase3_net5_entrenamiento.py \
+  --resolucion 32 --backend octree_native --tag _smoke_native \
+  --limite_train 40 --limite_val 40 --limite_test 40 \
+  --epochs 1 --batch_size 1 --num-workers 0
+```
+
+Una corrida limitada queda marcada como `PARCIAL_SMOKE`. Solo una corrida
+nativa sin límites puede marcarse como resultado completo del Objetivo 3.
+El backend usa `batch_size=1` de forma predeterminada porque los planes
+dispersos dependen de la topología de cada objeto. Antes de aumentarlo se debe
+comprobar la VRAM con R=64.
+
+La construcción vectorizada de planes ya evita escanear volúmenes R³, pero
+sigue ejecutándose en CPU al cargar cada lote. Por ello esta versión debe
+perfilarse con datos reales antes de programar las corridas completas; si esa
+fase domina el tiempo, el siguiente paso técnico es trasladar la construcción
+del plan a una extensión C++/CUDA, sin cambiar la semántica ya validada.
+
 ## Pendiente para cerrar el Objetivo 3
 
-1. Implementar o integrar operaciones de convolución, pooling y unpooling
-   directamente sobre el `grid-octree`.
-2. Conectar la topología de capacidad fija de la Tabla 5 a ese backend.
-3. Verificar forward, backward, checkpoint y consumo de memoria sin expandir
-   las entradas a `R³`.
-4. Entrenar R=32 y R=64 completos con el mismo manifiesto del Objetivo 2.
-5. Evaluar las 2.468 muestras del test oficial y generar evidencia trazable.
+1. Ejecutar las pruebas PyTorch y el smoke test nativo en la máquina de
+   entrenamiento.
+2. Medir tiempo/VRAM y, si es necesario, optimizar el plan disperso antes de
+   las corridas completas.
+3. Entrenar R=32 y R=64 completos con el mismo manifiesto del Objetivo 2.
+4. Evaluar las 2.468 muestras del test oficial y generar evidencia trazable.
+
+El unpooling descrito por el artículo no forma parte de Net5 de clasificación
+y por eso no se incluye en esta ruta. Será necesario únicamente si se adopta
+una arquitectura de decodificación o segmentación.
